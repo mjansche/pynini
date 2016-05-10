@@ -1,0 +1,2 @@
+include src/*.h
+include pynini_test.py

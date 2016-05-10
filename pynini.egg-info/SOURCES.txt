@@ -3,7 +3,7 @@ CONTRIBUTING
 LICENSE
 MANIFEST.in
 NEWS
-README.md
+README.rst
 pynini_test.py
 setup.py
 pynini.egg-info/PKG-INFO

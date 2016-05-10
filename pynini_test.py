@@ -161,9 +161,6 @@ class PyniniTest(unittest.TestCase):
     codepoints = [int(cp) for cp in a.stringify("symbol").split()]
     self.assertEqual(codepoints, [ord(cp) for cp in cheese])
     ## Degenerate behaviors.
-    # With a transducer (where the upper language string argument is longer),
-    # it returns the lower language string padded with null bytes.
-    self.assertEqual(transducer("Gouda", "Edam").stringify(), b"Edam\0")
     # With a non-string FST, it doesn't work.
     with self.assertRaises(FstArgError):
       unused_s = union("Fynbo", "Pont l'Evêque").stringify()

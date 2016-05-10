@@ -65,7 +65,7 @@ pynini = Extension(name="pynini", language="c++",
                             "src/crossproductscript.cc"])
 
 setup(
-    name="pynini", version="0.6",
+    name="pynini", version="0.7",
     description="Finite-state grammar compilation library",
     author="Kyle Gorman", author_email="kbg@google.com",
     url="http://pynini.opengrm.org/",

@@ -1,9 +1,17 @@
+v. 0.7 (third public beta)
+==========================
+
+* Fixes symbol table handling in pdt_replace
+* Optimizes symbol table merging for one common case
+* Adds output-projection and epsilon-removal to stringify(), so the resulting
+  string will not be padded with '\0' bytes
+
 v. 0.6 (second public beta)
 ===========================
 
 * Adds `string_map` function (cf. Thrax's StringMap)
 * Adds the ability to use symbol tables as the `token_type` for `acceptor` and the `input_token_type` and/or `output_token_type` for `transducer` or `string_map`
-* Adds Python 3 compatibility (requires re-Cythonization)
+* Adds Python 3 compatibility fixes (requires re-Cythonization)
 * Adds NEWS file
 
 v. 0.5 (first public beta)

@@ -919,16 +919,16 @@ cpdef Fst cdrewrite(tau, lambda_, rho, sigma_star, direction=b"ltr",
   return result
 
 
-cpdef Fst string_map(mappings, arc_type=b"standard", input_token_type=b"byte",
-                     output_token_type=b"byte"):
+def string_map(*pairs, arc_type=b"standard", input_token_type=b"byte",
+               output_token_type=b"byte"):
   """
-  string_map(mappings, arc_type="standard", input_token_type="byte",
+  string_map(*pairs, arc_type="standard", input_token_type="byte",
              output_token_type="byte")
 
   Creates a transducer that maps between elements of mappings.
 
   Args:
-    mappings: an iterable of of input-output pairs of strings. If an element is
+    *pairs: an iterable of of input-output pairs of strings. If an element is
         a singleton, the identity mapping is used.
     arc_type: A string indicating the arc type.
     input_token_type: A string indicating how the input strings are to be
@@ -936,8 +936,8 @@ cpdef Fst string_map(mappings, arc_type=b"standard", input_token_type=b"byte",
         encoded Unicode strings), "byte" (encodes strings as raw bytes)---or a
         SymbolTable.
     output_token_type: A string indicating how the output strings are to be
-        encoded as arc labels---one of: utf8" (encodes strings as a UTF-8 encoded
-        Unicode strings), "byte" (encodes strings as raw bytes)---or a
+        encoded as arc labels---one of: utf8" (encodes strings as a UTF-8
+        encoded Unicode strings), "byte" (encodes strings as raw bytes)---or a
         SymbolTable.
 
   Returns:
@@ -948,14 +948,14 @@ cpdef Fst string_map(mappings, arc_type=b"standard", input_token_type=b"byte",
   """
   cdef Fst result = Fst(arc_type)
   cdef Fst tfst
-  for mapping in mappings:
-    if (not 0 < len(mapping) <= 2):
+  for pair in pairs:
+    if (not 0 < len(pair) <= 2):
       raise FstArgError("Mappings must be of length 1 or 2")
     try:
-      (m0, m1) = mapping
+      (p0, p1) = pair
     except ValueError:
-      m1 = m0 = mapping[0]
-    tfst = transducer(m0, m1, arc_type=result.arc_type,
+      p1 = p0 = pair[0]
+    tfst = transducer(p0, p1, arc_type=result.arc_type,
                       input_token_type=input_token_type,
                       output_token_type=output_token_type)
     result.union(tfst)

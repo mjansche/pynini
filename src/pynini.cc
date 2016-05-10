@@ -1383,7 +1383,6 @@ struct __pyx_opt_args_6pynini__compile_Fst;
 struct __pyx_opt_args_6pynini_acceptor;
 struct __pyx_opt_args_6pynini_transducer;
 struct __pyx_opt_args_6pynini_cdrewrite;
-struct __pyx_opt_args_6pynini_string_map;
 struct __pyx_opt_args_6pynini_mpdt_compose;
 
 /* "pynini.pyx":365
@@ -1476,20 +1475,6 @@ struct __pyx_opt_args_6pynini_cdrewrite {
   int __pyx_n;
   PyObject *direction;
   PyObject *mode;
-};
-
-/* "pynini.pyx":922
- * 
- * 
- * cpdef Fst string_map(mappings, arc_type=b"standard", input_token_type=b"byte",             # <<<<<<<<<<<<<<
- *                      output_token_type=b"byte"):
- *   """
- */
-struct __pyx_opt_args_6pynini_string_map {
-  int __pyx_n;
-  PyObject *arc_type;
-  PyObject *input_token_type;
-  PyObject *output_token_type;
 };
 
 /* "pynini.pyx":1649
@@ -2812,7 +2797,6 @@ static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini__init_Fst_from_MutableFst(s
 static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_acceptor(PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_6pynini_acceptor *__pyx_optional_args); /*proto*/
 static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_transducer(PyObject *, PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_6pynini_transducer *__pyx_optional_args); /*proto*/
 static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_cdrewrite(PyObject *, PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_6pynini_cdrewrite *__pyx_optional_args); /*proto*/
-static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_string_map(PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_6pynini_string_map *__pyx_optional_args); /*proto*/
 static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_mpdt_compose(PyObject *, PyObject *, struct __pyx_obj_6pynini_MPdtParentheses *, int __pyx_skip_dispatch, struct __pyx_opt_args_6pynini_mpdt_compose *__pyx_optional_args); /*proto*/
 static CYTHON_INLINE PyObject *__pyx_convert_PyObject_string_to_py_std__in_string(std::string const &); /*proto*/
 static CYTHON_INLINE PyObject *__pyx_convert_PyUnicode_string_to_py_std__in_string(std::string const &); /*proto*/
@@ -2839,6 +2823,8 @@ static char __pyx_k_r[] = "r";
 static char __pyx_k_cf[] = "cf";
 static char __pyx_k_id[] = "id";
 static char __pyx_k_nt[] = "nt";
+static char __pyx_k_p0[] = "p0";
+static char __pyx_k_p1[] = "p1";
 static char __pyx_k_qt[] = "qt";
 static char __pyx_k_tb[] = "tb";
 static char __pyx_k_wc[] = "wc";
@@ -2885,6 +2871,7 @@ static char __pyx_k_name[] = "name";
 static char __pyx_k_next[] = "next";
 static char __pyx_k_open[] = "open";
 static char __pyx_k_opts[] = "opts";
+static char __pyx_k_pair[] = "pair";
 static char __pyx_k_plus[] = "plus";
 static char __pyx_k_push[] = "push";
 static char __pyx_k_ques[] = "ques";
@@ -2894,6 +2881,7 @@ static char __pyx_k_root[] = "root";
 static char __pyx_k_send[] = "send";
 static char __pyx_k_star[] = "star";
 static char __pyx_k_test[] = "__test__";
+static char __pyx_k_tfst[] = "tfst";
 static char __pyx_k_utf8[] = "utf8";
 static char __pyx_k_ERROR[] = "ERROR";
 static char __pyx_k_close[] = "close";
@@ -2973,7 +2961,6 @@ static char __pyx_k_far_type[] = "far_type";
 static char __pyx_k_filename[] = "filename";
 static char __pyx_k_isymbols[] = "isymbols";
 static char __pyx_k_left_pdt[] = "left_pdt";
-static char __pyx_k_mappings[] = "mappings";
 static char __pyx_k_optimize[] = "optimize";
 static char __pyx_k_osymbols[] = "osymbols";
 static char __pyx_k_property[] = "property";
@@ -3011,6 +2998,7 @@ static char __pyx_k_pdt_expand[] = "pdt_expand";
 static char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static char __pyx_k_result_fst[] = "result_fst";
 static char __pyx_k_sigma_star[] = "sigma_star";
+static char __pyx_k_string_map[] = "string_map";
 static char __pyx_k_token_type[] = "token_type";
 static char __pyx_k_transducer[] = "transducer";
 static char __pyx_k_ArcIterator[] = "ArcIterator";
@@ -3132,7 +3120,7 @@ static char __pyx_k_UTF8_string_compilation_failed[] = "UTF8 string compilation 
 static char __pyx_k_Cannot_invoke_method_in_current[] = "Cannot invoke method in current mode: '{:c}'";
 static char __pyx_k_Mappings_must_be_of_length_1_or[] = "Mappings must be of length 1 or 2";
 static char __pyx_k_Unknown_PDT_compose_filter_type[] = "Unknown PDT compose filter type: {!r}";
-static char __pyx_k_usr_local_google_home_kbg_src_p[] = "/usr/local/google/home/kbg/src/pynini6/src/pynini.pyx";
+static char __pyx_k_usr_local_google_home_kbg_src_p[] = "/usr/local/google/home/kbg/src/pynini7/src/pynini.pyx";
 static char __pyx_k_Compiled_rewrite_rule_has_no_con[] = "Compiled rewrite rule has no connected states";
 static char __pyx_k_Composed_FST_has_no_connected_st[] = "Composed FST has no connected states";
 static char __pyx_k_Composed_MPDT_has_no_connected_s[] = "Composed MPDT has no connected states";
@@ -3344,7 +3332,6 @@ static PyObject *__pyx_n_s_logging;
 static PyObject *__pyx_n_s_lower;
 static PyObject *__pyx_n_b_ltr;
 static PyObject *__pyx_n_s_main;
-static PyObject *__pyx_n_s_mappings;
 static PyObject *__pyx_n_s_metaclass;
 static PyObject *__pyx_n_s_mode;
 static PyObject *__pyx_n_s_module;
@@ -3366,6 +3353,9 @@ static PyObject *__pyx_n_s_opts;
 static PyObject *__pyx_n_s_ostring;
 static PyObject *__pyx_n_s_osymbols;
 static PyObject *__pyx_n_s_output_token_type;
+static PyObject *__pyx_n_s_p0;
+static PyObject *__pyx_n_s_p1;
+static PyObject *__pyx_n_s_pair;
 static PyObject *__pyx_n_s_pairs;
 static PyObject *__pyx_n_b_paren;
 static PyObject *__pyx_n_s_parens;
@@ -3426,6 +3416,7 @@ static PyObject *__pyx_n_b_sim;
 static PyObject *__pyx_n_b_standard;
 static PyObject *__pyx_n_s_star;
 static PyObject *__pyx_n_s_statemap;
+static PyObject *__pyx_n_s_string_map;
 static PyObject *__pyx_n_s_stringify;
 static PyObject *__pyx_n_s_super;
 static PyObject *__pyx_n_b_symbol;
@@ -3433,6 +3424,7 @@ static PyObject *__pyx_n_s_synchronize;
 static PyObject *__pyx_n_s_tau;
 static PyObject *__pyx_n_s_tb;
 static PyObject *__pyx_n_s_test;
+static PyObject *__pyx_n_s_tfst;
 static PyObject *__pyx_n_s_throw;
 static PyObject *__pyx_n_s_token_type;
 static PyObject *__pyx_n_s_transducer;
@@ -3471,7 +3463,7 @@ static PyObject *__pyx_pf_6pynini__compile_Fst(CYTHON_UNUSED PyObject *__pyx_sel
 static PyObject *__pyx_pf_6pynini_2acceptor(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_astring, PyObject *__pyx_v_weight, PyObject *__pyx_v_arc_type, PyObject *__pyx_v_token_type); /* proto */
 static PyObject *__pyx_pf_6pynini_4transducer(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_istring, PyObject *__pyx_v_ostring, PyObject *__pyx_v_weight, PyObject *__pyx_v_arc_type, PyObject *__pyx_v_input_token_type, PyObject *__pyx_v_output_token_type); /* proto */
 static PyObject *__pyx_pf_6pynini_6cdrewrite(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_tau, PyObject *__pyx_v_lambda_, PyObject *__pyx_v_rho, PyObject *__pyx_v_sigma_star, PyObject *__pyx_v_direction, PyObject *__pyx_v_mode); /* proto */
-static PyObject *__pyx_pf_6pynini_8string_map(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_mappings, PyObject *__pyx_v_arc_type, PyObject *__pyx_v_input_token_type, PyObject *__pyx_v_output_token_type); /* proto */
+static PyObject *__pyx_pf_6pynini_8string_map(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_arc_type, PyObject *__pyx_v_input_token_type, PyObject *__pyx_v_output_token_type, PyObject *__pyx_v_pairs); /* proto */
 static PyObject *__pyx_pf_6pynini_5_1arg_patch(PyObject *__pyx_self, PyObject *__pyx_v_arg, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs); /* proto */
 static PyObject *__pyx_pf_6pynini_10_1arg(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_fnc); /* proto */
 static PyObject *__pyx_pf_6pynini_17_shortestdistance_patch(PyObject *__pyx_self, PyObject *__pyx_v_arg, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs); /* proto */
@@ -3604,6 +3596,7 @@ static PyObject *__pyx_tuple__65;
 static PyObject *__pyx_tuple__67;
 static PyObject *__pyx_tuple__69;
 static PyObject *__pyx_tuple__71;
+static PyObject *__pyx_tuple__73;
 static PyObject *__pyx_codeobj__19;
 static PyObject *__pyx_codeobj__21;
 static PyObject *__pyx_codeobj__24;
@@ -3626,6 +3619,7 @@ static PyObject *__pyx_codeobj__66;
 static PyObject *__pyx_codeobj__68;
 static PyObject *__pyx_codeobj__70;
 static PyObject *__pyx_codeobj__72;
+static PyObject *__pyx_codeobj__74;
 
 /* "pynini.pyx":187
  * 
@@ -10164,60 +10158,118 @@ static PyObject *__pyx_pf_6pynini_6cdrewrite(CYTHON_UNUSED PyObject *__pyx_self,
 /* "pynini.pyx":922
  * 
  * 
- * cpdef Fst string_map(mappings, arc_type=b"standard", input_token_type=b"byte",             # <<<<<<<<<<<<<<
- *                      output_token_type=b"byte"):
+ * def string_map(*pairs, arc_type=b"standard", input_token_type=b"byte",             # <<<<<<<<<<<<<<
+ *                output_token_type=b"byte"):
  *   """
  */
 
+/* Python wrapper */
 static PyObject *__pyx_pw_6pynini_9string_map(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_string_map(PyObject *__pyx_v_mappings, CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_6pynini_string_map *__pyx_optional_args) {
-  PyObject *__pyx_v_arc_type = ((PyObject *)__pyx_n_b_standard);
-  PyObject *__pyx_v_input_token_type = ((PyObject *)__pyx_n_b_byte);
-  PyObject *__pyx_v_output_token_type = ((PyObject *)__pyx_n_b_byte);
+static char __pyx_doc_6pynini_8string_map[] = "\n  string_map(*pairs, arc_type=\"standard\", input_token_type=\"byte\",\n             output_token_type=\"byte\")\n\n  Creates a transducer that maps between elements of mappings.\n\n  Args:\n    *pairs: an iterable of of input-output pairs of strings. If an element is\n        a singleton, the identity mapping is used.\n    arc_type: A string indicating the arc type.\n    input_token_type: A string indicating how the input strings are to be\n        encoded as arc labels---one of: utf8\" (encodes strings as a UTF-8\n        encoded Unicode strings), \"byte\" (encodes strings as raw bytes)---or a\n        SymbolTable.\n    output_token_type: A string indicating how the output strings are to be\n        encoded as arc labels---one of: utf8\" (encodes strings as a UTF-8\n        encoded Unicode strings), \"byte\" (encodes strings as raw bytes)---or a\n        SymbolTable.\n\n  Returns:\n    An FST.\n\n  Raises:\n    FstArgError: Mappings must be of length 1 or 2.\n  ";
+static PyMethodDef __pyx_mdef_6pynini_9string_map = {"string_map", (PyCFunction)__pyx_pw_6pynini_9string_map, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pynini_8string_map};
+static PyObject *__pyx_pw_6pynini_9string_map(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_arc_type = 0;
+  PyObject *__pyx_v_input_token_type = 0;
+  PyObject *__pyx_v_output_token_type = 0;
+  PyObject *__pyx_v_pairs = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("string_map (wrapper)", 0);
+  if (PyTuple_GET_SIZE(__pyx_args) > 0) {
+    __pyx_v_pairs = PyTuple_GetSlice(__pyx_args, 0, PyTuple_GET_SIZE(__pyx_args));
+    if (unlikely(!__pyx_v_pairs)) {
+      __Pyx_RefNannyFinishContext();
+      return NULL;
+    }
+    __Pyx_GOTREF(__pyx_v_pairs);
+  } else {
+    __pyx_v_pairs = __pyx_empty_tuple; __Pyx_INCREF(__pyx_empty_tuple);
+  }
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_arc_type,&__pyx_n_s_input_token_type,&__pyx_n_s_output_token_type,0};
+    PyObject* values[3] = {0,0,0};
+    values[0] = ((PyObject *)__pyx_n_b_standard);
+    values[1] = ((PyObject *)__pyx_n_b_byte);
+    values[2] = ((PyObject *)__pyx_n_b_byte);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        default:
+        case  0: break;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      if (kw_args > 0 && likely(kw_args <= 3)) {
+        Py_ssize_t index;
+        for (index = 0; index < 3 && kw_args > 0; index++) {
+          PyObject* value = PyDict_GetItem(__pyx_kwds, *__pyx_pyargnames[index]);
+          if (value) { values[index] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, 0, "string_map") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 922; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) < 0) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+    }
+    __pyx_v_arc_type = values[0];
+    __pyx_v_input_token_type = values[1];
+    __pyx_v_output_token_type = values[2];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("string_map", 0, 0, 0, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 922; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __pyx_L3_error:;
+  __Pyx_DECREF(__pyx_v_pairs); __pyx_v_pairs = 0;
+  __Pyx_AddTraceback("pynini.string_map", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_6pynini_8string_map(__pyx_self, __pyx_v_arc_type, __pyx_v_input_token_type, __pyx_v_output_token_type, __pyx_v_pairs);
+
+  /* function exit code */
+  __Pyx_XDECREF(__pyx_v_pairs);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6pynini_8string_map(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_arc_type, PyObject *__pyx_v_input_token_type, PyObject *__pyx_v_output_token_type, PyObject *__pyx_v_pairs) {
   struct __pyx_obj_6pynini_Fst *__pyx_v_result = 0;
   struct __pyx_obj_6pynini_Fst *__pyx_v_tfst = 0;
-  PyObject *__pyx_v_mapping = NULL;
-  PyObject *__pyx_v_m0 = NULL;
-  PyObject *__pyx_v_m1 = NULL;
-  struct __pyx_obj_6pynini_Fst *__pyx_r = NULL;
+  PyObject *__pyx_v_pair = NULL;
+  PyObject *__pyx_v_p0 = NULL;
+  PyObject *__pyx_v_p1 = NULL;
+  PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   Py_ssize_t __pyx_t_3;
-  PyObject *(*__pyx_t_4)(PyObject *);
-  Py_ssize_t __pyx_t_5;
+  Py_ssize_t __pyx_t_4;
+  int __pyx_t_5;
   int __pyx_t_6;
-  int __pyx_t_7;
+  PyObject *__pyx_t_7 = NULL;
   PyObject *__pyx_t_8 = NULL;
   PyObject *__pyx_t_9 = NULL;
   PyObject *__pyx_t_10 = NULL;
   PyObject *__pyx_t_11 = NULL;
-  PyObject *__pyx_t_12 = NULL;
-  PyObject *(*__pyx_t_13)(PyObject *);
-  int __pyx_t_14;
-  PyObject *__pyx_t_15 = NULL;
+  PyObject *(*__pyx_t_12)(PyObject *);
+  int __pyx_t_13;
+  PyObject *__pyx_t_14 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("string_map", 0);
-  if (__pyx_optional_args) {
-    if (__pyx_optional_args->__pyx_n > 0) {
-      __pyx_v_arc_type = __pyx_optional_args->arc_type;
-      if (__pyx_optional_args->__pyx_n > 1) {
-        __pyx_v_input_token_type = __pyx_optional_args->input_token_type;
-        if (__pyx_optional_args->__pyx_n > 2) {
-          __pyx_v_output_token_type = __pyx_optional_args->output_token_type;
-        }
-      }
-    }
-  }
 
   /* "pynini.pyx":949
  *     FstArgError: Mappings must be of length 1 or 2.
  *   """
  *   cdef Fst result = Fst(arc_type)             # <<<<<<<<<<<<<<
  *   cdef Fst tfst
- *   for mapping in mappings:
+ *   for pair in pairs:
  */
   __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 949; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -10233,115 +10285,85 @@ static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_string_map(PyObject *__pyx_
   /* "pynini.pyx":951
  *   cdef Fst result = Fst(arc_type)
  *   cdef Fst tfst
- *   for mapping in mappings:             # <<<<<<<<<<<<<<
- *     if (not 0 < len(mapping) <= 2):
+ *   for pair in pairs:             # <<<<<<<<<<<<<<
+ *     if (not 0 < len(pair) <= 2):
  *       raise FstArgError("Mappings must be of length 1 or 2")
  */
-  if (likely(PyList_CheckExact(__pyx_v_mappings)) || PyTuple_CheckExact(__pyx_v_mappings)) {
-    __pyx_t_2 = __pyx_v_mappings; __Pyx_INCREF(__pyx_t_2); __pyx_t_3 = 0;
-    __pyx_t_4 = NULL;
-  } else {
-    __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_v_mappings); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 951; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 951; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  }
+  __pyx_t_2 = __pyx_v_pairs; __Pyx_INCREF(__pyx_t_2); __pyx_t_3 = 0;
   for (;;) {
-    if (likely(!__pyx_t_4)) {
-      if (likely(PyList_CheckExact(__pyx_t_2))) {
-        if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_2)) break;
-        #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 951; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 951; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_1);
-        #endif
-      } else {
-        if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
-        #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 951; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 951; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_1);
-        #endif
-      }
-    } else {
-      __pyx_t_1 = __pyx_t_4(__pyx_t_2);
-      if (unlikely(!__pyx_t_1)) {
-        PyObject* exc_type = PyErr_Occurred();
-        if (exc_type) {
-          if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 951; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        }
-        break;
-      }
-      __Pyx_GOTREF(__pyx_t_1);
-    }
-    __Pyx_XDECREF_SET(__pyx_v_mapping, __pyx_t_1);
+    if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
+    #if CYTHON_COMPILING_IN_CPYTHON
+    __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 951; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    #else
+    __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 951; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    #endif
+    __Pyx_XDECREF_SET(__pyx_v_pair, __pyx_t_1);
     __pyx_t_1 = 0;
 
     /* "pynini.pyx":952
  *   cdef Fst tfst
- *   for mapping in mappings:
- *     if (not 0 < len(mapping) <= 2):             # <<<<<<<<<<<<<<
+ *   for pair in pairs:
+ *     if (not 0 < len(pair) <= 2):             # <<<<<<<<<<<<<<
  *       raise FstArgError("Mappings must be of length 1 or 2")
  *     try:
  */
-    __pyx_t_5 = PyObject_Length(__pyx_v_mapping); if (unlikely(__pyx_t_5 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 952; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __pyx_t_6 = (0 < __pyx_t_5);
-    if (__pyx_t_6) {
-      __pyx_t_6 = (__pyx_t_5 <= 2);
+    __pyx_t_4 = PyObject_Length(__pyx_v_pair); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 952; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = (0 < __pyx_t_4);
+    if (__pyx_t_5) {
+      __pyx_t_5 = (__pyx_t_4 <= 2);
     }
-    __pyx_t_7 = ((!(__pyx_t_6 != 0)) != 0);
-    if (__pyx_t_7) {
+    __pyx_t_6 = ((!(__pyx_t_5 != 0)) != 0);
+    if (__pyx_t_6) {
 
       /* "pynini.pyx":953
- *   for mapping in mappings:
- *     if (not 0 < len(mapping) <= 2):
+ *   for pair in pairs:
+ *     if (not 0 < len(pair) <= 2):
  *       raise FstArgError("Mappings must be of length 1 or 2")             # <<<<<<<<<<<<<<
  *     try:
- *       (m0, m1) = mapping
+ *       (p0, p1) = pair
  */
       __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_FstArgError); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 953; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 953; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_8);
+      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 953; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __Pyx_Raise(__pyx_t_8, 0, 0, 0);
-      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __Pyx_Raise(__pyx_t_7, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       {__pyx_filename = __pyx_f[0]; __pyx_lineno = 953; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
       /* "pynini.pyx":952
  *   cdef Fst tfst
- *   for mapping in mappings:
- *     if (not 0 < len(mapping) <= 2):             # <<<<<<<<<<<<<<
+ *   for pair in pairs:
+ *     if (not 0 < len(pair) <= 2):             # <<<<<<<<<<<<<<
  *       raise FstArgError("Mappings must be of length 1 or 2")
  *     try:
  */
     }
 
     /* "pynini.pyx":954
- *     if (not 0 < len(mapping) <= 2):
+ *     if (not 0 < len(pair) <= 2):
  *       raise FstArgError("Mappings must be of length 1 or 2")
  *     try:             # <<<<<<<<<<<<<<
- *       (m0, m1) = mapping
+ *       (p0, p1) = pair
  *     except ValueError:
  */
     {
-      __Pyx_ExceptionSave(&__pyx_t_9, &__pyx_t_10, &__pyx_t_11);
+      __Pyx_ExceptionSave(&__pyx_t_8, &__pyx_t_9, &__pyx_t_10);
+      __Pyx_XGOTREF(__pyx_t_8);
       __Pyx_XGOTREF(__pyx_t_9);
       __Pyx_XGOTREF(__pyx_t_10);
-      __Pyx_XGOTREF(__pyx_t_11);
       /*try:*/ {
 
         /* "pynini.pyx":955
  *       raise FstArgError("Mappings must be of length 1 or 2")
  *     try:
- *       (m0, m1) = mapping             # <<<<<<<<<<<<<<
+ *       (p0, p1) = pair             # <<<<<<<<<<<<<<
  *     except ValueError:
- *       m1 = m0 = mapping[0]
+ *       p1 = p0 = pair[0]
  */
-        if ((likely(PyTuple_CheckExact(__pyx_v_mapping))) || (PyList_CheckExact(__pyx_v_mapping))) {
-          PyObject* sequence = __pyx_v_mapping;
+        if ((likely(PyTuple_CheckExact(__pyx_v_pair))) || (PyList_CheckExact(__pyx_v_pair))) {
+          PyObject* sequence = __pyx_v_pair;
           #if CYTHON_COMPILING_IN_CPYTHON
           Py_ssize_t size = Py_SIZE(sequence);
           #else
@@ -10354,150 +10376,150 @@ static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_string_map(PyObject *__pyx_
           }
           #if CYTHON_COMPILING_IN_CPYTHON
           if (likely(PyTuple_CheckExact(sequence))) {
-            __pyx_t_8 = PyTuple_GET_ITEM(sequence, 0); 
+            __pyx_t_7 = PyTuple_GET_ITEM(sequence, 0); 
             __pyx_t_1 = PyTuple_GET_ITEM(sequence, 1); 
           } else {
-            __pyx_t_8 = PyList_GET_ITEM(sequence, 0); 
+            __pyx_t_7 = PyList_GET_ITEM(sequence, 0); 
             __pyx_t_1 = PyList_GET_ITEM(sequence, 1); 
           }
-          __Pyx_INCREF(__pyx_t_8);
+          __Pyx_INCREF(__pyx_t_7);
           __Pyx_INCREF(__pyx_t_1);
           #else
-          __pyx_t_8 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 955; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
-          __Pyx_GOTREF(__pyx_t_8);
+          __pyx_t_7 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 955; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
+          __Pyx_GOTREF(__pyx_t_7);
           __pyx_t_1 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 955; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
           __Pyx_GOTREF(__pyx_t_1);
           #endif
         } else {
           Py_ssize_t index = -1;
-          __pyx_t_12 = PyObject_GetIter(__pyx_v_mapping); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 955; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
-          __Pyx_GOTREF(__pyx_t_12);
-          __pyx_t_13 = Py_TYPE(__pyx_t_12)->tp_iternext;
-          index = 0; __pyx_t_8 = __pyx_t_13(__pyx_t_12); if (unlikely(!__pyx_t_8)) goto __pyx_L14_unpacking_failed;
-          __Pyx_GOTREF(__pyx_t_8);
-          index = 1; __pyx_t_1 = __pyx_t_13(__pyx_t_12); if (unlikely(!__pyx_t_1)) goto __pyx_L14_unpacking_failed;
+          __pyx_t_11 = PyObject_GetIter(__pyx_v_pair); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 955; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
+          __Pyx_GOTREF(__pyx_t_11);
+          __pyx_t_12 = Py_TYPE(__pyx_t_11)->tp_iternext;
+          index = 0; __pyx_t_7 = __pyx_t_12(__pyx_t_11); if (unlikely(!__pyx_t_7)) goto __pyx_L14_unpacking_failed;
+          __Pyx_GOTREF(__pyx_t_7);
+          index = 1; __pyx_t_1 = __pyx_t_12(__pyx_t_11); if (unlikely(!__pyx_t_1)) goto __pyx_L14_unpacking_failed;
           __Pyx_GOTREF(__pyx_t_1);
-          if (__Pyx_IternextUnpackEndCheck(__pyx_t_13(__pyx_t_12), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 955; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
-          __pyx_t_13 = NULL;
-          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+          if (__Pyx_IternextUnpackEndCheck(__pyx_t_12(__pyx_t_11), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 955; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
+          __pyx_t_12 = NULL;
+          __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
           goto __pyx_L15_unpacking_done;
           __pyx_L14_unpacking_failed:;
-          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-          __pyx_t_13 = NULL;
+          __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+          __pyx_t_12 = NULL;
           if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
           {__pyx_filename = __pyx_f[0]; __pyx_lineno = 955; __pyx_clineno = __LINE__; goto __pyx_L6_error;}
           __pyx_L15_unpacking_done:;
         }
-        __Pyx_XDECREF_SET(__pyx_v_m0, __pyx_t_8);
-        __pyx_t_8 = 0;
-        __Pyx_XDECREF_SET(__pyx_v_m1, __pyx_t_1);
+        __Pyx_XDECREF_SET(__pyx_v_p0, __pyx_t_7);
+        __pyx_t_7 = 0;
+        __Pyx_XDECREF_SET(__pyx_v_p1, __pyx_t_1);
         __pyx_t_1 = 0;
 
         /* "pynini.pyx":954
- *     if (not 0 < len(mapping) <= 2):
+ *     if (not 0 < len(pair) <= 2):
  *       raise FstArgError("Mappings must be of length 1 or 2")
  *     try:             # <<<<<<<<<<<<<<
- *       (m0, m1) = mapping
+ *       (p0, p1) = pair
  *     except ValueError:
  */
       }
+      __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
       __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
       goto __pyx_L13_try_end;
       __pyx_L6_error:;
-      __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+      __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
 
       /* "pynini.pyx":956
  *     try:
- *       (m0, m1) = mapping
+ *       (p0, p1) = pair
  *     except ValueError:             # <<<<<<<<<<<<<<
- *       m1 = m0 = mapping[0]
- *     tfst = transducer(m0, m1, arc_type=result.arc_type,
+ *       p1 = p0 = pair[0]
+ *     tfst = transducer(p0, p1, arc_type=result.arc_type,
  */
-      __pyx_t_14 = PyErr_ExceptionMatches(__pyx_builtin_ValueError);
-      if (__pyx_t_14) {
+      __pyx_t_13 = PyErr_ExceptionMatches(__pyx_builtin_ValueError);
+      if (__pyx_t_13) {
         __Pyx_AddTraceback("pynini.string_map", __pyx_clineno, __pyx_lineno, __pyx_filename);
-        if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_8, &__pyx_t_12) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 956; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
+        if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_7, &__pyx_t_11) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 956; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
         __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_GOTREF(__pyx_t_8);
-        __Pyx_GOTREF(__pyx_t_12);
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_GOTREF(__pyx_t_11);
 
         /* "pynini.pyx":957
- *       (m0, m1) = mapping
+ *       (p0, p1) = pair
  *     except ValueError:
- *       m1 = m0 = mapping[0]             # <<<<<<<<<<<<<<
- *     tfst = transducer(m0, m1, arc_type=result.arc_type,
+ *       p1 = p0 = pair[0]             # <<<<<<<<<<<<<<
+ *     tfst = transducer(p0, p1, arc_type=result.arc_type,
  *                       input_token_type=input_token_type,
  */
-        if (unlikely(__pyx_v_mapping == Py_None)) {
+        if (unlikely(__pyx_v_pair == Py_None)) {
           PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
           {__pyx_filename = __pyx_f[0]; __pyx_lineno = 957; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;}
         }
-        __pyx_t_15 = __Pyx_GetItemInt(__pyx_v_mapping, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_15 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 957; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;};
-        __Pyx_GOTREF(__pyx_t_15);
-        __Pyx_INCREF(__pyx_t_15);
-        __Pyx_XDECREF_SET(__pyx_v_m1, __pyx_t_15);
-        __Pyx_INCREF(__pyx_t_15);
-        __Pyx_XDECREF_SET(__pyx_v_m0, __pyx_t_15);
-        __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+        __pyx_t_14 = __Pyx_GetItemInt(__pyx_v_pair, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_14 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 957; __pyx_clineno = __LINE__; goto __pyx_L8_except_error;};
+        __Pyx_GOTREF(__pyx_t_14);
+        __Pyx_INCREF(__pyx_t_14);
+        __Pyx_XDECREF_SET(__pyx_v_p1, __pyx_t_14);
+        __Pyx_INCREF(__pyx_t_14);
+        __Pyx_XDECREF_SET(__pyx_v_p0, __pyx_t_14);
+        __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
         goto __pyx_L7_exception_handled;
       }
       goto __pyx_L8_except_error;
       __pyx_L8_except_error:;
 
       /* "pynini.pyx":954
- *     if (not 0 < len(mapping) <= 2):
+ *     if (not 0 < len(pair) <= 2):
  *       raise FstArgError("Mappings must be of length 1 or 2")
  *     try:             # <<<<<<<<<<<<<<
- *       (m0, m1) = mapping
+ *       (p0, p1) = pair
  *     except ValueError:
  */
+      __Pyx_XGIVEREF(__pyx_t_8);
       __Pyx_XGIVEREF(__pyx_t_9);
       __Pyx_XGIVEREF(__pyx_t_10);
-      __Pyx_XGIVEREF(__pyx_t_11);
-      __Pyx_ExceptionReset(__pyx_t_9, __pyx_t_10, __pyx_t_11);
+      __Pyx_ExceptionReset(__pyx_t_8, __pyx_t_9, __pyx_t_10);
       goto __pyx_L1_error;
       __pyx_L7_exception_handled:;
+      __Pyx_XGIVEREF(__pyx_t_8);
       __Pyx_XGIVEREF(__pyx_t_9);
       __Pyx_XGIVEREF(__pyx_t_10);
-      __Pyx_XGIVEREF(__pyx_t_11);
-      __Pyx_ExceptionReset(__pyx_t_9, __pyx_t_10, __pyx_t_11);
+      __Pyx_ExceptionReset(__pyx_t_8, __pyx_t_9, __pyx_t_10);
       __pyx_L13_try_end:;
     }
 
     /* "pynini.pyx":958
  *     except ValueError:
- *       m1 = m0 = mapping[0]
- *     tfst = transducer(m0, m1, arc_type=result.arc_type,             # <<<<<<<<<<<<<<
+ *       p1 = p0 = pair[0]
+ *     tfst = transducer(p0, p1, arc_type=result.arc_type,             # <<<<<<<<<<<<<<
  *                       input_token_type=input_token_type,
  *                       output_token_type=output_token_type)
  */
-    __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_transducer); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_12);
-    __pyx_t_8 = PyTuple_New(2); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_8);
-    __Pyx_INCREF(__pyx_v_m0);
-    __Pyx_GIVEREF(__pyx_v_m0);
-    PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_v_m0);
-    __Pyx_INCREF(__pyx_v_m1);
-    __Pyx_GIVEREF(__pyx_v_m1);
-    PyTuple_SET_ITEM(__pyx_t_8, 1, __pyx_v_m1);
+    __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_transducer); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_11);
+    __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_INCREF(__pyx_v_p0);
+    __Pyx_GIVEREF(__pyx_v_p0);
+    PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_v_p0);
+    __Pyx_INCREF(__pyx_v_p1);
+    __Pyx_GIVEREF(__pyx_v_p1);
+    PyTuple_SET_ITEM(__pyx_t_7, 1, __pyx_v_p1);
     __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_15 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_result), __pyx_n_s_arc_type); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_15);
-    if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_arc_type, __pyx_t_15) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_result), __pyx_n_s_arc_type); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_14);
+    if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_arc_type, __pyx_t_14) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
 
     /* "pynini.pyx":959
- *       m1 = m0 = mapping[0]
- *     tfst = transducer(m0, m1, arc_type=result.arc_type,
+ *       p1 = p0 = pair[0]
+ *     tfst = transducer(p0, p1, arc_type=result.arc_type,
  *                       input_token_type=input_token_type,             # <<<<<<<<<<<<<<
  *                       output_token_type=output_token_type)
  *     result.union(tfst)
@@ -10505,7 +10527,7 @@ static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_string_map(PyObject *__pyx_
     if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_input_token_type, __pyx_v_input_token_type) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
     /* "pynini.pyx":960
- *     tfst = transducer(m0, m1, arc_type=result.arc_type,
+ *     tfst = transducer(p0, p1, arc_type=result.arc_type,
  *                       input_token_type=input_token_type,
  *                       output_token_type=output_token_type)             # <<<<<<<<<<<<<<
  *     result.union(tfst)
@@ -10515,19 +10537,19 @@ static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_string_map(PyObject *__pyx_
 
     /* "pynini.pyx":958
  *     except ValueError:
- *       m1 = m0 = mapping[0]
- *     tfst = transducer(m0, m1, arc_type=result.arc_type,             # <<<<<<<<<<<<<<
+ *       p1 = p0 = pair[0]
+ *     tfst = transducer(p0, p1, arc_type=result.arc_type,             # <<<<<<<<<<<<<<
  *                       input_token_type=input_token_type,
  *                       output_token_type=output_token_type)
  */
-    __pyx_t_15 = __Pyx_PyObject_Call(__pyx_t_12, __pyx_t_8, __pyx_t_1); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_15);
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __pyx_t_14 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_7, __pyx_t_1); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (!(likely(((__pyx_t_15) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_15, __pyx_ptype_6pynini_Fst))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_XDECREF_SET(__pyx_v_tfst, ((struct __pyx_obj_6pynini_Fst *)__pyx_t_15));
-    __pyx_t_15 = 0;
+    if (!(likely(((__pyx_t_14) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_14, __pyx_ptype_6pynini_Fst))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 958; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_XDECREF_SET(__pyx_v_tfst, ((struct __pyx_obj_6pynini_Fst *)__pyx_t_14));
+    __pyx_t_14 = 0;
 
     /* "pynini.pyx":961
  *                       input_token_type=input_token_type,
@@ -10538,38 +10560,38 @@ static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_string_map(PyObject *__pyx_
  */
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_result), __pyx_n_s_union); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 961; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_8 = NULL;
+    __pyx_t_7 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
-      __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_1);
-      if (likely(__pyx_t_8)) {
+      __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_1);
+      if (likely(__pyx_t_7)) {
         PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-        __Pyx_INCREF(__pyx_t_8);
+        __Pyx_INCREF(__pyx_t_7);
         __Pyx_INCREF(function);
         __Pyx_DECREF_SET(__pyx_t_1, function);
       }
     }
-    if (!__pyx_t_8) {
-      __pyx_t_15 = __Pyx_PyObject_CallOneArg(__pyx_t_1, ((PyObject *)__pyx_v_tfst)); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 961; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_15);
+    if (!__pyx_t_7) {
+      __pyx_t_14 = __Pyx_PyObject_CallOneArg(__pyx_t_1, ((PyObject *)__pyx_v_tfst)); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 961; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_14);
     } else {
-      __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 961; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_8); __pyx_t_8 = NULL;
+      __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 961; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_11);
+      __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_7); __pyx_t_7 = NULL;
       __Pyx_INCREF(((PyObject *)__pyx_v_tfst));
       __Pyx_GIVEREF(((PyObject *)__pyx_v_tfst));
-      PyTuple_SET_ITEM(__pyx_t_12, 0+1, ((PyObject *)__pyx_v_tfst));
-      __pyx_t_15 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_12, NULL); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 961; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_15);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      PyTuple_SET_ITEM(__pyx_t_11, 0+1, ((PyObject *)__pyx_v_tfst));
+      __pyx_t_14 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_11, NULL); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 961; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_14);
+      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
 
     /* "pynini.pyx":951
  *   cdef Fst result = Fst(arc_type)
  *   cdef Fst tfst
- *   for mapping in mappings:             # <<<<<<<<<<<<<<
- *     if (not 0 < len(mapping) <= 2):
+ *   for pair in pairs:             # <<<<<<<<<<<<<<
+ *     if (not 0 < len(pair) <= 2):
  *       raise FstArgError("Mappings must be of length 1 or 2")
  */
   }
@@ -10582,16 +10604,16 @@ static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_string_map(PyObject *__pyx_
  * 
  * 
  */
-  __Pyx_XDECREF(((PyObject *)__pyx_r));
+  __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(((PyObject *)__pyx_v_result));
-  __pyx_r = __pyx_v_result;
+  __pyx_r = ((PyObject *)__pyx_v_result);
   goto __pyx_L0;
 
   /* "pynini.pyx":922
  * 
  * 
- * cpdef Fst string_map(mappings, arc_type=b"standard", input_token_type=b"byte",             # <<<<<<<<<<<<<<
- *                      output_token_type=b"byte"):
+ * def string_map(*pairs, arc_type=b"standard", input_token_type=b"byte",             # <<<<<<<<<<<<<<
+ *                output_token_type=b"byte"):
  *   """
  */
 
@@ -10599,133 +10621,17 @@ static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_string_map(PyObject *__pyx_
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_XDECREF(__pyx_t_12);
-  __Pyx_XDECREF(__pyx_t_15);
-  __Pyx_AddTraceback("pynini.string_map", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = 0;
-  __pyx_L0:;
-  __Pyx_XDECREF((PyObject *)__pyx_v_result);
-  __Pyx_XDECREF((PyObject *)__pyx_v_tfst);
-  __Pyx_XDECREF(__pyx_v_mapping);
-  __Pyx_XDECREF(__pyx_v_m0);
-  __Pyx_XDECREF(__pyx_v_m1);
-  __Pyx_XGIVEREF((PyObject *)__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* Python wrapper */
-static PyObject *__pyx_pw_6pynini_9string_map(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_6pynini_8string_map[] = "\n  string_map(mappings, arc_type=\"standard\", input_token_type=\"byte\",\n             output_token_type=\"byte\")\n\n  Creates a transducer that maps between elements of mappings.\n\n  Args:\n    mappings: an iterable of of input-output pairs of strings. If an element is\n        a singleton, the identity mapping is used.\n    arc_type: A string indicating the arc type.\n    input_token_type: A string indicating how the input strings are to be\n        encoded as arc labels---one of: utf8\" (encodes strings as a UTF-8\n        encoded Unicode strings), \"byte\" (encodes strings as raw bytes)---or a\n        SymbolTable.\n    output_token_type: A string indicating how the output strings are to be\n        encoded as arc labels---one of: utf8\" (encodes strings as a UTF-8 encoded\n        Unicode strings), \"byte\" (encodes strings as raw bytes)---or a\n        SymbolTable.\n\n  Returns:\n    An FST.\n\n  Raises:\n    FstArgError: Mappings must be of length 1 or 2.\n  ";
-static PyObject *__pyx_pw_6pynini_9string_map(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  PyObject *__pyx_v_mappings = 0;
-  PyObject *__pyx_v_arc_type = 0;
-  PyObject *__pyx_v_input_token_type = 0;
-  PyObject *__pyx_v_output_token_type = 0;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("string_map (wrapper)", 0);
-  {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_mappings,&__pyx_n_s_arc_type,&__pyx_n_s_input_token_type,&__pyx_n_s_output_token_type,0};
-    PyObject* values[4] = {0,0,0,0};
-    values[1] = ((PyObject *)__pyx_n_b_standard);
-    values[2] = ((PyObject *)__pyx_n_b_byte);
-    values[3] = ((PyObject *)__pyx_n_b_byte);
-    if (unlikely(__pyx_kwds)) {
-      Py_ssize_t kw_args;
-      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
-      switch (pos_args) {
-        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
-        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        case  0: break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-      kw_args = PyDict_Size(__pyx_kwds);
-      switch (pos_args) {
-        case  0:
-        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_mappings)) != 0)) kw_args--;
-        else goto __pyx_L5_argtuple_error;
-        case  1:
-        if (kw_args > 0) {
-          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_arc_type);
-          if (value) { values[1] = value; kw_args--; }
-        }
-        case  2:
-        if (kw_args > 0) {
-          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_input_token_type);
-          if (value) { values[2] = value; kw_args--; }
-        }
-        case  3:
-        if (kw_args > 0) {
-          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_output_token_type);
-          if (value) { values[3] = value; kw_args--; }
-        }
-      }
-      if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "string_map") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 922; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
-      }
-    } else {
-      switch (PyTuple_GET_SIZE(__pyx_args)) {
-        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
-        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-    }
-    __pyx_v_mappings = values[0];
-    __pyx_v_arc_type = values[1];
-    __pyx_v_input_token_type = values[2];
-    __pyx_v_output_token_type = values[3];
-  }
-  goto __pyx_L4_argument_unpacking_done;
-  __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("string_map", 0, 1, 4, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 922; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
-  __pyx_L3_error:;
-  __Pyx_AddTraceback("pynini.string_map", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __Pyx_RefNannyFinishContext();
-  return NULL;
-  __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6pynini_8string_map(__pyx_self, __pyx_v_mappings, __pyx_v_arc_type, __pyx_v_input_token_type, __pyx_v_output_token_type);
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_6pynini_8string_map(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_mappings, PyObject *__pyx_v_arc_type, PyObject *__pyx_v_input_token_type, PyObject *__pyx_v_output_token_type) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  struct __pyx_opt_args_6pynini_string_map __pyx_t_2;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("string_map", 0);
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2.__pyx_n = 3;
-  __pyx_t_2.arc_type = __pyx_v_arc_type;
-  __pyx_t_2.input_token_type = __pyx_v_input_token_type;
-  __pyx_t_2.output_token_type = __pyx_v_output_token_type;
-  __pyx_t_1 = ((PyObject *)__pyx_f_6pynini_string_map(__pyx_v_mappings, 0, &__pyx_t_2)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 922; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
-  goto __pyx_L0;
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_11);
+  __Pyx_XDECREF(__pyx_t_14);
   __Pyx_AddTraceback("pynini.string_map", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
+  __Pyx_XDECREF((PyObject *)__pyx_v_result);
+  __Pyx_XDECREF((PyObject *)__pyx_v_tfst);
+  __Pyx_XDECREF(__pyx_v_pair);
+  __Pyx_XDECREF(__pyx_v_p0);
+  __Pyx_XDECREF(__pyx_v_p1);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -25899,7 +25805,6 @@ static PyMethodDef __pyx_methods[] = {
   {"acceptor", (PyCFunction)__pyx_pw_6pynini_3acceptor, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pynini_2acceptor},
   {"transducer", (PyCFunction)__pyx_pw_6pynini_5transducer, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pynini_4transducer},
   {"cdrewrite", (PyCFunction)__pyx_pw_6pynini_7cdrewrite, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pynini_6cdrewrite},
-  {"string_map", (PyCFunction)__pyx_pw_6pynini_9string_map, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pynini_8string_map},
   {"mpdt_compose", (PyCFunction)__pyx_pw_6pynini_39mpdt_compose, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pynini_38mpdt_compose},
   {0, 0, 0, 0}
 };
@@ -26123,7 +26028,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_lower, __pyx_k_lower, sizeof(__pyx_k_lower), 0, 0, 1, 1},
   {&__pyx_n_b_ltr, __pyx_k_ltr, sizeof(__pyx_k_ltr), 0, 0, 0, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
-  {&__pyx_n_s_mappings, __pyx_k_mappings, sizeof(__pyx_k_mappings), 0, 0, 1, 1},
   {&__pyx_n_s_metaclass, __pyx_k_metaclass, sizeof(__pyx_k_metaclass), 0, 0, 1, 1},
   {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
   {&__pyx_n_s_module, __pyx_k_module, sizeof(__pyx_k_module), 0, 0, 1, 1},
@@ -26145,6 +26049,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_ostring, __pyx_k_ostring, sizeof(__pyx_k_ostring), 0, 0, 1, 1},
   {&__pyx_n_s_osymbols, __pyx_k_osymbols, sizeof(__pyx_k_osymbols), 0, 0, 1, 1},
   {&__pyx_n_s_output_token_type, __pyx_k_output_token_type, sizeof(__pyx_k_output_token_type), 0, 0, 1, 1},
+  {&__pyx_n_s_p0, __pyx_k_p0, sizeof(__pyx_k_p0), 0, 0, 1, 1},
+  {&__pyx_n_s_p1, __pyx_k_p1, sizeof(__pyx_k_p1), 0, 0, 1, 1},
+  {&__pyx_n_s_pair, __pyx_k_pair, sizeof(__pyx_k_pair), 0, 0, 1, 1},
   {&__pyx_n_s_pairs, __pyx_k_pairs, sizeof(__pyx_k_pairs), 0, 0, 1, 1},
   {&__pyx_n_b_paren, __pyx_k_paren, sizeof(__pyx_k_paren), 0, 0, 0, 1},
   {&__pyx_n_s_parens, __pyx_k_parens, sizeof(__pyx_k_parens), 0, 0, 1, 1},
@@ -26205,6 +26112,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_b_standard, __pyx_k_standard, sizeof(__pyx_k_standard), 0, 0, 0, 1},
   {&__pyx_n_s_star, __pyx_k_star, sizeof(__pyx_k_star), 0, 0, 1, 1},
   {&__pyx_n_s_statemap, __pyx_k_statemap, sizeof(__pyx_k_statemap), 0, 0, 1, 1},
+  {&__pyx_n_s_string_map, __pyx_k_string_map, sizeof(__pyx_k_string_map), 0, 0, 1, 1},
   {&__pyx_n_s_stringify, __pyx_k_stringify, sizeof(__pyx_k_stringify), 0, 0, 1, 1},
   {&__pyx_n_s_super, __pyx_k_super, sizeof(__pyx_k_super), 0, 0, 1, 1},
   {&__pyx_n_b_symbol, __pyx_k_symbol, sizeof(__pyx_k_symbol), 0, 0, 0, 1},
@@ -26212,6 +26120,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_tau, __pyx_k_tau, sizeof(__pyx_k_tau), 0, 0, 1, 1},
   {&__pyx_n_s_tb, __pyx_k_tb, sizeof(__pyx_k_tb), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
+  {&__pyx_n_s_tfst, __pyx_k_tfst, sizeof(__pyx_k_tfst), 0, 0, 1, 1},
   {&__pyx_n_s_throw, __pyx_k_throw, sizeof(__pyx_k_throw), 0, 0, 1, 1},
   {&__pyx_n_s_token_type, __pyx_k_token_type, sizeof(__pyx_k_token_type), 0, 0, 1, 1},
   {&__pyx_n_s_transducer, __pyx_k_transducer, sizeof(__pyx_k_transducer), 0, 0, 1, 1},
@@ -26420,11 +26329,11 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__16);
 
   /* "pynini.pyx":953
- *   for mapping in mappings:
- *     if (not 0 < len(mapping) <= 2):
+ *   for pair in pairs:
+ *     if (not 0 < len(pair) <= 2):
  *       raise FstArgError("Mappings must be of length 1 or 2")             # <<<<<<<<<<<<<<
  *     try:
- *       (m0, m1) = mapping
+ *       (p0, p1) = pair
  */
   __pyx_tuple__17 = PyTuple_Pack(1, __pyx_kp_s_Mappings_must_be_of_length_1_or); if (unlikely(!__pyx_tuple__17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 953; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__17);
@@ -26623,6 +26532,18 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__40);
   __Pyx_GIVEREF(__pyx_tuple__40);
 
+  /* "pynini.pyx":922
+ * 
+ * 
+ * def string_map(*pairs, arc_type=b"standard", input_token_type=b"byte",             # <<<<<<<<<<<<<<
+ *                output_token_type=b"byte"):
+ *   """
+ */
+  __pyx_tuple__41 = PyTuple_Pack(9, __pyx_n_s_arc_type, __pyx_n_s_input_token_type, __pyx_n_s_output_token_type, __pyx_n_s_pairs, __pyx_n_s_result, __pyx_n_s_tfst, __pyx_n_s_pair, __pyx_n_s_p0, __pyx_n_s_p1); if (unlikely(!__pyx_tuple__41)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 922; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__41);
+  __Pyx_GIVEREF(__pyx_tuple__41);
+  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(0, 3, 9, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_string_map, 922, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 922; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+
   /* "pynini.pyx":968
  * 
  * 
@@ -26630,10 +26551,10 @@ static int __Pyx_InitCachedConstants(void) {
  *   @functools.wraps(fnc)
  *   def patch(arg, *args, **kwargs):
  */
-  __pyx_tuple__41 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__41)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 968; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__41);
-  __Pyx_GIVEREF(__pyx_tuple__41);
-  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_1arg, 968, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 968; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__43 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__43)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 968; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__43);
+  __Pyx_GIVEREF(__pyx_tuple__43);
+  __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__43, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_1arg, 968, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 968; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":990
  * 
@@ -26642,10 +26563,10 @@ static int __Pyx_InitCachedConstants(void) {
  *   @functools.wraps(fnc)
  *   def patch(arg, *args, **kwargs):
  */
-  __pyx_tuple__43 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__43)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 990; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__43);
-  __Pyx_GIVEREF(__pyx_tuple__43);
-  __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__43, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_shortestdistance, 990, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 990; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__45 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__45)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 990; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__45);
+  __Pyx_GIVEREF(__pyx_tuple__45);
+  __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__45, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_shortestdistance, 990, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 990; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1005
  * 
@@ -26654,10 +26575,10 @@ static int __Pyx_InitCachedConstants(void) {
  *   @functools.wraps(fnc)
  *   def patch(arg1, arg2, *args, **kwargs):
  */
-  __pyx_tuple__45 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__45)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1005; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__45);
-  __Pyx_GIVEREF(__pyx_tuple__45);
-  __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__45, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_difference_2, 1005, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1005; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__47 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__47)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1005; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__47);
+  __Pyx_GIVEREF(__pyx_tuple__47);
+  __pyx_codeobj__48 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__47, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_difference_2, 1005, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__48)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1005; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1020
  * 
@@ -26666,10 +26587,10 @@ static int __Pyx_InitCachedConstants(void) {
  *   @functools.wraps(fnc)
  *   def patch(arg1, arg2, *args, **kwargs):
  */
-  __pyx_tuple__47 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__47)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1020; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__47);
-  __Pyx_GIVEREF(__pyx_tuple__47);
-  __pyx_codeobj__48 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__47, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_intersect, 1020, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__48)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1020; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__49 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__49)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1020; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__49);
+  __Pyx_GIVEREF(__pyx_tuple__49);
+  __pyx_codeobj__50 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__49, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_intersect, 1020, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__50)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1020; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1039
  * 
@@ -26678,10 +26599,10 @@ static int __Pyx_InitCachedConstants(void) {
  *   @functools.wraps(fnc)
  *   def patch(arg1, arg2, *args, **kwargs):
  */
-  __pyx_tuple__49 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__49)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1039; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__49);
-  __Pyx_GIVEREF(__pyx_tuple__49);
-  __pyx_codeobj__50 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__49, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_comp, 1039, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__50)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1039; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__51 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__51)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1039; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__51);
+  __Pyx_GIVEREF(__pyx_tuple__51);
+  __pyx_codeobj__52 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__51, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_comp, 1039, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__52)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1039; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1055
  * 
@@ -26690,10 +26611,10 @@ static int __Pyx_InitCachedConstants(void) {
  *   @functools.wraps(fnc)
  *   def patch(arg1, arg2, *args, **kwargs):
  */
-  __pyx_tuple__51 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__51)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1055; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__51);
-  __Pyx_GIVEREF(__pyx_tuple__51);
-  __pyx_codeobj__52 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__51, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_comp_merge, 1055, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__52)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1055; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__53 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__53)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1055; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__53);
+  __Pyx_GIVEREF(__pyx_tuple__53);
+  __pyx_codeobj__54 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__53, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_comp_merge, 1055, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__54)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1055; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1074
  * 
@@ -26702,10 +26623,10 @@ static int __Pyx_InitCachedConstants(void) {
  *   """
  *   compose(*args, cf="auto", connect=True)
  */
-  __pyx_tuple__53 = PyTuple_Pack(7, __pyx_n_s_args, __pyx_n_s_kwargs, __pyx_n_s_first, __pyx_n_s_rest, __pyx_n_s_lhs, __pyx_n_s_rhs, __pyx_n_s_arg); if (unlikely(!__pyx_tuple__53)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1074; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__53);
-  __Pyx_GIVEREF(__pyx_tuple__53);
-  __pyx_codeobj__54 = (PyObject*)__Pyx_PyCode_New(0, 0, 7, 0, CO_VARARGS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__53, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_compose, 1074, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__54)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1074; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__55 = PyTuple_Pack(7, __pyx_n_s_args, __pyx_n_s_kwargs, __pyx_n_s_first, __pyx_n_s_rest, __pyx_n_s_lhs, __pyx_n_s_rhs, __pyx_n_s_arg); if (unlikely(!__pyx_tuple__55)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1074; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__55);
+  __Pyx_GIVEREF(__pyx_tuple__55);
+  __pyx_codeobj__56 = (PyObject*)__Pyx_PyCode_New(0, 0, 7, 0, CO_VARARGS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__55, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_compose, 1074, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__56)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1074; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1125
  * 
@@ -26714,10 +26635,10 @@ static int __Pyx_InitCachedConstants(void) {
  *             return_arc_labeling=b"neither", bool epsilon_on_replace=False,
  *             int64 return_label=0, **replacements):
  */
-  __pyx_tuple__55 = PyTuple_Pack(18, __pyx_n_s_root, __pyx_n_s_call_arc_labeling, __pyx_n_s_return_arc_labeling, __pyx_n_s_epsilon_on_replace, __pyx_n_s_return_label, __pyx_n_s_replacements, __pyx_n_s_root_fst, __pyx_n_s_arc_type, __pyx_n_s_pairs, __pyx_n_s_replacement_set, __pyx_n_s_nonterm, __pyx_n_s_replacement, __pyx_n_s_cal, __pyx_n_s_ral, __pyx_n_s_opts, __pyx_n_s_result, __pyx_n_s_nt, __pyx_n_s_rep); if (unlikely(!__pyx_tuple__55)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__55);
-  __Pyx_GIVEREF(__pyx_tuple__55);
-  __pyx_codeobj__56 = (PyObject*)__Pyx_PyCode_New(1, 4, 18, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__55, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_replace, 1125, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__56)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__57 = PyTuple_Pack(18, __pyx_n_s_root, __pyx_n_s_call_arc_labeling, __pyx_n_s_return_arc_labeling, __pyx_n_s_epsilon_on_replace, __pyx_n_s_return_label, __pyx_n_s_replacements, __pyx_n_s_root_fst, __pyx_n_s_arc_type, __pyx_n_s_pairs, __pyx_n_s_replacement_set, __pyx_n_s_nonterm, __pyx_n_s_replacement, __pyx_n_s_cal, __pyx_n_s_ral, __pyx_n_s_opts, __pyx_n_s_result, __pyx_n_s_nt, __pyx_n_s_rep); if (unlikely(!__pyx_tuple__57)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__57);
+  __Pyx_GIVEREF(__pyx_tuple__57);
+  __pyx_codeobj__58 = (PyObject*)__Pyx_PyCode_New(1, 4, 18, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__57, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_replace, 1125, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__58)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1197
  * 
@@ -26726,10 +26647,10 @@ static int __Pyx_InitCachedConstants(void) {
  *   """
  *   union(*args)
  */
-  __pyx_tuple__57 = PyTuple_Pack(5, __pyx_n_s_args, __pyx_n_s_first, __pyx_n_s_rest, __pyx_n_s_lhs, __pyx_n_s_rhs); if (unlikely(!__pyx_tuple__57)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1197; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__57);
-  __Pyx_GIVEREF(__pyx_tuple__57);
-  __pyx_codeobj__58 = (PyObject*)__Pyx_PyCode_New(0, 0, 5, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__57, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_union, 1197, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__58)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1197; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__59 = PyTuple_Pack(5, __pyx_n_s_args, __pyx_n_s_first, __pyx_n_s_rest, __pyx_n_s_lhs, __pyx_n_s_rhs); if (unlikely(!__pyx_tuple__59)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1197; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__59);
+  __Pyx_GIVEREF(__pyx_tuple__59);
+  __pyx_codeobj__60 = (PyObject*)__Pyx_PyCode_New(0, 0, 5, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__59, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_union, 1197, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__60)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1197; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1323
  * 
@@ -26738,10 +26659,10 @@ static int __Pyx_InitCachedConstants(void) {
  *                 bool left_pdt=True):
  *   """
  */
-  __pyx_tuple__59 = PyTuple_Pack(10, __pyx_n_s_ifst1, __pyx_n_s_ifst2, __pyx_n_s_parens, __pyx_n_s_cf, __pyx_n_s_left_pdt, __pyx_n_s_lhs, __pyx_n_s_rhs, __pyx_n_s_result, __pyx_n_s_typed_cf, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__59)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__59);
-  __Pyx_GIVEREF(__pyx_tuple__59);
-  __pyx_codeobj__60 = (PyObject*)__Pyx_PyCode_New(5, 0, 10, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__59, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_pdt_compose, 1323, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__60)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__61 = PyTuple_Pack(10, __pyx_n_s_ifst1, __pyx_n_s_ifst2, __pyx_n_s_parens, __pyx_n_s_cf, __pyx_n_s_left_pdt, __pyx_n_s_lhs, __pyx_n_s_rhs, __pyx_n_s_result, __pyx_n_s_typed_cf, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__61)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__61);
+  __Pyx_GIVEREF(__pyx_tuple__61);
+  __pyx_codeobj__62 = (PyObject*)__Pyx_PyCode_New(5, 0, 10, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__61, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_pdt_compose, 1323, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__62)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1382
  * 
@@ -26750,10 +26671,10 @@ static int __Pyx_InitCachedConstants(void) {
  *                bool keep_parentheses=False, weight=None):
  *   """
  */
-  __pyx_tuple__61 = PyTuple_Pack(9, __pyx_n_s_ipdt, __pyx_n_s_parens, __pyx_n_s_connect, __pyx_n_s_keep_parentheses, __pyx_n_s_weight, __pyx_n_s_pdt, __pyx_n_s_result, __pyx_n_s_wc, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__61)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1382; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__61);
-  __Pyx_GIVEREF(__pyx_tuple__61);
-  __pyx_codeobj__62 = (PyObject*)__Pyx_PyCode_New(5, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__61, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_pdt_expand, 1382, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__62)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1382; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__63 = PyTuple_Pack(9, __pyx_n_s_ipdt, __pyx_n_s_parens, __pyx_n_s_connect, __pyx_n_s_keep_parentheses, __pyx_n_s_weight, __pyx_n_s_pdt, __pyx_n_s_result, __pyx_n_s_wc, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__63)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1382; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__63);
+  __Pyx_GIVEREF(__pyx_tuple__63);
+  __pyx_codeobj__64 = (PyObject*)__Pyx_PyCode_New(5, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__63, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_pdt_expand, 1382, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__64)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1382; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1422
  * 
@@ -26762,10 +26683,10 @@ static int __Pyx_InitCachedConstants(void) {
  *   """
  *   pdt_replace(root, pdt_parser_type="left", **replacements)
  */
-  __pyx_tuple__63 = PyTuple_Pack(13, __pyx_n_s_root, __pyx_n_s_pdt_parser_type, __pyx_n_s_replacements, __pyx_n_s_root_fst, __pyx_n_s_arc_type, __pyx_n_s_pairs, __pyx_n_s_replacement_set, __pyx_n_s_nonterm, __pyx_n_s_replacement, __pyx_n_s_result, __pyx_n_s_parens, __pyx_n_s_nt, __pyx_n_s_rep); if (unlikely(!__pyx_tuple__63)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1422; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__63);
-  __Pyx_GIVEREF(__pyx_tuple__63);
-  __pyx_codeobj__64 = (PyObject*)__Pyx_PyCode_New(2, 0, 13, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__63, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_pdt_replace, 1422, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__64)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1422; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__65 = PyTuple_Pack(13, __pyx_n_s_root, __pyx_n_s_pdt_parser_type, __pyx_n_s_replacements, __pyx_n_s_root_fst, __pyx_n_s_arc_type, __pyx_n_s_pairs, __pyx_n_s_replacement_set, __pyx_n_s_nonterm, __pyx_n_s_replacement, __pyx_n_s_result, __pyx_n_s_parens, __pyx_n_s_nt, __pyx_n_s_rep); if (unlikely(!__pyx_tuple__65)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1422; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__65);
+  __Pyx_GIVEREF(__pyx_tuple__65);
+  __pyx_codeobj__66 = (PyObject*)__Pyx_PyCode_New(2, 0, 13, 0, CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__65, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_pdt_replace, 1422, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__66)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1422; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1481
  * 
@@ -26774,10 +26695,10 @@ static int __Pyx_InitCachedConstants(void) {
  *   """
  *   pdt_reverse(ipdt, parens)
  */
-  __pyx_tuple__65 = PyTuple_Pack(4, __pyx_n_s_ipdt, __pyx_n_s_parens, __pyx_n_s_pdt, __pyx_n_s_result); if (unlikely(!__pyx_tuple__65)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__65);
-  __Pyx_GIVEREF(__pyx_tuple__65);
-  __pyx_codeobj__66 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__65, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_pdt_reverse, 1481, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__66)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__67 = PyTuple_Pack(4, __pyx_n_s_ipdt, __pyx_n_s_parens, __pyx_n_s_pdt, __pyx_n_s_result); if (unlikely(!__pyx_tuple__67)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__67);
+  __Pyx_GIVEREF(__pyx_tuple__67);
+  __pyx_codeobj__68 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__67, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_pdt_reverse, 1481, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__68)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1504
  * 
@@ -26786,10 +26707,10 @@ static int __Pyx_InitCachedConstants(void) {
  *                      bool keep_parentheses=False, bool path_gc=True):
  *   """
  */
-  __pyx_tuple__67 = PyTuple_Pack(8, __pyx_n_s_ipdt, __pyx_n_s_parens, __pyx_n_s_qt, __pyx_n_s_keep_parentheses, __pyx_n_s_path_gc, __pyx_n_s_pdt, __pyx_n_s_result, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__67)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1504; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__67);
-  __Pyx_GIVEREF(__pyx_tuple__67);
-  __pyx_codeobj__68 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__67, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_pdt_shortestpath, 1504, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__68)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1504; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__69 = PyTuple_Pack(8, __pyx_n_s_ipdt, __pyx_n_s_parens, __pyx_n_s_qt, __pyx_n_s_keep_parentheses, __pyx_n_s_path_gc, __pyx_n_s_pdt, __pyx_n_s_result, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__69)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1504; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__69);
+  __Pyx_GIVEREF(__pyx_tuple__69);
+  __pyx_codeobj__70 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__69, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_pdt_shortestpath, 1504, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__70)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1504; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1712
  * 
@@ -26798,10 +26719,10 @@ static int __Pyx_InitCachedConstants(void) {
  *                 bool keep_parentheses=False):
  *   """
  */
-  __pyx_tuple__69 = PyTuple_Pack(7, __pyx_n_s_impdt, __pyx_n_s_parens, __pyx_n_s_connect, __pyx_n_s_keep_parentheses, __pyx_n_s_mpdt, __pyx_n_s_result, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__69)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1712; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__69);
-  __Pyx_GIVEREF(__pyx_tuple__69);
-  __pyx_codeobj__70 = (PyObject*)__Pyx_PyCode_New(4, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__69, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_mpdt_expand, 1712, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__70)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1712; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__71 = PyTuple_Pack(7, __pyx_n_s_impdt, __pyx_n_s_parens, __pyx_n_s_connect, __pyx_n_s_keep_parentheses, __pyx_n_s_mpdt, __pyx_n_s_result, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__71)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1712; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__71);
+  __Pyx_GIVEREF(__pyx_tuple__71);
+  __pyx_codeobj__72 = (PyObject*)__Pyx_PyCode_New(4, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__71, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_mpdt_expand, 1712, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__72)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1712; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pynini.pyx":1750
  * 
@@ -26810,10 +26731,10 @@ static int __Pyx_InitCachedConstants(void) {
  *   """
  *   mpdt_reverse(impdt, parens)
  */
-  __pyx_tuple__71 = PyTuple_Pack(5, __pyx_n_s_impdt, __pyx_n_s_parens, __pyx_n_s_mpdt, __pyx_n_s_result_fst, __pyx_n_s_result_parens); if (unlikely(!__pyx_tuple__71)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1750; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__71);
-  __Pyx_GIVEREF(__pyx_tuple__71);
-  __pyx_codeobj__72 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__71, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_mpdt_reverse, 1750, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__72)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1750; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__73 = PyTuple_Pack(5, __pyx_n_s_impdt, __pyx_n_s_parens, __pyx_n_s_mpdt, __pyx_n_s_result_fst, __pyx_n_s_result_parens); if (unlikely(!__pyx_tuple__73)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1750; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__73);
+  __Pyx_GIVEREF(__pyx_tuple__73);
+  __pyx_codeobj__74 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__73, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_mpdt_reverse, 1750, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__74)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1750; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -27323,6 +27244,18 @@ PyMODINIT_FUNC PyInit_pynini(void)
   if (PyDict_SetItem((PyObject *)__pyx_ptype_6pynini_Fst->tp_dict, __pyx_n_s_star, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 539; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   PyType_Modified(__pyx_ptype_6pynini_Fst);
+
+  /* "pynini.pyx":922
+ * 
+ * 
+ * def string_map(*pairs, arc_type=b"standard", input_token_type=b"byte",             # <<<<<<<<<<<<<<
+ *                output_token_type=b"byte"):
+ *   """
+ */
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_6pynini_9string_map, NULL, __pyx_n_s_pynini); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 922; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_string_map, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 922; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "pynini.pyx":968
  * 

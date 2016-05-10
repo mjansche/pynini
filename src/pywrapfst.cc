@@ -2776,7 +2776,7 @@ static char __pyx_k_increment_subsequential_label[] = "increment_subsequential_l
 static char __pyx_k_Unknown_determinization_type_r[] = "Unknown determinization type: {!r}";
 static char __pyx_k_incompatible_or_invalid_weight[] = "incompatible or invalid weight";
 static char __pyx_k_Fst_arc_type_standard_Construct[] = "\n   Fst(arc_type=\"standard\")\n\n   Constructs an empty FST.\n\n   Args:\n     arc_type: A string indicating the arc type.\n\n   Raises:\n     FstError: Unknown arc type.\n\n   Raises:\n     FstOpError: operation failed.\n   ";
-static char __pyx_k_usr_local_google_home_kbg_src_p[] = "/usr/local/google/home/kbg/src/pynini6/src/pywrapfst.pyx";
+static char __pyx_k_usr_local_google_home_kbg_src_p[] = "/usr/local/google/home/kbg/src/pynini7/src/pywrapfst.pyx";
 static char __pyx_k_Equivalence_test_encountered_err[] = "Equivalence test encountered error";
 static char __pyx_k_Incompatible_or_invalid_arc_type[] = "Incompatible or invalid arc type";
 static char __pyx_k_Incompatible_or_invalid_weight_t[] = "Incompatible or invalid weight type";

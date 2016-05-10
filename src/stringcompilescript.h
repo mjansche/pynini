@@ -25,14 +25,14 @@
 namespace fst {
 namespace script {
 
-// Inner argpack for all functions.
 typedef args::Package<const string &, const WeightClass &, MutableFstClass *>
-    StringCompileInnerArgs;
+    CompileByteStringInnerArgs;
 
-typedef args::WithReturnValue<bool, StringCompileInnerArgs> StringCompileArgs;
+typedef args::WithReturnValue<bool, CompileByteStringInnerArgs>
+    CompileByteStringArgs;
 
 template <class Arc>
-void CompileByteString(StringCompileArgs *args) {
+void CompileByteString(CompileByteStringArgs *args) {
   typename Arc::Weight weight =
       *(args->args.arg2.GetWeight<typename Arc::Weight>());
   MutableFst<Arc> *fst = args->args.arg3->GetMutableFst<Arc>();
@@ -42,19 +42,41 @@ void CompileByteString(StringCompileArgs *args) {
 bool CompileByteString(const string &str, const WeightClass &wc,
                        MutableFstClass *fst);
 
+typedef CompileByteStringInnerArgs CompileUTF8StringInnerArgs;
+typedef CompileByteStringArgs CompileUTF8StringArgs;
+
 template <class Arc>
-void CompileUTF8String(StringCompileArgs *args) {
+void CompileUTF8String(CompileUTF8StringArgs *args) {
   typename Arc::Weight weight =
       *(args->args.arg2.GetWeight<typename Arc::Weight>());
   MutableFst<Arc> *fst = args->args.arg3->GetMutableFst<Arc>();
   args->retval = CompileUTF8String(args->args.arg1, weight, fst);
 }
 
-bool CompileUTF8String(const string &str, const WeightClass &wc,
-                       MutableFstClass *fst);
+typedef args::Package<const string &, const WeightClass &, const SymbolTable &,
+                      MutableFstClass *>
+    CompileSymbolStringInnerArgs;
+
+typedef args::WithReturnValue<bool, CompileSymbolStringInnerArgs>
+    CompileSymbolStringArgs;
 
 template <class Arc>
-void CompileBracketedByteString(StringCompileArgs *args) {
+void CompileSymbolString(CompileSymbolStringArgs *args) {
+  typename Arc::Weight weight =
+      *(args->args.arg2.GetWeight<typename Arc::Weight>());
+  const SymbolTable &syms = args->args.arg3;
+  MutableFst<Arc> *fst = args->args.arg4->GetMutableFst<Arc>();
+  args->retval = CompileSymbolString(args->args.arg1, weight, syms, fst);
+}
+
+bool CompileSymbolString(const string &str, const WeightClass &wc,
+                         const SymbolTable &syms, MutableFstClass *fst);
+
+typedef CompileByteStringInnerArgs CompileBracketedByteStringInnerArgs;
+typedef CompileByteStringArgs CompileBracketedByteStringArgs;
+
+template <class Arc>
+void CompileBracketedByteString(CompileBracketedByteStringArgs *args) {
   typename Arc::Weight weight =
       *(args->args.arg2.GetWeight<typename Arc::Weight>());
   MutableFst<Arc> *fst = args->args.arg3->GetMutableFst<Arc>();
@@ -64,8 +86,11 @@ void CompileBracketedByteString(StringCompileArgs *args) {
 bool CompileBracketedByteString(const string &str, const WeightClass &wc,
                                 MutableFstClass *fst);
 
+typedef CompileUTF8StringInnerArgs CompileBracketedUTF8StringInnerArgs;
+typedef CompileUTF8StringArgs CompileBracketedUTF8StringArgs;
+
 template <class Arc>
-void CompileBracketedUTF8String(StringCompileArgs *args) {
+void CompileBracketedUTF8String(CompileBracketedUTF8StringArgs *args) {
   typename Arc::Weight weight =
       *(args->args.arg2.GetWeight<typename Arc::Weight>());
   MutableFst<Arc> *fst = args->args.arg3->GetMutableFst<Arc>();

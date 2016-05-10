@@ -64,7 +64,7 @@ SymbolTable *MergeSymbols(const SymbolTable *syms1, const SymbolTable *syms2,
 
 template <class Arc>
 bool MergeInputSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2) {
-  bool relabel;
+  bool relabel = false;
   std::unique_ptr<SymbolTable> new_syms(MergeSymbols(
       fst1->InputSymbols(), fst2->InputSymbols(), &relabel));
   if (!new_syms) return true;  // No mutation necessary.
@@ -84,7 +84,7 @@ bool MergeInputSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2) {
 
 template <class Arc>
 bool MergeOutputSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2) {
-  bool relabel;
+  bool relabel = false;
   std::unique_ptr<SymbolTable> new_syms(MergeSymbols(
       fst1->OutputSymbols(), fst2->OutputSymbols(), &relabel));
   if (!new_syms) return true;  // No mutation necessary.
@@ -105,7 +105,7 @@ bool MergeOutputSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2) {
 template <class Arc>
 bool MergeLeftOutputAndRightInputSymbols(MutableFst<Arc> *fst1,
                                          MutableFst<Arc> *fst2) {
-  bool relabel;
+  bool relabel = false;
   std::unique_ptr<SymbolTable> new_syms(MergeSymbols(
       fst1->OutputSymbols(), fst2->InputSymbols(), &relabel));
   if (!new_syms) return true;  // No mutation necessary.

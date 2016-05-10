@@ -40,8 +40,9 @@ typedef args::WithReturnValue<bool, PyniniStringifyInnerArgs>
 template <class Arc>
 void PyniniStringify(PyniniStringifyArgs *args) {
   const Fst<Arc> &fst = *(args->args.arg1.GetFst<Arc>());
+  const SymbolTable *syms = args->args.arg3;
   StringPrinter<Arc> sprinter(GetStringPrinterTokenType<Arc>(args->args.arg2),
-                              args->args.arg3);
+                              syms);
   args->retval = sprinter(fst, args->args.arg4);
 }
 

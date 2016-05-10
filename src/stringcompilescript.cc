@@ -23,55 +23,74 @@ namespace script {
 
 bool CompileByteString(const string &str, const WeightClass &wc,
                        MutableFstClass *fst) {
-  StringCompileInnerArgs iargs(str, wc, fst);
-  StringCompileArgs args(iargs);
-  Apply<Operation<StringCompileArgs>>("CompileByteString", fst->ArcType(),
-                                      &args);
+  CompileByteStringInnerArgs iargs(str, wc, fst);
+  CompileByteStringArgs args(iargs);
+  Apply<Operation<CompileByteStringArgs>>("CompileByteString", fst->ArcType(),
+                                          &args);
   return args.retval;
 }
 
 bool CompileUTF8String(const string &str, const WeightClass &wc,
                        MutableFstClass *fst) {
-  StringCompileInnerArgs iargs(str, wc, fst);
-  StringCompileArgs args(iargs);
-  Apply<Operation<StringCompileArgs>>("CompileUTF8String", fst->ArcType(),
-                                      &args);
+  CompileUTF8StringInnerArgs iargs(str, wc, fst);
+  CompileUTF8StringArgs args(iargs);
+  Apply<Operation<CompileUTF8StringArgs>>("CompileUTF8String", fst->ArcType(),
+                                          &args);
+  return args.retval;
+}
+
+bool CompileSymbolString(const string &str, const WeightClass &wc,
+                         const SymbolTable &syms, MutableFstClass *fst) {
+  CompileSymbolStringInnerArgs iargs(str, wc, syms, fst);
+  CompileSymbolStringArgs args(iargs);
+  Apply<Operation<CompileSymbolStringArgs>>("CompileSymbolString",
+                                            fst->ArcType(), &args);
   return args.retval;
 }
 
 bool CompileBracketedByteString(const string &str, const WeightClass &wc,
                                 MutableFstClass *fst) {
-  StringCompileInnerArgs iargs(str, wc, fst);
-  StringCompileArgs args(iargs);
-  Apply<Operation<StringCompileArgs>>("CompileBracketedByteString",
-                                      fst->ArcType(), &args);
+  CompileBracketedByteStringInnerArgs iargs(str, wc, fst);
+  CompileBracketedByteStringArgs args(iargs);
+  Apply<Operation<CompileBracketedByteStringArgs>>("CompileBracketedByteString",
+                                                   fst->ArcType(), &args);
   return args.retval;
 }
 
 bool CompileBracketedUTF8String(const string &str, const WeightClass &wc,
                                 MutableFstClass *fst) {
-  StringCompileInnerArgs iargs(str, wc, fst);
-  StringCompileArgs args(iargs);
-  Apply<Operation<StringCompileArgs>>("CompileBracketedUTF8String",
-                                      fst->ArcType(), &args);
+  CompileBracketedUTF8StringInnerArgs iargs(str, wc, fst);
+  CompileBracketedUTF8StringArgs args(iargs);
+  Apply<Operation<CompileBracketedUTF8StringArgs>>("CompileBracketedUTF8String",
+                                                   fst->ArcType(), &args);
   return args.retval;
 }
 
-REGISTER_FST_OPERATION(CompileByteString, StdArc, StringCompileArgs);
-REGISTER_FST_OPERATION(CompileByteString, LogArc, StringCompileArgs);
-REGISTER_FST_OPERATION(CompileByteString, Log64Arc, StringCompileArgs);
+REGISTER_FST_OPERATION(CompileByteString, StdArc, CompileByteStringArgs);
+REGISTER_FST_OPERATION(CompileByteString, LogArc, CompileByteStringArgs);
+REGISTER_FST_OPERATION(CompileByteString, Log64Arc, CompileByteStringArgs);
 
-REGISTER_FST_OPERATION(CompileUTF8String, StdArc, StringCompileArgs);
-REGISTER_FST_OPERATION(CompileUTF8String, LogArc, StringCompileArgs);
-REGISTER_FST_OPERATION(CompileUTF8String, Log64Arc, StringCompileArgs);
+REGISTER_FST_OPERATION(CompileUTF8String, StdArc, CompileUTF8StringArgs);
+REGISTER_FST_OPERATION(CompileUTF8String, LogArc, CompileUTF8StringArgs);
+REGISTER_FST_OPERATION(CompileUTF8String, Log64Arc, CompileUTF8StringArgs);
 
-REGISTER_FST_OPERATION(CompileBracketedByteString, StdArc, StringCompileArgs);
-REGISTER_FST_OPERATION(CompileBracketedByteString, LogArc, StringCompileArgs);
-REGISTER_FST_OPERATION(CompileBracketedByteString, Log64Arc, StringCompileArgs);
+REGISTER_FST_OPERATION(CompileSymbolString, StdArc, CompileSymbolStringArgs);
+REGISTER_FST_OPERATION(CompileSymbolString, LogArc, CompileSymbolStringArgs);
+REGISTER_FST_OPERATION(CompileSymbolString, Log64Arc, CompileSymbolStringArgs);
 
-REGISTER_FST_OPERATION(CompileBracketedUTF8String, StdArc, StringCompileArgs);
-REGISTER_FST_OPERATION(CompileBracketedUTF8String, LogArc, StringCompileArgs);
-REGISTER_FST_OPERATION(CompileBracketedUTF8String, Log64Arc, StringCompileArgs);
+REGISTER_FST_OPERATION(CompileBracketedByteString, StdArc,
+                       CompileBracketedByteStringArgs);
+REGISTER_FST_OPERATION(CompileBracketedByteString, LogArc,
+                       CompileBracketedByteStringArgs);
+REGISTER_FST_OPERATION(CompileBracketedByteString, Log64Arc,
+                       CompileBracketedByteStringArgs);
+
+REGISTER_FST_OPERATION(CompileBracketedUTF8String, StdArc,
+                       CompileBracketedUTF8StringArgs);
+REGISTER_FST_OPERATION(CompileBracketedUTF8String, LogArc,
+                       CompileBracketedUTF8StringArgs);
+REGISTER_FST_OPERATION(CompileBracketedUTF8String, Log64Arc,
+                       CompileBracketedUTF8StringArgs);
 
 }  // namespace script
 }  // namespace fst

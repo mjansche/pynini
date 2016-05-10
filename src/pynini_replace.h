@@ -160,7 +160,7 @@ void PyniniReplace(const Fst<Arc> &root,
   // Performs PDT replacement.
   auto start_paren_labels = static_cast<Label>(
       pairs[0].second->OutputSymbols() ?
-      pairs[0].second->OutputSymbols()->AvailableKey() : kNoLabel);
+      pairs[0].second->OutputSymbols()->AvailableKey() + 1 : kNoLabel);
   PdtReplaceOptions<Arc> opts(kNoLabel, type, start_paren_labels);
   Replace(new_pairs, ofst, parens, opts);
   internal::CleanUpNewPairs(&new_pairs);

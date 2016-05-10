@@ -46,8 +46,6 @@ void AddIntegerToSymbolTable(int64 label, SymbolTable *syms) {
 // if (u_charType(c) == U_CONTROL_CHAR ||
 //     u_hasBinaryProperty(c, UCHAR_WHITE_SPACE) ||
 //     u_hasBinaryProperty(c, UCHAR_POSIX_BLANK))
-//
-// This was extracted from nlp/grm/language/walker/util/function/symbols.cc.
 inline bool IsUnicodeSpaceOrControl(int32 label) {
   switch (label) {
     case 1:

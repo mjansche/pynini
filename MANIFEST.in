@@ -1,3 +1,8 @@
+include AUTHORS
+include CONTRIBUTING
+include LICENSE
+include NEWS
+include README.md
 include src/*.h
 include src/*.pxd
 include src/*.pyx

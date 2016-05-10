@@ -19,15 +19,17 @@
 
 """Unit tests for the Pynini grammar compilation module."""
 
-
-import itertools
 import os
 import string
 import tempfile
 import unittest
 
-
 from pynini import *
+
+# Python 2/3 compatibility shims.
+from six import iteritems
+from six.moves import xrange
+from six.moves import zip
 
 
 class PyniniTest(unittest.TestCase):
@@ -134,7 +136,7 @@ class PyniniTest(unittest.TestCase):
     self.assertEqual(acceptor(cheese, token_type="utf8").stringify("utf8"),
                      cheese)
     # UTF-8 bytestring.
-    cheese = b"Pont l'Evêque"
+    cheese = u"Pont l'Evêque".encode("utf8")
     self.assertEqual(acceptor(cheese, token_type="byte").stringify("byte"),
                      cheese)
     self.assertEqual(acceptor(cheese, token_type="utf8").stringify("utf8"),
@@ -230,7 +232,7 @@ class PyniniTest(unittest.TestCase):
 
   def testContextDependentRewriteRuleCompilation(self):
     # Creates sigma* from ASCII letters.
-    sigma = union(*string.letters)
+    sigma = union(*string.ascii_letters)
     sigma.closure()
     sigma.optimize()
     # A -> B / C __ D.
@@ -274,7 +276,7 @@ class PyniniTest(unittest.TestCase):
 
   def testBadContextDependentRewriteRules(self):
     # Creates sigma* from ASCII letters.
-    sigma = union(*string.letters)
+    sigma = union(*string.ascii_letters)
     sigma.closure()
     sigma.optimize()
     with self.assertRaises(FstOpError):
@@ -294,25 +296,25 @@ class PyniniTest(unittest.TestCase):
       unused_f = cdrewrite(tau, "[lambda]", "[rho]", "[sigma_prime]")
 
   def testFar(self):
-    pairs = {"1": acceptor("Camembert"), "2": acceptor("Gruyere"),
-             "3": acceptor("Cheddar")}
+    pairs = {b"1": acceptor("Camembert"), b"2": acceptor("Gruyere"),
+             b"3": acceptor("Cheddar")}
     farfile = os.path.join(tempfile.mkdtemp(), "test.far")
     # STTable.
     with Far(farfile, "w", far_type="sttable") as sink:
-      for (k, f) in sorted(pairs.iteritems()):
+      for (k, f) in sorted(iteritems(pairs)):
         sink[k] = f
     del sink
     with Far(farfile, "r") as source:
-      self.assertEqual(source.far_type, "sttable")
+      self.assertEqual(source.far_type, b"sttable")
       for (k, f) in source:
          self.assertEqual(pairs[k], f)
     # STList.
     with Far(farfile, "w", far_type="stlist") as sink:
-      for (k, f) in sorted(pairs.iteritems()):
+      for (k, f) in sorted(iteritems(pairs)):
         sink[k] = f
     del sink
     with Far(farfile, "r") as source:
-      self.assertEqual(source.far_type, "stlist")
+      self.assertEqual(source.far_type, b"stlist")
       for (k, f) in source:
          self.assertEqual(pairs[k], f)
 
@@ -324,7 +326,7 @@ class PyniniTest(unittest.TestCase):
       self.assertEqual(pdt_compose(f, anbn, parens, cf="expand"), anbn)
 
   def testWorkedExample(self):
-    pairs = itertools.izip(string.ascii_lowercase, string.ascii_uppercase)
+    pairs = zip(string.ascii_lowercase, string.ascii_uppercase)
     self.upcaser = union(*(transducer(*pair) for pair in pairs))
     self.upcaser.closure()
     self.upcaser.optimize()

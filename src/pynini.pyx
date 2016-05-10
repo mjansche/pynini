@@ -46,17 +46,18 @@ from fst cimport CLOSURE_PLUS
 from fst cimport CLOSURE_STAR
 
 from fst cimport Closure
-from fst cimport Concat
+from fst cimport Equal
 from fst cimport FstClass
 from fst cimport LabelFstClassPair
 from fst cimport MutableFstClass
 from fst cimport ReplaceLabelType
 from fst cimport ReplaceOptions
-from fst cimport SymbolTable as SymbolTable_
+from fst cimport SymbolTable
 from fst cimport VectorFstClass
 from fst cimport WeightClass
 
 from fst cimport kAcceptor
+from fst cimport kDelta
 from fst cimport kError
 from fst cimport kString
 
@@ -67,7 +68,7 @@ from pywrapfst cimport _MutableFst
 from pywrapfst cimport _SymbolTable
 from pywrapfst cimport FarReader
 from pywrapfst cimport FarWriter
-from pywrapfst cimport Weight as Weight_
+from pywrapfst cimport Weight
 
 
 from pywrapfst cimport _get_WeightClass_or_One
@@ -83,6 +84,7 @@ from pywrapfst cimport tostring
 
 from fst_util cimport CompileBracketedByteString
 from fst_util cimport CompileBracketedUTF8String
+from fst_util cimport CompileSymbolString
 from fst_util cimport CrossProduct
 from fst_util cimport MergeSymbols
 from fst_util cimport Optimize
@@ -267,8 +269,8 @@ cdef void _add_parentheses_symbols(MutableFstClass *fst,
 
   This function is not visible to Python users.
   """
-  cdef SymbolTable_ *source_syms
-  cdef SymbolTable_ *sink_syms
+  cdef SymbolTable *source_syms
+  cdef SymbolTable *sink_syms
   cdef size_t i = 0
   cdef int64 label
   cdef string symbol
@@ -320,7 +322,7 @@ cdef class Fst(_MutableFst):
 
   Attributes:
     arc_type: A string indicating the arc type.
-    fst_type: A strinct indicating the FST (container) type.
+    fst_type: A string indicating the FST (container) type.
     input_symbols: The input symbol table, or None if none is set.
     num_states: The number of states.
     output_symbols: The output symbol table, or None if none is set.
@@ -374,17 +376,23 @@ cdef class Fst(_MutableFst):
     path are interpreted as UTF-8-encoded Unicode strings, raw bytes, or a
     concatenation of string labels from a symbol table.
 
+    Note that this method creates an iterator over all paths *at the time
+    of creation* and the iterator will not be affected by any mutations to
+    the FST after that point.
+
     Args:
-      token_type: A string indicating how arc labels are to be interpreted;
-          one of: "utf8" (interprets arc labels as a UTF-8 encoded Unicode
-          string), "byte" (interprets arc labels as a raw byte string),
-          "symbol" (reads arc labels from provided symbol tables).
+      token_type: A string indicating how arc labels are to be interpreted as
+          strings; (interprets arc labels as UTF-8 encoded Unicode strings),
+          "byte" (interprets arc labels as byte strings), "symbol" (interprets
+          arc labels according to the provided symbol tables).
       isymbols: Input symbol table (ignored unless token_type is "symbol").
       osymbols: Output symbol table (ignored unless token_Type is "symbol").
 
     Raises:
       FstArgError: Unknown token type.
       FstArgError: FST is not acyclic.
+
+    See also: `StringPaths`. `StringPaths`. `StringPaths`. `StringPaths`.
     """
     return StringPaths(self, token_type, isymbols, osymbols)
 
@@ -413,10 +421,10 @@ cdef class Fst(_MutableFst):
     arc labels will be used instead.
 
     Args:
-      token_type: A string indicating how arc labels are to be interpreted;
-          one of: "utf8" (interprets arc labels as a UTF-8 encoded Unicode
-          string), "byte" (interprets arc labels as a raw byte string), "symbol"
-          (reads arc labels from the output symbol table).
+      token_type: A string indicating how arc labels are to be interpreted as
+          strings; (interprets arc labels as UTF-8 encoded Unicode strings),
+          "byte" (interprets arc labels as byte strings), "symbol" (interprets
+          arc labels according to FST's symbol tables).
 
     Returns:
       The Python string accepted by the FST.
@@ -443,15 +451,13 @@ cdef class Fst(_MutableFst):
 
   # The following all override their definition in _MutableFst.
 
-  def copy(self):
+  cpdef Fst copy(self):
     """
     copy(self)
 
     Makes a copy of the FST.
     """
     return _init_Fst_from_MutableFst(super(_MutableFst, self).copy())
-
-  # Overrides cdef instance method with a more expressive signature.
 
   def closure(self, int32 lower=0, int32 upper=0):
     """
@@ -502,7 +508,7 @@ cdef class Fst(_MutableFst):
   @property
   def plus(self):
     """
-    Constructively computes +-closure; an alias for self.closure(1).
+    Constructively computes +-closure.
 
     Returns:
       A +-closure FST.
@@ -515,24 +521,9 @@ cdef class Fst(_MutableFst):
     return result
 
   @property
-  def star(self):
-    """
-    Constructively computes *-closure; an alias for self.closure().
-
-    Returns:
-      A *-closure FST.
-
-    See also: `closure`.
-    """
-    cdef Fst result = self.copy()
-    Closure(result._mfst, CLOSURE_STAR)
-    result._check_pynini_op_error()
-    return result
-
-  @property
   def ques(self):
     """
-    Constructively computes ?-closure; an alias for self.closure(0, 1).
+    Constructively computes ?-closure.
 
     Returns:
       A ?-closure FST.
@@ -544,7 +535,21 @@ cdef class Fst(_MutableFst):
     result._check_pynini_op_error()
     return result
 
-  # Overrides cdef instance method.
+  @property
+  def star(self):
+    """
+    Constructively computes *-closure.
+
+    Returns:
+      A *-closure FST.
+
+    See also: `closure`.
+    """
+    cdef Fst result = self.copy()
+    Closure(result._mfst, CLOSURE_STAR)
+    result._check_pynini_op_error()
+    return result
+
 
   def concat(self, ifst):
     """
@@ -568,10 +573,7 @@ cdef class Fst(_MutableFst):
     if not MergeSymbols(self._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
-    # Calls the scriptland signature rather than the Python extension one, as
-    # this function is overriding the latter's definition from the superclass.
-    Concat(self._mfst, deref(rhs._fst))
-    self._check_pynini_op_error()
+    self._concat(rhs)
 
   cpdef void optimize(self, bool compute_props=False):
     """
@@ -644,9 +646,9 @@ cdef class Fst(_MutableFst):
     cdef Fst lhs = _compile_Fst(self, arc_type=arc_type)
     cdef Fst rhs = _compile_Fst(other, arc_type=arc_type)
     if op == 2:    # ==
-      return pywrapfst.equal(lhs, rhs)
+      return Equal(deref(lhs._fst), deref(rhs._fst), kDelta)
     elif op == 3:  # !=
-      return not pywrapfst.equal(lhs, rhs)
+      return not Equal(deref(lhs._fst), deref(rhs._fst), kDelta)
     raise NotImplementedError("Operator {} not implemented".format(op))
 
   # x + y
@@ -655,8 +657,7 @@ cdef class Fst(_MutableFst):
     cdef string arc_type = (self.arc_type if hasattr(self, "arc_type") else
                             other.arc_type)
     cdef Fst lhs = _compile_Fst(self, arc_type=arc_type)
-    cdef Fst rhs = _compile_Fst(other, arc_type=arc_type)
-    lhs.concat(rhs)
+    lhs.concat(other)
     return lhs
 
   # x - y
@@ -743,9 +744,10 @@ cpdef Fst acceptor(astring, weight=None, arc_type=b"standard",
     arc_type: An optional string indicating the arc type for the compiled FST.
         This argument is silently ignored if istring and/or ostring is already
         compiled.
-    token_type: A string indicating the desired token type; one of: "byte"
-        (interprets the input string as a raw byte string), "utf8" (interprets
-        the input string as a UTF-8 encoded Unicode string).
+    token_type: Either a string indicating how the input string is to be
+        encoded as arc labels---one of: utf8" (encodes the strings as UTF-8
+        encoded Unicode string), "byte" (encodes the string as raw bytes)---or
+        a SymbolTable to be used to encode the string.
 
     Returns:
       An FST acceptor.
@@ -756,23 +758,34 @@ cpdef Fst acceptor(astring, weight=None, arc_type=b"standard",
   """
   cdef Fst result = Fst(tostring(arc_type))
   cdef WeightClass wc = _get_WeightClass_or_One(result.weight_type, weight)
-  if token_type == b"byte":
-    if not CompileBracketedByteString(tostring(astring), wc, result._mfst):
-      raise FstStringCompilationError("String compilation failed")
-  elif token_type == b"utf8":
-    if not CompileBracketedUTF8String(tostring(astring), wc, result._mfst):
-      raise FstStringCompilationError("String compilation failed")
-  else:
-    raise FstArgError("Unknown token type: {!r}".format(token_type))
+  cdef string _astring = tostring(astring)
+  cdef SymbolTable *syms
+  try:
+    token_type = tostring(token_type)
+    if token_type == b"byte":
+      if not CompileBracketedByteString(_astring, wc, result._mfst):
+        raise FstStringCompilationError("Bytestring compilation failed")
+    elif token_type == b"utf8":
+      if not CompileBracketedUTF8String(_astring, wc, result._mfst):
+        raise FstStringCompilationError("UTF8 string compilation failed")
+    else:
+      raise FstArgError("Unknown token type: {!r}".format(token_type))
+  except (FstArgError, UnicodeDecodeError):
+    if isinstance(token_type, pywrapfst._SymbolTable):
+      syms = (<SymbolTable *> (<_SymbolTable> token_type)._table)
+      if not CompileSymbolString(_astring, wc, deref(syms), result._mfst):
+        raise FstStringCompilationError("Symbol string compilation failed")
+    else:
+      raise
   result._check_pynini_op_error()
   return result
 
 
 cpdef Fst transducer(istring, ostring, weight=None, arc_type=b"standard",
-                     token_type=b"byte"):
+                     input_token_type=b"byte", output_token_type=b"byte"):
   """
   transducer(istring, ostring, weight=None, arc_type="standard",
-             token_type="byte")
+             input_token_type="byte", output_token_type=="byte")
 
   Creates a transducer from a pair of strings or acceptor FSTs.
 
@@ -793,9 +806,14 @@ cpdef Fst transducer(istring, ostring, weight=None, arc_type=b"standard",
     arc_type: An optional string indicating the arc type for the compiled FST.
         This argument is silently ignored if istring and/or ostring is already
         compiled.
-    token_type: A string indicating the desired token type; one of: "byte"
-        (interprets the input string as a raw byte string), "utf8" (interprets
-        the input string as a UTF-8 encoded Unicode string).
+    input_token_type: Either a string indicating how the input strings are to be
+        encoded as arc labels---one of: utf8" (encodes strings as UTF-8 encoded
+        Unicode strings), "byte" (encodes strings as raw bytes)---or a
+        SymbolTable to be used to encode the string.
+    output_token_type: Either a string indicating how the output strings are to be
+        encoded as arc labels---one of: utf8" (encodes strings as UTF-8 encoded
+        Unicode strings), "byte" (encodes strings as raw bytes)---or a
+        SymbolTable to be used to encode the string.
 
   Returns:
     An FST transducer.
@@ -809,7 +827,7 @@ cpdef Fst transducer(istring, ostring, weight=None, arc_type=b"standard",
   cdef Fst result = Fst(arc_type)
   # Sets up upper language.
   if not isinstance(istring, Fst):
-    upper = acceptor(istring, arc_type=arc_type, token_type=token_type)
+    upper = acceptor(istring, arc_type=arc_type, token_type=input_token_type)
   else:
     upper = istring
   if upper._fst.Properties(kAcceptor, True) != kAcceptor:
@@ -817,7 +835,7 @@ cpdef Fst transducer(istring, ostring, weight=None, arc_type=b"standard",
   # Sets up lower language, and passes weight.
   if not isinstance(ostring, Fst):
     lower = acceptor(ostring, weight=weight, arc_type=arc_type,
-                     token_type=token_type)
+                     token_type=output_token_type)
   else:
     lower = ostring
     if lower._fst.Properties(kAcceptor, True) != kAcceptor:
@@ -900,6 +918,48 @@ cpdef Fst cdrewrite(tau, lambda_, rho, sigma_star, direction=b"ltr",
     logging.warning("Compiled rewrite rule has no connected states")
   return result
 
+
+cpdef Fst string_map(mappings, arc_type=b"standard", input_token_type=b"byte",
+                     output_token_type=b"byte"):
+  """
+  string_map(mappings, arc_type="standard", input_token_type="byte",
+             output_token_type="byte")
+
+  Creates a transducer that maps between elements of mappings.
+
+  Args:
+    mappings: an iterable of of input-output pairs of strings. If an element is
+        a singleton, the identity mapping is used.
+    arc_type: A string indicating the arc type.
+    input_token_type: A string indicating how the input strings are to be
+        encoded as arc labels---one of: utf8" (encodes strings as a UTF-8
+        encoded Unicode strings), "byte" (encodes strings as raw bytes)---or a
+        SymbolTable.
+    output_token_type: A string indicating how the output strings are to be
+        encoded as arc labels---one of: utf8" (encodes strings as a UTF-8 encoded
+        Unicode strings), "byte" (encodes strings as raw bytes)---or a
+        SymbolTable.
+
+  Returns:
+    An FST.
+
+  Raises:
+    FstArgError: Mappings must be of length 1 or 2.
+  """
+  cdef Fst result = Fst(arc_type)
+  cdef Fst tfst
+  for mapping in mappings:
+    if (not 0 < len(mapping) <= 2):
+      raise FstArgError("Mappings must be of length 1 or 2")
+    try:
+      (m0, m1) = mapping
+    except ValueError:
+      m1 = m0 = mapping[0]
+    tfst = transducer(m0, m1, arc_type=result.arc_type,
+                      input_token_type=input_token_type,
+                      output_token_type=output_token_type)
+    result.union(tfst)
+  return result
 
 
 # Decorator for one-argument constructive FST operations.
@@ -1725,7 +1785,6 @@ cdef class StringPaths(object):
 
   Iterator for string paths in acyclic FST.
 
-
   This class provides an iterator over all paths (represented as pairs of
   strings and an associated path weight) through an acyclic FST. This
   operation is only feasible when the FST is acyclic. Depending on the
@@ -1734,11 +1793,15 @@ cdef class StringPaths(object):
   concatenation of string labels from a symbol table. This class is normally
   created by invoking the `paths` method of `Fst`.
 
+  Note that this class is an iterator over all paths *at the time of creation*
+  and the iterator will not be affected by any mutations to the argument
+  FST or input symbol tables.
+
   Args:
-    token_type: A string indicating how arc labels are to be interpreted;
-        one of: "utf8" (interprets arc labels as a UTF-8 encoded Unicode
-        string), "byte" (interprets arc labels as a raw byte string),
-        "symbol" (reads arc labels from symbol tables).
+    token_type: A string indicating how arcs labels are to be interpreted as strings;
+        (interprets arc labels as UTF-8 encoded Unicode strings), "byte" (interprets
+        arc labels as byte strings), "symbol" (interprets arc labels according to
+        the provided symbol tables).
     isymbols: Input symbol table (ignored unless token_type is "symbol")
     osymbols: Output symbol table (ignored unless token_type is "symbol")
 
@@ -1755,11 +1818,18 @@ cdef class StringPaths(object):
 
   def __init__(self, _Fst fst, token_type=b"byte", _SymbolTable isymbols=None,
                _SymbolTable osymbols=None):
+    # Makes a reference-counted copy of the FST.
     self._fst = new FstClass(deref(fst._fst))
-    self._paths = new StringPathsClass(deref(fst._fst),
-        _get_token_type(tostring(token_type)),
-        (<SymbolTable_ *> NULL) if isymbols is None else isymbols._table,
-        (<SymbolTable_ *> NULL) if osymbols is None else osymbols._table)
+    cdef TokenType tt = _get_token_type(tostring(token_type))
+    if tt == SYMBOL:
+      # Makes reference-counted copies of the symbol tables.
+      self._paths = new StringPathsClass(deref(self._fst), tt,
+          (<SymbolTable *> NULL) if isymbols is None else
+              isymbols._table.Copy(),
+          (<SymbolTable *> NULL) if osymbols is None else
+              osymbols._table.Copy())
+    else:
+      self._paths = new StringPathsClass(deref(self._fst), tt, NULL, NULL)
     if self._paths.Error():
       raise FstArgError("FST is not acyclic")
 
@@ -1777,7 +1847,7 @@ cdef class StringPaths(object):
       raise StopIteration
     cdef string istring = self.istring()
     cdef string ostring = self.ostring()
-    cdef Weight_ weight = self.weight()
+    cdef Weight weight = self.weight()
     self.next()
     return (istring, ostring, weight)
 
@@ -1856,7 +1926,7 @@ cdef class StringPaths(object):
     """
     return self._paths.OString()
 
-  cpdef Weight_ weight(self):
+  cpdef Weight weight(self):
     """
     weight(self)
 
@@ -1868,7 +1938,7 @@ cdef class StringPaths(object):
     Returns:
       The path's Weight.
     """
-    cdef Weight_ weight = Weight_.__new__(Weight_)
+    cdef Weight weight = Weight.__new__(Weight)
     weight._weight = new WeightClass(self._paths.Weight())
     return weight
 
@@ -1914,9 +1984,9 @@ cdef class Far(object):
                far_type=b"default"):
     self._name = tostring(filename)
     self._mode = tostring(mode)[0]
-    if self._mode == "r":
+    if self._mode == b"r":
       self._reader = FarReader.open(self._name)
-    elif self._mode == "w":
+    elif self._mode == b"w":
       self._writer = FarWriter.create(self._name, arc_type=arc_type,
                                       far_type=far_type)
     else:
@@ -1949,12 +2019,12 @@ cdef class Far(object):
     Returns:
       True if the FAR is in an errorful state, False otherwise.
     """
-    self._check_not_mode("c")
+    self._check_not_mode(b"c")
     return self._reader.error() if self._mode == b"r" else self._writer.error()
 
   @property
   def arc_type(self):
-    self._check_not_mode("c")
+    self._check_not_mode(b"c")
     return (self._reader._arc_type() if self._mode == b"r" else
             self._writer._arc_type())
 
@@ -1986,7 +2056,7 @@ cdef class Far(object):
     return self
 
   def __next__(self):
-    self._check_mode("r")
+    self._check_mode(b"r")
     (key, mfst) = next(self._reader)
     return (key, _init_Fst_from_MutableFst(mfst))
 
@@ -2009,7 +2079,7 @@ cdef class Far(object):
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
-    self._check_mode("r")
+    self._check_mode(b"r")
     return self._reader.find(key)
 
   def get_fst(self):
@@ -2027,7 +2097,7 @@ cdef class Far(object):
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
-    self._check_mode("r")
+    self._check_mode(b"r")
     return _init_Fst_from_MutableFst(self._reader.get_fst())
 
   cpdef string get_key(self) except *:
@@ -2045,7 +2115,7 @@ cdef class Far(object):
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
-    self._check_mode("r")
+    self._check_mode(b"r")
     return self._reader.get_key()
 
   cpdef void next(self) except *:
@@ -2060,7 +2130,7 @@ cdef class Far(object):
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
-    self._check_mode("r")
+    self._check_mode(b"r")
     self._reader.next()
 
   cpdef void reset(self) except *:
@@ -2075,7 +2145,7 @@ cdef class Far(object):
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
-    self._check_mode("r")
+    self._check_mode(b"r")
     self._reader.reset()
 
   def __getitem__(self, key):
@@ -2105,11 +2175,11 @@ cdef class Far(object):
       FstOpError: Cannot invoke method in current mode.
       FstOpError: Incompatible or invalid arc type.
     """
-    self._check_mode("w")
+    self._check_mode(b"w")
     self._writer.add(key, fst)
 
   def __setitem__(self, key, Fst fst):
-    self._check_mode("w")
+    self._check_mode(b"w")
     self._writer[key] = fst
 
   cpdef void close(self) except *:
@@ -2121,7 +2191,7 @@ cdef class Far(object):
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
-    self._check_mode("w")
+    self._check_mode(b"w")
     self._writer._close()
     self._mode = b"c"
 
@@ -2147,7 +2217,6 @@ from pywrapfst import ArcIterator
 from pywrapfst import EncodeMapper
 from pywrapfst import MutableArcIterator
 from pywrapfst import StateIterator
-from pywrapfst import SymbolTable
 from pywrapfst import SymbolTableIterator
 from pywrapfst import Weight
 
@@ -2266,5 +2335,11 @@ relabel_pairs = _copy(Fst.relabel_pairs)
 relabel_tables = _copy(Fst.relabel_tables)
 reweight = _copy(Fst.reweight)
 topsort = _copy(Fst.topsort)
+
+
+# Very late imports that conflict with cimports.
+
+SymbolTable = pywrapfst.SymbolTable
+Weight = pywrapfst.Weight
 """)
 

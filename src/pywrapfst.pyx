@@ -133,7 +133,7 @@ class FstUnknownWeightTypeError(FstError, ValueError):
 # Various helpers used throughout.
 
 
-cdef string tostring(data, string encoding=b"UTF-8") except *:
+cdef string tostring(data, encoding="utf8") except *:
   """Converts strings to bytestrings.
 
   This function converts Python bytestrings and Unicode strings to bytestrings
@@ -161,7 +161,7 @@ cdef string tostring(data, string encoding=b"UTF-8") except *:
   raise FstArgError("Cannot encode as string: {!r}".format(data))
 
 
-cdef string weighttostring(data, string encoding=b"UTF-8") except *:
+cdef string weighttostring(data, encoding="utf8") except *:
   """Converts strings or numerics to bytestrings.
 
   This function converts Python bytestrings, Unicode strings, and numerics
@@ -190,7 +190,7 @@ cdef string weighttostring(data, string encoding=b"UTF-8") except *:
   elif isinstance(data, unicode):
     return data.encode(encoding)
   elif isinstance(data, numbers.Number):
-    return bytes(float(data))
+    return str(data).encode(encoding)
   raise FstArgError("Cannot encode as string: {!r}".format(data))
 
 
@@ -766,7 +766,10 @@ cdef class SymbolTable(_SymbolTable):
 
     See also: `SymbolTable.read_fst`, `SymbolTable.read_text`.
     """
-    return _init_SymbolTable(fst.SymbolTable.Read(tostring(filename)), True)
+    cdef SymbolTable_ptr tsyms = fst.SymbolTable.Read(tostring(filename))
+    if tsyms == NULL:
+      raise FstIOError("Read failed: {!r}".format(filename))
+    return _init_SymbolTable(tsyms, True)
 
   @classmethod
   def read_text(cls, filename):
@@ -785,7 +788,10 @@ cdef class SymbolTable(_SymbolTable):
 
     See also: `SymbolTable.read`, `SymbolTable.read_fst`.
     """
-    return _init_SymbolTable(fst.SymbolTable.ReadText(tostring(filename)), True)
+    cdef SymbolTable_ptr tsyms = fst.SymbolTable.ReadText(tostring(filename))
+    if tsyms == NULL:
+      raise FstIOError("Read failed: {!r}".format(filename))
+    return _init_SymbolTable(tsyms, True)
 
   @classmethod
   def read_fst(cls, filename, bool input_table):
@@ -813,7 +819,7 @@ cdef class SymbolTable(_SymbolTable):
     cdef SymbolTable_ptr tsyms = fst.FstReadSymbols(filename, input_table)
     if tsyms == NULL:
       raise FstIOError("Read failed: {!r}".format(filename))
-    return _init_SymbolTable(tsyms)
+    return _init_SymbolTable(tsyms, True)
 
   cpdef int64 add_symbol(self, symbol, int64 key=-1):
     """
@@ -855,7 +861,7 @@ cdef class SymbolTable(_SymbolTable):
     self._table.SetName(tostring(new_name))
 
 
-cdef SymbolTable _init_SymbolTable(SymbolTable_ptr table, bool owner=True):
+cdef SymbolTable _init_SymbolTable(SymbolTable_ptr table, bool owner):
   cdef SymbolTable result = SymbolTable.__new__(SymbolTable)
   result._table = table
   result._owner = owner
@@ -886,7 +892,7 @@ cpdef SymbolTable compact_symbol_table(_SymbolTable syms):
   Returns:
     A new compacted SymbolTable.
   """
-  return _init_SymbolTable(fst.CompactSymbolTable(deref(syms._table)))
+  return _init_SymbolTable(fst.CompactSymbolTable(deref(syms._table)), True)
 
 
 cpdef SymbolTable merge_symbol_table(_SymbolTable lhs, _SymbolTable rhs):
@@ -914,7 +920,7 @@ cpdef SymbolTable merge_symbol_table(_SymbolTable lhs, _SymbolTable rhs):
   See also: `relabel_symbols`.
   """
   return _init_SymbolTable(fst.MergeSymbolTable(deref(lhs._table),
-                                                deref(rhs._table), NULL))
+                                                deref(rhs._table), NULL), True)
 
 
 # SymbolTable iteration.
@@ -1219,13 +1225,14 @@ cdef class _Fst(object):
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     cdef stringstream sstrm
     fst.DrawFst(deref(self._fst), self._fst.InputSymbols(),
-                self._fst.OutputSymbols(), NULL, self.properties(ACCEPTOR),
+                self._fst.OutputSymbols(), NULL,
+                self._fst.Properties(fst.kAcceptor, True) == fst.kAcceptor,
                 b"", 8.5, 11, True, False, 0.4, 0.25, 14, 5, False,
                 addr(sstrm), b"_repr_svg")
     (sout, serr) = proc.communicate(sstrm.str())
     if proc.returncode != 0:  # Just to be explicit.
       raise subprocess.CalledProcessError(proc.returncode, self._DOT_TSVG)
-    return sout
+    return sout.decode("utf8")
 
   def __repr__(self):
     return "<{} Fst at 0x{:x}>".format(self.fst_type, id(self))
@@ -1240,7 +1247,10 @@ cdef class _Fst(object):
    # Other magic methods.
 
   def __str__(self):
-    return self.text()
+    return self.text(
+        acceptor=self._fst.Properties(fst.kAcceptor, True) == fst.kAcceptor,
+        show_weight_one=self._fst.Properties(fst.kWeighted, True) ==
+        fst.kWeighted).decode("utf8")
 
   cdef string _arc_type(self):
     return self._fst.ArcType()
@@ -1508,7 +1518,7 @@ cdef class _Fst(object):
     cdef SymbolTable_ptr ssymbols_ptr = NULL
     if ssymbols is not None:
       ssymbols_ptr = ssymbols._table
-    fst.PrintFst(deref(self._fst), sstrm, __file__,
+    fst.PrintFst(deref(self._fst), sstrm, "<pywrapfst>",
         self._fst.InputSymbols() if isymbols is None else isymbols._table,
         self._fst.OutputSymbols() if osymbols is None else osymbols._table,
         ssymbols_ptr, acceptor, show_weight_one, tostring(missing_sym))
@@ -1575,7 +1585,7 @@ cdef class _MutableFst(_Fst):
 
     This function is not visible to Python users.
     """
-    if self.properties(ERROR):
+    if self._fst.Properties(fst.kError, True) == fst.kError:
       raise FstOpError("Operation failed")
 
   cpdef void add_arc(self, int64 state, int64 ilabel,
@@ -1650,7 +1660,12 @@ cdef class _MutableFst(_Fst):
     fst.ArcSort(self._mfst, ast)
     self._check_mutating_imethod()
 
-  cpdef void closure(self, bool closure_plus=False) except *:
+  cdef void _closure(self, bool closure_plus=False) except *:
+    fst.Closure(self._mfst, fst.CLOSURE_PLUS if closure_plus else
+                            fst.CLOSURE_STAR)
+    self._check_mutating_imethod()
+
+  def closure(self, bool closure_plus=False):
     """
     closure(self, closure_plus=False)
 
@@ -1665,11 +1680,13 @@ cdef class _MutableFst(_Fst):
     Args:
       closure_plus: If False, do not accept the empty string.
     """
-    fst.Closure(self._mfst, fst.CLOSURE_PLUS if closure_plus else
-                            fst.CLOSURE_STAR)
+    self._closure(closure_plus)
+
+  cdef void _concat(self, _Fst ifst) except *:
+    fst.Concat(self._mfst, deref(ifst._fst))
     self._check_mutating_imethod()
 
-  cpdef void concat(self, _Fst ifst) except *:
+  def concat(self, _Fst ifst):
     """
     concat(self, ifst)
 
@@ -1683,8 +1700,7 @@ cdef class _MutableFst(_Fst):
     Args:
       ifst: The second input FST.
     """
-    fst.Concat(self._mfst, deref(ifst._fst))
-    self._check_mutating_imethod()
+    self._concat(ifst)
 
   cpdef void connect(self) except *:
     """
@@ -3795,7 +3811,7 @@ cdef class Compiler(object):
       FstOpError: Compilation failed.
     """
     cdef fst.FstClass *tfst = fst.CompileFstInternal(deref(self._sstrm),
-        __file__, self._fst_type, self._arc_type, self._isymbols,
+        "<pywrapfst>", self._fst_type, self._arc_type, self._isymbols,
         self._osymbols, self._ssymbols, self._acceptor, self._keep_isymbols,
         self._keep_osymbols, self._keep_state_numbering,
         self._allow_negative_labels)
@@ -3873,7 +3889,7 @@ cdef class FarReader(object):
     filenames = [tostring(filename) for filename in filenames]
     cdef fst.FarReaderClass *tfar = fst.FarReaderClass.Open(filenames)
     if tfar == NULL:
-      raise FstIOError("Read failed: {!r}".format(filename))
+      raise FstIOError("Read failed: {!r}".format(filenames))
     cdef FarReader result = FarReader.__new__(FarReader)
     result._reader = tfar
     return result

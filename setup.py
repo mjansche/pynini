@@ -22,11 +22,12 @@ from setuptools import setup
 
 # These extensions are expected to work anywhere with a:
 #
-# * Standards-compliant C++ 11 compiler (GCC >= 4.8 or Clang >= 700)
+# * Standards-compliant C++ 11 compiler (GCC >= 4.8 or Clang >= 700).
 # * OpenFst 1.5.1 (http://openfst.org) built with the "far", "pdt", and "mpdt"
 #   extensions.
-# * re2 (http:://github.com/google/ee2)
-# * Python 2.7 or better with "development" headers
+# * re2 (http:://github.com/google/ee2).
+# * Python 2.7 or better with "development" headers (though it should work with
+#   Python 3.5 with minimal modifications).
 
 
 COMPILE_ARGS = ["-std=c++11", "-Wno-unused-function", "-funsigned-char"]
@@ -48,23 +49,23 @@ pynini = Extension(name="pynini", language="c++",
                               "fst",
                               "m",
                               "dl"],
-                    sources=["src/crossproductscript.cc",
-                             "src/join.cc",
-                             "src/merge.cc",
-                             "src/mergescript.cc",
-                             "src/optimizescript.cc",
-                             "src/pathsscript.cc",
-                             "src/pynini.cc",
-                             "src/pynini_cdrewrite.cc",
-                             "src/pynini_replace.cc",
-                             "src/pynini_stringify.cc",
-                             "src/repeatscript.cc",
-                             "src/split.cc",
-                             "src/stringcompile.cc",
-                             "src/stringcompilescript.cc"])
+                   sources=["src/stringcompile.cc",
+                            "src/stringcompilescript.cc",
+                            "src/split.cc",
+                            "src/optimizescript.cc",
+                            "src/repeatscript.cc",
+                            "src/pynini_stringify.cc",
+                            "src/pynini_replace.cc",
+                            "src/pynini_cdrewrite.cc",
+                            "src/pynini.cc",
+                            "src/pathsscript.cc",
+                            "src/mergescript.cc",
+                            "src/merge.cc",
+                            "src/join.cc",
+                            "src/crossproductscript.cc"])
 
 setup(
-    name="pynini", version="0.5",
+    name="pynini", version="0.6",
     description="Finite-state grammar compilation library",
     author="Kyle Gorman", author_email="kbg@google.com",
     url="http://pynini.opengrm.org/",
@@ -81,4 +82,5 @@ setup(
                  "Topic :: Text Processing :: Linguistic",
                  "Topic :: Scientific/Engineering :: Artificial Intelligence",
                  "Topic :: Scientific/Engineering :: Mathematics"],
-    ext_modules=[pywrapfst, pynini], test_suite="pynini_test")
+    ext_modules=[pywrapfst, pynini],
+    test_suite="pynini_test", tests_require=["six"])

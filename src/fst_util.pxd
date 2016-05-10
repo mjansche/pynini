@@ -89,6 +89,9 @@ cdef extern from "stringcompilescript.h" \
   bool CompileUTF8String(const string &, const WeightClass &,
                          MutableFstClass *)
 
+  bool CompileSymbolString(const string &, const WeightClass &,
+                           const SymbolTable &, MutableFstClass *)
+
   bool CompileBracketedByteString(const string &, const WeightClass &,
                                   MutableFstClass *)
 

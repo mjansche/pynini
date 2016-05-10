@@ -1,5 +1,6 @@
 MANIFEST.in
 pynini_test.py
+setup.cfg
 setup.py
 pynini.egg-info/PKG-INFO
 pynini.egg-info/SOURCES.txt

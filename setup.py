@@ -22,15 +22,14 @@ from setuptools import setup
 
 # These extensions are expected to work anywhere with a:
 #
-# * Standards-compliant C++ 11 compiler (GCC >= 4.8 or Clang >= 700).
+# * Standards-compliant C++ 11 compiler (GCC >= 4.8 or Clang >= 700)
 # * OpenFst 1.5.1 (http://openfst.org) built with the "far", "pdt", and "mpdt"
 #   extensions.
-# * re2 (http:://github.com/google/ee2).
-# * Python 2.7 or better with "development" headers (though it should work with
-#   Python 3.5 with minimal modifications).
+# * re2 (http:://github.com/google/ee2)
+# * Python 2.7 or better with "development" headers
 
 
-COMPILE_ARGS = ["-std=c++11", "-Wno-unused-function"]
+COMPILE_ARGS = ["-std=c++11", "-Wno-unused-function", "-funsigned-char"]
 
 pywrapfst = Extension(name="pywrapfst", language="c++",
                       extra_compile_args=COMPILE_ARGS,
@@ -65,7 +64,7 @@ pynini = Extension(name="pynini", language="c++",
                              "src/stringcompilescript.cc"])
 
 setup(
-    name="pynini", version="0.4",
+    name="pynini", version="0.5",
     description="Finite-state grammar compilation library",
     author="Kyle Gorman", author_email="kbg@google.com",
     url="http://pynini.opengrm.org/",

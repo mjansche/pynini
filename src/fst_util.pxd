@@ -18,10 +18,13 @@
 
 from libcpp cimport bool
 
+from basictypes cimport int32
+
 from fst cimport FstClass
 from fst cimport MutableFstClass
 from fst cimport SymbolTable
 from fst cimport WeightClass
+
 from libcpp.string cimport string
 
 
@@ -74,7 +77,7 @@ cdef extern from "pathsscript.h" \
 cdef extern from "repeatscript.h" \
     namespace "fst::script" nogil:
 
-  void Repeat(MutableFstClass *, int, int)
+  void Repeat(MutableFstClass *, int32, int32)
 
 
 cdef extern from "stringcompilescript.h" \

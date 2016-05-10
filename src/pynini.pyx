@@ -38,6 +38,7 @@ from libcpp cimport bool
 
 from libcpp.vector cimport vector
 
+from basictypes cimport int32
 from basictypes cimport int64
 from basictypes cimport uint64
 
@@ -45,7 +46,7 @@ from fst cimport CLOSURE_PLUS
 from fst cimport CLOSURE_STAR
 
 from fst cimport Closure
-from fst cimport Equal
+from fst cimport Concat
 from fst cimport FstClass
 from fst cimport LabelFstClassPair
 from fst cimport MutableFstClass
@@ -56,7 +57,6 @@ from fst cimport VectorFstClass
 from fst cimport WeightClass
 
 from fst cimport kAcceptor
-from fst cimport kDelta
 from fst cimport kError
 from fst cimport kString
 
@@ -374,10 +374,6 @@ cdef class Fst(_MutableFst):
     path are interpreted as UTF-8-encoded Unicode strings, raw bytes, or a
     concatenation of string labels from a symbol table.
 
-    Note that this method creates an iterator over all paths *at the time
-    of creation* and the iterator will not be affected by any mutations to
-    the FST after that point.
-
     Args:
       token_type: A string indicating how arc labels are to be interpreted;
           one of: "utf8" (interprets arc labels as a UTF-8 encoded Unicode
@@ -389,8 +385,6 @@ cdef class Fst(_MutableFst):
     Raises:
       FstArgError: Unknown token type.
       FstArgError: FST is not acyclic.
-
-    See also: `StringPaths`. `StringPaths`. `StringPaths`. `StringPaths`.
     """
     return StringPaths(self, token_type, isymbols, osymbols)
 
@@ -449,7 +443,7 @@ cdef class Fst(_MutableFst):
 
   # The following all override their definition in _MutableFst.
 
-  cpdef Fst copy(self):
+  def copy(self):
     """
     copy(self)
 
@@ -459,7 +453,7 @@ cdef class Fst(_MutableFst):
 
   # Overrides cdef instance method with a more expressive signature.
 
-  def closure(self, int lower=0, int upper=0):
+  def closure(self, int32 lower=0, int32 upper=0):
     """
     closure(self, lower)
     closure(self, lower, upper)
@@ -574,7 +568,10 @@ cdef class Fst(_MutableFst):
     if not MergeSymbols(self._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
-    self._concat(rhs)
+    # Calls the scriptland signature rather than the Python extension one, as
+    # this function is overriding the latter's definition from the superclass.
+    Concat(self._mfst, deref(rhs._fst))
+    self._check_pynini_op_error()
 
   cpdef void optimize(self, bool compute_props=False):
     """
@@ -647,9 +644,9 @@ cdef class Fst(_MutableFst):
     cdef Fst lhs = _compile_Fst(self, arc_type=arc_type)
     cdef Fst rhs = _compile_Fst(other, arc_type=arc_type)
     if op == 2:    # ==
-      return Equal(deref(lhs._fst), deref(rhs._fst), kDelta)
+      return pywrapfst.equal(lhs, rhs)
     elif op == 3:  # !=
-      return not Equal(deref(lhs._fst), deref(rhs._fst), kDelta)
+      return not pywrapfst.equal(lhs, rhs)
     raise NotImplementedError("Operator {} not implemented".format(op))
 
   # x + y
@@ -658,7 +655,8 @@ cdef class Fst(_MutableFst):
     cdef string arc_type = (self.arc_type if hasattr(self, "arc_type") else
                             other.arc_type)
     cdef Fst lhs = _compile_Fst(self, arc_type=arc_type)
-    lhs.concat(other)
+    cdef Fst rhs = _compile_Fst(other, arc_type=arc_type)
+    lhs.concat(rhs)
     return lhs
 
   # x - y
@@ -758,7 +756,6 @@ cpdef Fst acceptor(astring, weight=None, arc_type=b"standard",
   """
   cdef Fst result = Fst(tostring(arc_type))
   cdef WeightClass wc = _get_WeightClass_or_One(result.weight_type, weight)
-  token_type = tostring(token_type)
   if token_type == b"byte":
     if not CompileBracketedByteString(tostring(astring), wc, result._mfst):
       raise FstStringCompilationError("String compilation failed")
@@ -811,7 +808,6 @@ cpdef Fst transducer(istring, ostring, weight=None, arc_type=b"standard",
   cdef Fst upper
   cdef Fst result = Fst(arc_type)
   # Sets up upper language.
-  token_type = tostring(token_type)
   if not isinstance(istring, Fst):
     upper = acceptor(istring, arc_type=arc_type, token_type=token_type)
   else:
@@ -1738,10 +1734,6 @@ cdef class StringPaths(object):
   concatenation of string labels from a symbol table. This class is normally
   created by invoking the `paths` method of `Fst`.
 
-  Note that this class is an iterator over all paths *at the time of creation*
-  and the iterator will not be affected by any mutations to the argument
-  FST or input symbol tables.
-
   Args:
     token_type: A string indicating how arc labels are to be interpreted;
         one of: "utf8" (interprets arc labels as a UTF-8 encoded Unicode
@@ -1763,18 +1755,11 @@ cdef class StringPaths(object):
 
   def __init__(self, _Fst fst, token_type=b"byte", _SymbolTable isymbols=None,
                _SymbolTable osymbols=None):
-    # Makes a reference-counted copy of the FST.
     self._fst = new FstClass(deref(fst._fst))
-    cdef TokenType tt = _get_token_type(tostring(token_type))
-    if tt == SYMBOL:
-      # Makes reference-counted copies of the symbol tables.
-      self._paths = new StringPathsClass(deref(self._fst), tt,
-          (<SymbolTable_ *> NULL) if isymbols is None else
-              isymbols._table.Copy(),
-          (<SymbolTable_ *> NULL) if osymbols is None else
-              osymbols._table.Copy())
-    else:
-      self._paths = new StringPathsClass(deref(self._fst), tt, NULL, NULL)
+    self._paths = new StringPathsClass(deref(fst._fst),
+        _get_token_type(tostring(token_type)),
+        (<SymbolTable_ *> NULL) if isymbols is None else isymbols._table,
+        (<SymbolTable_ *> NULL) if osymbols is None else osymbols._table)
     if self._paths.Error():
       raise FstArgError("FST is not acyclic")
 
@@ -1929,9 +1914,9 @@ cdef class Far(object):
                far_type=b"default"):
     self._name = tostring(filename)
     self._mode = tostring(mode)[0]
-    if self._mode == b"r":
+    if self._mode == "r":
       self._reader = FarReader.open(self._name)
-    elif self._mode == b"w":
+    elif self._mode == "w":
       self._writer = FarWriter.create(self._name, arc_type=arc_type,
                                       far_type=far_type)
     else:
@@ -1964,12 +1949,12 @@ cdef class Far(object):
     Returns:
       True if the FAR is in an errorful state, False otherwise.
     """
-    self._check_not_mode(b"c")
+    self._check_not_mode("c")
     return self._reader.error() if self._mode == b"r" else self._writer.error()
 
   @property
   def arc_type(self):
-    self._check_not_mode(b"c")
+    self._check_not_mode("c")
     return (self._reader._arc_type() if self._mode == b"r" else
             self._writer._arc_type())
 
@@ -2001,7 +1986,7 @@ cdef class Far(object):
     return self
 
   def __next__(self):
-    self._check_mode(b"r")
+    self._check_mode("r")
     (key, mfst) = next(self._reader)
     return (key, _init_Fst_from_MutableFst(mfst))
 
@@ -2024,7 +2009,7 @@ cdef class Far(object):
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
-    self._check_mode(b"r")
+    self._check_mode("r")
     return self._reader.find(key)
 
   def get_fst(self):
@@ -2042,7 +2027,7 @@ cdef class Far(object):
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
-    self._check_mode(b"r")
+    self._check_mode("r")
     return _init_Fst_from_MutableFst(self._reader.get_fst())
 
   cpdef string get_key(self) except *:
@@ -2060,7 +2045,7 @@ cdef class Far(object):
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
-    self._check_mode(b"r")
+    self._check_mode("r")
     return self._reader.get_key()
 
   cpdef void next(self) except *:
@@ -2075,7 +2060,7 @@ cdef class Far(object):
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
-    self._check_mode(b"r")
+    self._check_mode("r")
     self._reader.next()
 
   cpdef void reset(self) except *:
@@ -2090,7 +2075,7 @@ cdef class Far(object):
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
-    self._check_mode(b"r")
+    self._check_mode("r")
     self._reader.reset()
 
   def __getitem__(self, key):
@@ -2120,11 +2105,11 @@ cdef class Far(object):
       FstOpError: Cannot invoke method in current mode.
       FstOpError: Incompatible or invalid arc type.
     """
-    self._check_mode(b"w")
+    self._check_mode("w")
     self._writer.add(key, fst)
 
   def __setitem__(self, key, Fst fst):
-    self._check_mode(b"w")
+    self._check_mode("w")
     self._writer[key] = fst
 
   cpdef void close(self) except *:
@@ -2136,7 +2121,7 @@ cdef class Far(object):
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
-    self._check_mode(b"w")
+    self._check_mode("w")
     self._writer._close()
     self._mode = b"c"
 
@@ -2280,5 +2265,6 @@ project = _copy(Fst.project)
 relabel_pairs = _copy(Fst.relabel_pairs)
 relabel_tables = _copy(Fst.relabel_tables)
 reweight = _copy(Fst.reweight)
-topsort = _copy(Fst.topsort)""")
+topsort = _copy(Fst.topsort)
+""")
 

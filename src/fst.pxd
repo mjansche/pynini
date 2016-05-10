@@ -628,7 +628,7 @@ cdef extern from "<fst/script/fstscript.h>" namespace "fst::script" nogil:
 
   cdef cppclass ShortestPathOptions:
 
-    ShortestPathOptions(QueueType, size_t, bool, bool, float, bool,
+    ShortestPathOptions(QueueType, int32, bool, bool, float, bool,
                         const WeightClass &, int64)
 
   cdef void ShortestPath(const FstClass &, MutableFstClass *,

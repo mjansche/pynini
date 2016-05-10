@@ -102,9 +102,9 @@ class PyniniTest(unittest.TestCase):
     with self.assertRaises(FstArgError):
       unused_t = transducer(cheese, reply, arc_type="nonexistent")
     with self.assertRaises(FstStringCompilationError):
-      unused_a = acceptor(cheese + "[999999999999999]")
+      unused_a = acceptor(cheese + "[0xfffffffffffffffffffff]")
     with self.assertRaises(FstStringCompilationError):
-      unused_t = transducer(cheese, reply + "[999999999999999]")
+      unused_t = transducer(cheese, reply + "[0xfffffffffffffffffffff]")
     with self.assertRaises(FstStringCompilationError):
       unused_a = acceptor(cheese + "]")
     with self.assertRaises(FstStringCompilationError):

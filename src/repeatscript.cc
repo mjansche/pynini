@@ -22,7 +22,7 @@
 namespace fst {
 namespace script {
 
-void Repeat(MutableFstClass *fst, int lower, int upper) {
+void Repeat(MutableFstClass *fst, int32 lower, int32 upper) {
   RepeatArgs args(fst, lower, upper);
   Apply<Operation<RepeatArgs>>("Repeat", fst->ArcType(), &args);
 }

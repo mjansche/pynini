@@ -1317,14 +1317,14 @@ struct __pyx_opt_args_9pywrapfst__shortestdistance {
 /* "pywrapfst.pxd":468
  *                                                 bool reverse=?)
  * 
- * cpdef _MutableFst shortestpath(_Fst ifst, float delta=?, int64 nshortest=?,             # <<<<<<<<<<<<<<
+ * cpdef _MutableFst shortestpath(_Fst ifst, float delta=?, int32 nshortest=?,             # <<<<<<<<<<<<<<
  *                                int64 nstate=?, qt=?, bool unique=?,
  *                                weight=?)
  */
 struct __pyx_opt_args_9pywrapfst_shortestpath {
   int __pyx_n;
   float delta;
-  __pyx_t_10basictypes_int64 nshortest;
+  __pyx_t_10basictypes_int32 nshortest;
   __pyx_t_10basictypes_int64 nstate;
   PyObject *qt;
   bool unique;
@@ -2805,7 +2805,7 @@ static char __pyx_k_increment_subsequential_label[] = "increment_subsequential_l
 static char __pyx_k_Unknown_determinization_type_r[] = "Unknown determinization type: {!r}";
 static char __pyx_k_incompatible_or_invalid_weight[] = "incompatible or invalid weight";
 static char __pyx_k_Fst_arc_type_standard_Construct[] = "\n   Fst(arc_type=\"standard\")\n\n   Constructs an empty FST.\n\n   Args:\n     arc_type: A string indicating the arc type.\n\n   Raises:\n     FstError: Unknown arc type.\n\n   Raises:\n     FstOpError: operation failed.\n   ";
-static char __pyx_k_usr_local_google_home_kbg_tmp_p[] = "/usr/local/google/home/kbg/tmp/pynini2/src/pywrapfst.pyx";
+static char __pyx_k_usr_local_google_home_kbg_src_p[] = "/usr/local/google/home/kbg/src/pynini/src/pywrapfst.pyx";
 static char __pyx_k_Equivalence_test_encountered_err[] = "Equivalence test encountered error";
 static char __pyx_k_Incompatible_or_invalid_arc_type[] = "Incompatible or invalid arc type";
 static char __pyx_k_Incompatible_or_invalid_weight_t[] = "Incompatible or invalid weight type";
@@ -3162,7 +3162,7 @@ static PyObject *__pyx_n_s_type;
 static PyObject *__pyx_n_b_uniform;
 static PyObject *__pyx_n_s_unique;
 static PyObject *__pyx_kp_b_unspecified;
-static PyObject *__pyx_kp_s_usr_local_google_home_kbg_tmp_p;
+static PyObject *__pyx_kp_s_usr_local_google_home_kbg_src_p;
 static PyObject *__pyx_n_s_value;
 static PyObject *__pyx_n_b_vector;
 static PyObject *__pyx_n_s_verify;
@@ -3341,7 +3341,7 @@ static PyObject *__pyx_pf_9pywrapfst_34replace(CYTHON_UNUSED PyObject *__pyx_sel
 static PyObject *__pyx_pf_9pywrapfst_36reverse(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_9pywrapfst__Fst *__pyx_v_ifst, bool __pyx_v_require_superinitial); /* proto */
 static PyObject *__pyx_pf_9pywrapfst_38rmepsilon(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_9pywrapfst__Fst *__pyx_v_ifst, bool __pyx_v_connect, float __pyx_v_delta, __pyx_t_10basictypes_int64 __pyx_v_nstate, PyObject *__pyx_v_qt, bool __pyx_v_reverse, PyObject *__pyx_v_weight); /* proto */
 static PyObject *__pyx_pf_9pywrapfst_40shortestdistance(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_9pywrapfst__Fst *__pyx_v_ifst, float __pyx_v_delta, __pyx_t_10basictypes_int64 __pyx_v_nstate, PyObject *__pyx_v_qt, bool __pyx_v_reverse); /* proto */
-static PyObject *__pyx_pf_9pywrapfst_42shortestpath(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_9pywrapfst__Fst *__pyx_v_ifst, float __pyx_v_delta, __pyx_t_10basictypes_int64 __pyx_v_nshortest, __pyx_t_10basictypes_int64 __pyx_v_nstate, PyObject *__pyx_v_qt, bool __pyx_v_unique, PyObject *__pyx_v_weight); /* proto */
+static PyObject *__pyx_pf_9pywrapfst_42shortestpath(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_9pywrapfst__Fst *__pyx_v_ifst, float __pyx_v_delta, __pyx_t_10basictypes_int32 __pyx_v_nshortest, __pyx_t_10basictypes_int64 __pyx_v_nstate, PyObject *__pyx_v_qt, bool __pyx_v_unique, PyObject *__pyx_v_weight); /* proto */
 static PyObject *__pyx_pf_9pywrapfst_44statemap(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_9pywrapfst__Fst *__pyx_v_ifst, PyObject *__pyx_v_map_type); /* proto */
 static PyObject *__pyx_pf_9pywrapfst_46synchronize(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_9pywrapfst__Fst *__pyx_v_ifst); /* proto */
 static int __pyx_pf_9pywrapfst_8Compiler___cinit__(struct __pyx_obj_9pywrapfst_Compiler *__pyx_v_self, std::string __pyx_v_fst_type, std::string __pyx_v_arc_type, struct __pyx_obj_9pywrapfst_SymbolTable *__pyx_v_isymbols, struct __pyx_obj_9pywrapfst_SymbolTable *__pyx_v_osymbols, struct __pyx_obj_9pywrapfst_SymbolTable *__pyx_v_ssymbols, bool __pyx_v_acceptor, bool __pyx_v_keep_isymbols, bool __pyx_v_keep_osymbols, bool __pyx_v_keep_state_numbering, PyObject *__pyx_v_allow_negative_labels); /* proto */
@@ -38144,20 +38144,20 @@ static PyObject *__pyx_pf_9pywrapfst_40shortestdistance(CYTHON_UNUSED PyObject *
  * 
  * 
  * cpdef _MutableFst shortestpath(_Fst ifst, float delta=fst.kDelta,             # <<<<<<<<<<<<<<
- *                                int64 nshortest=1, int64 nstate=fst.kNoStateId,
+ *                                int32 nshortest=1, int64 nstate=fst.kNoStateId,
  *                                qt=b"auto", bool unique=False, weight=None):
  */
 
 static PyObject *__pyx_pw_9pywrapfst_43shortestpath(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static struct __pyx_obj_9pywrapfst__MutableFst *__pyx_f_9pywrapfst_shortestpath(struct __pyx_obj_9pywrapfst__Fst *__pyx_v_ifst, CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_9pywrapfst_shortestpath *__pyx_optional_args) {
   float __pyx_v_delta = __pyx_k__56;
-  __pyx_t_10basictypes_int64 __pyx_v_nshortest = ((__pyx_t_10basictypes_int64)1);
+  __pyx_t_10basictypes_int32 __pyx_v_nshortest = ((__pyx_t_10basictypes_int32)1);
   __pyx_t_10basictypes_int64 __pyx_v_nstate = __pyx_k__57;
   PyObject *__pyx_v_qt = ((PyObject *)__pyx_n_b_auto);
 
   /* "pywrapfst.pyx":3609
  * cpdef _MutableFst shortestpath(_Fst ifst, float delta=fst.kDelta,
- *                                int64 nshortest=1, int64 nstate=fst.kNoStateId,
+ *                                int32 nshortest=1, int64 nstate=fst.kNoStateId,
  *                                qt=b"auto", bool unique=False, weight=None):             # <<<<<<<<<<<<<<
  *   """
  *   shortestpath(ifst, delta=0.0009765625, nshortest=1, nstate=-1, qt="auto",
@@ -38302,7 +38302,7 @@ static struct __pyx_obj_9pywrapfst__MutableFst *__pyx_f_9pywrapfst_shortestpath(
  * 
  * 
  * cpdef _MutableFst shortestpath(_Fst ifst, float delta=fst.kDelta,             # <<<<<<<<<<<<<<
- *                                int64 nshortest=1, int64 nstate=fst.kNoStateId,
+ *                                int32 nshortest=1, int64 nstate=fst.kNoStateId,
  *                                qt=b"auto", bool unique=False, weight=None):
  */
 
@@ -38323,7 +38323,7 @@ static char __pyx_doc_9pywrapfst_42shortestpath[] = "\n  shortestpath(ifst, delt
 static PyObject *__pyx_pw_9pywrapfst_43shortestpath(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   struct __pyx_obj_9pywrapfst__Fst *__pyx_v_ifst = 0;
   float __pyx_v_delta;
-  __pyx_t_10basictypes_int64 __pyx_v_nshortest;
+  __pyx_t_10basictypes_int32 __pyx_v_nshortest;
   __pyx_t_10basictypes_int64 __pyx_v_nstate;
   PyObject *__pyx_v_qt = 0;
   bool __pyx_v_unique;
@@ -38341,7 +38341,7 @@ static PyObject *__pyx_pw_9pywrapfst_43shortestpath(PyObject *__pyx_self, PyObje
 
     /* "pywrapfst.pyx":3609
  * cpdef _MutableFst shortestpath(_Fst ifst, float delta=fst.kDelta,
- *                                int64 nshortest=1, int64 nstate=fst.kNoStateId,
+ *                                int32 nshortest=1, int64 nstate=fst.kNoStateId,
  *                                qt=b"auto", bool unique=False, weight=None):             # <<<<<<<<<<<<<<
  *   """
  *   shortestpath(ifst, delta=0.0009765625, nshortest=1, nstate=-1, qt="auto",
@@ -38420,9 +38420,9 @@ static PyObject *__pyx_pw_9pywrapfst_43shortestpath(PyObject *__pyx_self, PyObje
       __pyx_v_delta = __pyx_k__56;
     }
     if (values[2]) {
-      __pyx_v_nshortest = __Pyx_PyInt_As_int64_t(values[2]); if (unlikely((__pyx_v_nshortest == (int64_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3608; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_nshortest = __Pyx_PyInt_As_int32_t(values[2]); if (unlikely((__pyx_v_nshortest == (int32_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3608; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
-      __pyx_v_nshortest = ((__pyx_t_10basictypes_int64)1);
+      __pyx_v_nshortest = ((__pyx_t_10basictypes_int32)1);
     }
     if (values[3]) {
       __pyx_v_nstate = __Pyx_PyInt_As_int64_t(values[3]); if (unlikely((__pyx_v_nstate == (int64_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3608; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
@@ -38452,7 +38452,7 @@ static PyObject *__pyx_pw_9pywrapfst_43shortestpath(PyObject *__pyx_self, PyObje
  * 
  * 
  * cpdef _MutableFst shortestpath(_Fst ifst, float delta=fst.kDelta,             # <<<<<<<<<<<<<<
- *                                int64 nshortest=1, int64 nstate=fst.kNoStateId,
+ *                                int32 nshortest=1, int64 nstate=fst.kNoStateId,
  *                                qt=b"auto", bool unique=False, weight=None):
  */
 
@@ -38465,7 +38465,7 @@ static PyObject *__pyx_pw_9pywrapfst_43shortestpath(PyObject *__pyx_self, PyObje
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pywrapfst_42shortestpath(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_9pywrapfst__Fst *__pyx_v_ifst, float __pyx_v_delta, __pyx_t_10basictypes_int64 __pyx_v_nshortest, __pyx_t_10basictypes_int64 __pyx_v_nstate, PyObject *__pyx_v_qt, bool __pyx_v_unique, PyObject *__pyx_v_weight) {
+static PyObject *__pyx_pf_9pywrapfst_42shortestpath(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_9pywrapfst__Fst *__pyx_v_ifst, float __pyx_v_delta, __pyx_t_10basictypes_int32 __pyx_v_nshortest, __pyx_t_10basictypes_int64 __pyx_v_nstate, PyObject *__pyx_v_qt, bool __pyx_v_unique, PyObject *__pyx_v_weight) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -45625,7 +45625,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_b_uniform, __pyx_k_uniform, sizeof(__pyx_k_uniform), 0, 0, 0, 1},
   {&__pyx_n_s_unique, __pyx_k_unique, sizeof(__pyx_k_unique), 0, 0, 1, 1},
   {&__pyx_kp_b_unspecified, __pyx_k_unspecified, sizeof(__pyx_k_unspecified), 0, 0, 0, 0},
-  {&__pyx_kp_s_usr_local_google_home_kbg_tmp_p, __pyx_k_usr_local_google_home_kbg_tmp_p, sizeof(__pyx_k_usr_local_google_home_kbg_tmp_p), 0, 0, 1, 0},
+  {&__pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_k_usr_local_google_home_kbg_src_p, sizeof(__pyx_k_usr_local_google_home_kbg_src_p), 0, 0, 1, 0},
   {&__pyx_n_s_value, __pyx_k_value, sizeof(__pyx_k_value), 0, 0, 1, 1},
   {&__pyx_n_b_vector, __pyx_k_vector, sizeof(__pyx_k_vector), 0, 0, 0, 1},
   {&__pyx_n_s_verify, __pyx_k_verify, sizeof(__pyx_k_verify), 0, 0, 1, 1},
@@ -45957,7 +45957,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__63 = PyTuple_Pack(2, __pyx_n_s_cls, __pyx_n_s_arc_type); if (unlikely(!__pyx_tuple__63)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2338; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__63);
   __Pyx_GIVEREF(__pyx_tuple__63);
-  __pyx_codeobj__64 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__63, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_tmp_p, __pyx_n_s_new, 2338, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__64)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2338; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__64 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__63, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_new, 2338, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__64)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2338; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_tuple__65 = PyTuple_Pack(1, ((PyObject*)__pyx_n_b_standard)); if (unlikely(!__pyx_tuple__65)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2338; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__65);
   __Pyx_GIVEREF(__pyx_tuple__65);
@@ -45972,7 +45972,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__66 = PyTuple_Pack(2, __pyx_n_s_filename, __pyx_n_s_fst_type); if (unlikely(!__pyx_tuple__66)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__66);
   __Pyx_GIVEREF(__pyx_tuple__66);
-  __pyx_codeobj__67 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__66, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_tmp_p, __pyx_n_s_read, 2342, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__67)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__67 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__66, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_read, 2342, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__67)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_tuple__68 = PyTuple_Pack(1, ((PyObject *)Py_None)); if (unlikely(!__pyx_tuple__68)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 2342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__68);
   __Pyx_GIVEREF(__pyx_tuple__68);
@@ -46001,7 +46001,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__71 = PyTuple_Pack(9, __pyx_n_s_ifst, __pyx_n_s_delta, __pyx_n_s_nstate, __pyx_n_s_qt, __pyx_n_s_reverse, __pyx_n_s_distance, __pyx_n_s_weight_type, __pyx_n_s_result, __pyx_n_s_it); if (unlikely(!__pyx_tuple__71)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3563; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__71);
   __Pyx_GIVEREF(__pyx_tuple__71);
-  __pyx_codeobj__72 = (PyObject*)__Pyx_PyCode_New(5, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__71, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_tmp_p, __pyx_n_s_shortestdistance, 3563, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__72)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3563; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__72 = (PyObject*)__Pyx_PyCode_New(5, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__71, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_shortestdistance, 3563, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__72)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 3563; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "pywrapfst.pyx":4151
  * 
@@ -46010,7 +46010,7 @@ static int __Pyx_InitCachedConstants(void) {
  *   fst.FLAGS_fst_error_fatal = _fst_error_fatal_old
  * 
  */
-  __pyx_codeobj__73 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_tmp_p, __pyx_n_s_reset_fst_error_fatal, 4151, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__73)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__73 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_usr_local_google_home_kbg_src_p, __pyx_n_s_reset_fst_error_fatal, 4151, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__73)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -48648,7 +48648,7 @@ PyMODINIT_FUNC PyInit_pywrapfst(void)
  * 
  * 
  * cpdef _MutableFst shortestpath(_Fst ifst, float delta=fst.kDelta,             # <<<<<<<<<<<<<<
- *                                int64 nshortest=1, int64 nstate=fst.kNoStateId,
+ *                                int32 nshortest=1, int64 nstate=fst.kNoStateId,
  *                                qt=b"auto", bool unique=False, weight=None):
  */
   __pyx_k__56 = fst::kDelta;
@@ -48656,7 +48656,7 @@ PyMODINIT_FUNC PyInit_pywrapfst(void)
   /* "pywrapfst.pyx":3608
  * 
  * cpdef _MutableFst shortestpath(_Fst ifst, float delta=fst.kDelta,
- *                                int64 nshortest=1, int64 nstate=fst.kNoStateId,             # <<<<<<<<<<<<<<
+ *                                int32 nshortest=1, int64 nstate=fst.kNoStateId,             # <<<<<<<<<<<<<<
  *                                qt=b"auto", bool unique=False, weight=None):
  *   """
  */
@@ -48666,7 +48666,7 @@ PyMODINIT_FUNC PyInit_pywrapfst(void)
  * 
  * 
  * cpdef _MutableFst shortestpath(_Fst ifst, float delta=fst.kDelta,             # <<<<<<<<<<<<<<
- *                                int64 nshortest=1, int64 nstate=fst.kNoStateId,
+ *                                int32 nshortest=1, int64 nstate=fst.kNoStateId,
  *                                qt=b"auto", bool unique=False, weight=None):
  */
   __pyx_k__56 = fst::kDelta;
@@ -48674,7 +48674,7 @@ PyMODINIT_FUNC PyInit_pywrapfst(void)
   /* "pywrapfst.pyx":3608
  * 
  * cpdef _MutableFst shortestpath(_Fst ifst, float delta=fst.kDelta,
- *                                int64 nshortest=1, int64 nstate=fst.kNoStateId,             # <<<<<<<<<<<<<<
+ *                                int32 nshortest=1, int64 nstate=fst.kNoStateId,             # <<<<<<<<<<<<<<
  *                                qt=b"auto", bool unique=False, weight=None):
  *   """
  */

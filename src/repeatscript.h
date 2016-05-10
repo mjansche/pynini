@@ -25,7 +25,7 @@
 namespace fst {
 namespace script {
 
-typedef args::Package<MutableFstClass *, int, int> RepeatArgs;
+typedef args::Package<MutableFstClass *, int32, int32> RepeatArgs;
 
 template <class Arc>
 void Repeat(RepeatArgs *args) {
@@ -33,7 +33,7 @@ void Repeat(RepeatArgs *args) {
   Repeat(fst, args->arg2, args->arg3);
 }
 
-void Repeat(MutableFstClass *fst, int lower, int upper);
+void Repeat(MutableFstClass *fst, int32 lower, int32 upper);
 
 }  // namespace script
 }  // namespace fst

@@ -20,7 +20,6 @@
 
 #include <memory>
 
-#include <fst/types.h>
 #include <fst/fstlib.h>
 
 namespace fst {
@@ -53,9 +52,9 @@ namespace fst {
 //     /x{M,N}/    Repeat(x, M, N)
 //     /x{N,}/     Repeat(x, N, 0)
 //     /x{,N}/     Repeat(x, 0, N)
-
+//
 template <class Arc>
-void Repeat(MutableFst<Arc> *fst, int32 lower, int32 upper) {
+void Repeat(MutableFst<Arc> *fst, int lower, int upper) {
   if (upper <= 0) {
     // Special cases.
     if (lower <= 0) {
@@ -71,7 +70,7 @@ void Repeat(MutableFst<Arc> *fst, int32 lower, int32 upper) {
   if (lower <= 0)   // Lower bound includes 0 repetitions.
     fst->SetFinal(fst->Start(), One);
   std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-  for (auto i = 0; i < lower - 1; ++i)
+  for (int i = 0; i < lower - 1; ++i)
     Concat(fst, *tfst);
   if (upper <= 0) {  // Upper bound is infinite.
     // Concatenates a *-ed copy.
@@ -80,7 +79,7 @@ void Repeat(MutableFst<Arc> *fst, int32 lower, int32 upper) {
   } else {           // Upper bound is finite.
     // Concatenates ?-ed copies.
     tfst->SetFinal(tfst->Start(), One);
-    for (auto i = lower; i < upper; ++i)
+    for (int i = lower; i < upper; ++i)
       Concat(fst, *tfst);
   }
 }

@@ -20,18 +20,15 @@ from libcpp cimport bool
 from libcpp.utility cimport pair
 from libcpp.vector cimport vector
 
-from basictypes cimport int32
-from basictypes cimport int64
 
+from basictypes cimport int64
 from fst cimport FstClass
 from fst cimport MutableFstClass
 from fst cimport QueueType
 from fst cimport ReplaceOptions
 from fst cimport SymbolTable
 from fst cimport WeightClass
-
 from libcpp.string cimport string
-
 from fst_util cimport TokenType
 
 

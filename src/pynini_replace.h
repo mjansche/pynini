@@ -57,7 +57,6 @@ template <class Arc>
 bool PrepareReplacePairs(const Fst<Arc> &root,
     const std::vector<std::pair<string, const Fst<Arc> *>> &pairs,
     std::vector<std::pair<typename Arc::Label, const Fst<Arc> *>> *new_pairs) {
-  using Label = typename Arc::Label;
   // We assume new_pairs is properly sized already. During replacement, all
   // symbols are kept in "global" input and output tables attached to the root
   // while symbol tables attached to the replacement FSTs are deleted. The
@@ -87,7 +86,7 @@ bool PrepareReplacePairs(const Fst<Arc> &root,
       FSTERROR() << "Replacement requested for unknown label: " << nonterm;
       return false;
     }
-    it->first = static_cast<Label>(idx);
+    it->first = idx;
   }
   mroot->SetInputSymbols(isyms.get());
   mroot->SetOutputSymbols(osyms.get());
@@ -143,7 +142,6 @@ void PyniniReplace(const Fst<Arc> &root,
     MutableFst<Arc> *ofst,
     std::vector<std::pair<typename Arc::Label, typename Arc::Label>> *parens,
     PdtParserType type = PDT_LEFT_PARSER) {
-  using Label = typename Arc::Label;
   auto size = pairs.size();
   if (!size) {
     FSTERROR() << "PyniniReplace: Expected at least 1 replacement, "
@@ -158,9 +156,8 @@ void PyniniReplace(const Fst<Arc> &root,
     return;
   }
   // Performs PDT replacement.
-  auto start_paren_labels = static_cast<Label>(
-      pairs[0].second->OutputSymbols() ?
-      pairs[0].second->OutputSymbols()->AvailableKey() : kNoLabel);
+  auto start_paren_labels = pairs[0].second->OutputSymbols() ?
+      pairs[0].second->OutputSymbols()->AvailableKey() + 1 : kNoLabel;
   PdtReplaceOptions<Arc> opts(kNoLabel, type, start_paren_labels);
   Replace(new_pairs, ofst, parens, opts);
   internal::CleanUpNewPairs(&new_pairs);

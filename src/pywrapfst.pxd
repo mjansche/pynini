@@ -36,9 +36,9 @@ from libcpp.string cimport string
 # Exportable helper functions
 
 
-cdef string tostring(data, string encoding=?) except *
+cdef string tostring(data, encoding=?) except *
 
-cdef string weighttostring(data, string encoding=?) except *
+cdef string weighttostring(data, encoding=?) except *
 
 cdef fst.ComposeFilter _get_compose_filter(string cf) except *
 
@@ -125,7 +125,7 @@ cdef class SymbolTable(_SymbolTable):
   cpdef void set_name(self, new_name) except *
 
 
-cdef SymbolTable _init_SymbolTable(SymbolTable_ptr table, bool owner=?)
+cdef SymbolTable _init_SymbolTable(SymbolTable_ptr table, bool owner)
 
 
 cdef _ConstSymbolTable _init_ConstSymbolTable(SymbolTable_ptr table)
@@ -245,9 +245,9 @@ cdef class _MutableFst(_Fst):
 
   cpdef void arcsort(self, sort_type=?) except *
 
-  cpdef void closure(self, bool closure_plus=?) except *
+  cdef void _closure(self, bool closure_plus=?) except *
 
-  cpdef void concat(self, _Fst ifst) except *
+  cdef void _concat(self, _Fst ifst) except *
 
   cpdef void connect(self) except *
 
@@ -465,7 +465,7 @@ cdef vector[fst.WeightClass] *_shortestdistance(_Fst ifst, float delta=?,
                                                 int64 nstate=?, qt=?,
                                                 bool reverse=?)
 
-cpdef _MutableFst shortestpath(_Fst ifst, float delta=?, int32 nshortest=?,
+cpdef _MutableFst shortestpath(_Fst ifst, float delta=?, int64 nshortest=?,
                                int64 nstate=?, qt=?, bool unique=?,
                                weight=?)
 

@@ -33,11 +33,11 @@ namespace fst {
 namespace internal {
 
 // Adds an integer to the symbol table; using a byte symbol when in byte range.
-void AddIntegerToSymbolTable(int64 label, SymbolTable *syms) {
-  if (0 <= label && label <= 256) return;
+int64 AddIntegerToSymbolTable(int64 label, SymbolTable *syms) {
+  if (0 <= label && label <= 256) return label;
   std::stringstream sstrm;
   sstrm << label;
-  syms->AddSymbol(sstrm.str(), label);
+  return syms->AddSymbol(sstrm.str(), label);
 }
 
 // Replicates functionality in the ICU library for determining whether the
@@ -46,8 +46,6 @@ void AddIntegerToSymbolTable(int64 label, SymbolTable *syms) {
 // if (u_charType(c) == U_CONTROL_CHAR ||
 //     u_hasBinaryProperty(c, UCHAR_WHITE_SPACE) ||
 //     u_hasBinaryProperty(c, UCHAR_POSIX_BLANK))
-//
-// This was extracted from nlp/grm/language/walker/util/function/symbols.cc.
 inline bool IsUnicodeSpaceOrControl(int32 label) {
   switch (label) {
     case 1:
@@ -140,16 +138,16 @@ inline bool IsUnicodeSpaceOrControl(int32 label) {
   }
 }
 
-// Adds a Unicode codepoint to the symbol table. Returns kNoLabel to indicate
-// that the input cannot be parsed as a Unicode codepoint.
+// Adds a Unicode codepoint to the symbol table. Returns -1 to indicate that
+// the input cannot be parsed as a Unicode codepoint.
 int32 AddUnicodeCodepointToSymbolTable(int32 label, SymbolTable *syms) {
   string label_string;
   vector<int32> labels = {label};  // Creates a vector with just this label.
   if (LabelsToUTF8String(labels, &label_string)) {
-    return static_cast<int32>(syms->AddSymbol(label_string, label));
+    return syms->AddSymbol(label_string, label);
   } else {
     LOG(ERROR) << "Unable to parse Unicode codepoint";
-    return kNoLabel;
+    return -1;
   }
 }
 
@@ -164,3 +162,4 @@ void RemoveBracketEscapes(string *str) {
 }  // namespace internal
 
 }  // namespace fst
+

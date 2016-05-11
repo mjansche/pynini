@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef MERGE_H_
-#define MERGE_H_
+#ifndef PYNINI_MERGE_H_
+#define PYNINI_MERGE_H_
 
 #include <memory>
 
@@ -34,23 +34,6 @@
 DECLARE_bool(fst_relabel_symbol_conflicts);
 
 namespace fst {
-
-namespace internal {
-
-// Returns true if the current symbol pair pointed to by the iterator
-// conflicts with the pointed-to SymbolTable, and false otherwise.
-inline bool conflict(const SymbolTableIterator &siter,
-                     const SymbolTable &syms) {
-  int64 other_key = syms.Find(siter.Symbol());
-  // Checks for same symbol, different key.
-  if (other_key != -1 && other_key != siter.Value()) return true;
-  // Checks for different symbol, same key.
-  const string &other_symbol = syms.Find(siter.Value());
-  if (!other_symbol.empty() && other_symbol != siter.Symbol()) return true;
-  return false;
-}
-
-}  // namespace internal
 
 // Returns a symbol table merging the two argument symbol tables. Symbol/key
 // pairs from the first table are never modified, but pairs from the second
@@ -159,5 +142,5 @@ bool MergeSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2,
 
 }  // namespace fst
 
-#endif  // MERGE_H_
+#endif  // PYNINI_MERGE_H_
 

@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef REPEATSCRIPT_H_
-#define REPEATSCRIPT_H_
+#ifndef PYNINI_REPEATSCRIPT_H_
+#define PYNINI_REPEATSCRIPT_H_
 
 #include <fst/script/arg-packs.h>
 #include <fst/script/fst-class.h>
@@ -38,5 +38,5 @@ void Repeat(MutableFstClass *fst, int32 lower, int32 upper);
 }  // namespace script
 }  // namespace fst
 
-#endif  // REPEATSCRIPT_H_
+#endif  // PYNINI_REPEATSCRIPT_H_
 

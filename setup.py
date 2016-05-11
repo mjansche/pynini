@@ -49,9 +49,10 @@ pynini = Extension(name="pynini", language="c++",
                               "fst",
                               "m",
                               "dl"],
-                   sources=["src/stringcompile.cc",
+                   sources=["src/stringmapscript.cc",
+                            "src/stringfilescript.cc",
+                            "src/stringcompile.cc",
                             "src/stringcompilescript.cc",
-                            "src/split.cc",
                             "src/optimizescript.cc",
                             "src/repeatscript.cc",
                             "src/pynini_stringify.cc",
@@ -61,11 +62,11 @@ pynini = Extension(name="pynini", language="c++",
                             "src/pathsscript.cc",
                             "src/mergescript.cc",
                             "src/merge.cc",
-                            "src/join.cc",
+                            "src/gtl.cc",
                             "src/crossproductscript.cc"])
 
 setup(
-    name="pynini", version="0.7",
+    name="pynini", version="0.8",
     description="Finite-state grammar compilation library",
     author="Kyle Gorman", author_email="kbg@google.com",
     url="http://pynini.opengrm.org/",
@@ -83,4 +84,4 @@ setup(
                  "Topic :: Scientific/Engineering :: Artificial Intelligence",
                  "Topic :: Scientific/Engineering :: Mathematics"],
     ext_modules=[pywrapfst, pynini],
-    test_suite="pynini_test", tests_require=["six"])
+    test_suite="pynini_test")

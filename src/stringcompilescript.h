@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef STRINGCOMPILESCRIPT_H_
-#define STRINGCOMPILESCRIPT_H_
+#ifndef PYNINI_STRINGCOMPILESCRIPT_H_
+#define PYNINI_STRINGCOMPILESCRIPT_H_
 
 #include <fst/script/arg-packs.h>
 #include <fst/script/fst-class.h>
@@ -103,5 +103,5 @@ bool CompileBracketedUTF8String(const string &str, const WeightClass &wc,
 }  // namespace script
 }  // namespace fst
 
-#endif  // STRINGCOMPILESCRIPT_H_
+#endif  // PYNINI_STRINGCOMPILESCRIPT_H_
 

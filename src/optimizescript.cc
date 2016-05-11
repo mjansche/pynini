@@ -49,6 +49,15 @@ REGISTER_FST_OPERATION(OptimizeTransducer, StdArc, OptimizeArgs);
 REGISTER_FST_OPERATION(OptimizeTransducer, LogArc, OptimizeArgs);
 REGISTER_FST_OPERATION(OptimizeTransducer, Log64Arc, OptimizeArgs);
 
+void OptimizeStringCrossProducts(MutableFstClass *fst) {
+  Apply<Operation<MutableFstClass>>("OptimizeStringCrossProducts",
+                                    fst->ArcType(), fst);
+}
+
+REGISTER_FST_OPERATION(OptimizeStringCrossProducts, StdArc, MutableFstClass);
+REGISTER_FST_OPERATION(OptimizeStringCrossProducts, LogArc, MutableFstClass);
+REGISTER_FST_OPERATION(OptimizeStringCrossProducts, Log64Arc, MutableFstClass);
+
 }  // namespace script
 }  // namespace fst
 

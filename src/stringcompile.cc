@@ -32,6 +32,21 @@ namespace fst {
 
 namespace internal {
 
+SymbolTable *GetSymbolTable(TokenType ttype, const SymbolTable *syms) {
+  switch (ttype) {
+    case SYMBOL:
+      return syms->Copy();
+    case BYTE:
+      return internal::byte_table_factory.GetTable();
+    case UTF8:
+      return internal::utf8_table_factory.GetTable();
+    break;
+  }
+  // Should be unreachable.
+  FSTERROR() << "GetSymbolTable: Unknown TokenType";
+  return nullptr;
+}
+
 // Adds an integer to the symbol table; using a byte symbol when in byte range.
 void AddIntegerToSymbolTable(int64 label, SymbolTable *syms) {
   if (0 <= label && label <= 256) return;

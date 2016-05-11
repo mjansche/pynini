@@ -27,7 +27,7 @@ DEFINE_bool(fst_relabel_symbol_conflicts, true,
 
 namespace fst {
 
-// FIXME(kbg) Consider adding code for the special case where one table is a
+// TODO(kbg) Consider adding code for the special case where one table is a
 // superset of another.
 SymbolTable *MergeSymbols(const SymbolTable *syms1, const SymbolTable *syms2,
                           bool *relabel) {
@@ -43,28 +43,22 @@ SymbolTable *MergeSymbols(const SymbolTable *syms1, const SymbolTable *syms2,
     *relabel = false;
     return nullptr;
   }
-  // Since we're more faithful to the first table, we'll reuse its name.
-  SymbolTable *merged = new SymbolTable(syms1->Name());
+  SymbolTable *merged = syms1->Copy();
   *relabel = false;
-  // Adds all symbols from the left table to the merged table.
-  for (SymbolTableIterator siter(*syms1); !siter.Done(); siter.Next()) {
-    merged->AddSymbol(siter.Symbol(), siter.Value());
-    if (!*relabel && internal::conflict(siter, *syms2)) *relabel = true;
-  }
-  // Adds all non-conflicting symbols from the right table to the merged table,
-  // and saves conflicting ones for later.
-  std::vector<string> conflicts;
   for (SymbolTableIterator siter(*syms2); !siter.Done(); siter.Next()) {
-    if (internal::conflict(siter, *syms1)) {
-      conflicts.push_back(siter.Symbol());
+    int64 s1_key = merged->Find(siter.Symbol());
+    if (s1_key != -1 && s1_key != siter.Value()) {
+      *relabel = true;
+      continue;
+    }
+    const string &s1_sym = merged->Find(siter.Value());
+    if (s1_sym != "" && s1_sym != siter.Symbol()) {
+      merged->AddSymbol(siter.Symbol());
       *relabel = true;
     } else {
       merged->AddSymbol(siter.Symbol(), siter.Value());
     }
   }
-  // Adds the conflicts to the end of the table.
-  for (const string &symbol : conflicts)
-    merged->AddSymbol(symbol);
   return merged;
 }
 

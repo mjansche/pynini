@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef OPTIMIZESCRIPT_H_
-#define OPTIMIZESCRIPT_H_
+#ifndef PYNINI_OPTIMIZESCRIPT_H_
+#define PYNINI_OPTIMIZESCRIPT_H_
 
 #include <fst/script/arg-packs.h>
 #include <fst/script/fst-class.h>
@@ -52,8 +52,16 @@ void OptimizeTransducer(OptimizeArgs *args) {
 
 void OptimizeTransducer(MutableFstClass *fst, bool compute_props);
 
+template <class Arc>
+void OptimizeStringCrossProducts(MutableFstClass *fst) {
+  MutableFst<Arc> *typed_fst = fst->GetMutableFst<Arc>();
+  OptimizeStringCrossProducts(typed_fst);
+}
+
+void OptimizeStringCrossProducts(MutableFstClass *fst);
+
 }  // namespace script
 }  // namespace fst
 
-#endif  // OPTIMIZESCRIPT_H_
+#endif  // PYNINI_OPTIMIZESCRIPT_H_
 

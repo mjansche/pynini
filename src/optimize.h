@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef OPTIMIZE_H_
-#define OPTIMIZE_H_
+#ifndef PYNINI_OPTIMIZE_H_
+#define PYNINI_OPTIMIZE_H_
 
 #include <fst/fstlib.h>
 
@@ -58,11 +58,15 @@ void OptimizeAcceptor(MutableFst<Arc> *fst, bool compute_props = false) {
   StateMap(fst, ArcSumMapper<Arc>(*fst));
   // The FST has non-idempotent weights; limiting optimization possibilities.
   if (!(Arc::Weight::Properties() & kIdempotent)) {
-    // But "any acyclic weighted automaton over a zero-sum-free semiring has
-    // the twins property and is determinizable" (Mohri 2006).
-    if (fst->Properties(kAcyclic, compute_props)) {
-      std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-      Determinize(*tfst, fst);
+    if (fst->Properties(kIDeterministic, compute_props) != kIDeterministic) {
+      // But "any acyclic weighted automaton over a zero-sum-free semiring has
+      // the twins property and is determinizable" (Mohri 2006).
+      if (fst->Properties(kAcyclic, compute_props) == kAcyclic) {
+        std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
+        Determinize(*tfst, fst);
+        Minimize(fst);
+      }
+    } else {
       Minimize(fst);
     }
   } else {
@@ -103,14 +107,19 @@ void OptimizeTransducer(MutableFst<Arc> *fst, bool compute_props = false) {
   StateMap(fst, ArcSumMapper<Arc>(*fst));
   // The FST has non-idempotent weights; limiting optimization possibilities.
   if (!(Arc::Weight::Properties() & kIdempotent)) {
-    // But "any acyclic weighted automaton over a zero-sum-free semiring has
-    // the twins property and is determinizable" (Mohri 2006). We just need
-    // to encode labels first.
-    if (fst->Properties(kAcyclic, compute_props)) {
-      EncodeMapper<Arc> encoder(kEncodeLabels, ENCODE);
-      Encode(fst, &encoder);
-      std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-      Determinize(*tfst, fst);
+    if (fst->Properties(kIDeterministic, compute_props) != kIDeterministic) {
+      // But "any acyclic weighted automaton over a zero-sum-free semiring has
+      // the twins property and is determinizable" (Mohri 2006). We just have to
+      // encode labels.
+      if (fst->Properties(kAcyclic, compute_props)) {
+        EncodeMapper<Arc> encoder(kEncodeLabels, ENCODE);
+        Encode(fst, &encoder);
+        std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
+        Determinize(*tfst, fst);
+        Minimize(fst);
+        Decode(fst, encoder);
+      }
+    } else {
       Minimize(fst);
     }
   } else {
@@ -141,7 +150,21 @@ void OptimizeTransducer(MutableFst<Arc> *fst, bool compute_props = false) {
   }
 }
 
+// This function performs a simple space optimization on FSTs that are
+// (unions of) pairs of strings. It first pushes labels towards the initial
+// state, then performs epsilon-removal. This will reduce the number of arcs
+// and states by the length of the shorter of the two strings in the
+// cross-product; label-pushing may also speed up downstream composition.
+template <class Arc>
+void OptimizeStringCrossProducts(MutableFst<Arc> *fst) {
+  std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
+  // Pushes labels towards the initial state.
+  Push<Arc, REWEIGHT_TO_INITIAL>(*tfst, fst, kPushLabels);
+  // Removes any trailing epsilon-to-epsilon arcs this produces.
+  RmEpsilon(fst);
+}
+
 }  // namespace fst
 
-#endif  // OPTIMIZE_H_
+#endif  // PYNINI_OPTIMIZE_H_
 

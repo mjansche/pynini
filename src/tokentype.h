@@ -15,22 +15,17 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef SPLIT_H_
-#define SPLIT_H_
+#ifndef PYNINI_TOKENTYPE_H_
+#define PYNINI_TOKENTYPE_H_
 
-#include <algorithm>
-#include <string>
-#include <vector>
+// This header just defines the TokenType enum used by StringMap and
+// StringPathsClass.
 
-using std::string;
+namespace fst {
 
-// This provides a drop-in replacement for the most common prototype of
-// strings::Split.
+enum TokenType { SYMBOL = 1, BYTE = 2, UTF8 = 3 };
 
-namespace strings {
+}  // namespace fst
 
-std::vector<string> Split(const string &str, char separator);
+#endif  // PYNINI_TOKENTYPE_H_
 
-}  // namespace strings
-
-#endif  // SPLIT_H_

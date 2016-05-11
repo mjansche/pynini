@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef CROSSPRODUCTSCRIPT_H_
-#define CROSSPRODUCTSCRIPT_H_
+#ifndef PYNINI_CROSSPRODUCTSCRIPT_H_
+#define PYNINI_CROSSPRODUCTSCRIPT_H_
 
 #include <string>
 using std::string;
@@ -42,16 +42,8 @@ void CrossProduct(CrossProductArgs *args) {
 void CrossProduct(const FstClass &ifst1, const FstClass &ifst2,
                   MutableFstClass *ofst);
 
-template <class Arc>
-void OptimizeStringCrossProduct(MutableFstClass *fst) {
-  MutableFst<Arc> *typed_fst = fst->GetMutableFst<Arc>();
-  OptimizeStringCrossProduct(typed_fst);
-}
-
-void OptimizeStringCrossProduct(MutableFstClass *fst);
-
 }  // namespace script
 }  // namespace fst
 
-#endif  // CROSSPRODUCTSCRIPT_H_
+#endif  // PYNINI_CROSSPRODUCTSCRIPT_H_
 

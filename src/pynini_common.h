@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef PYNINI_COMMON_H_
-#define PYNINI_COMMON_H_
+#ifndef PYNINI_PYNINI_COMMON_H_
+#define PYNINI_PYNINI_COMMON_H_
 
 // This header defines internal namespace utility functions.
 
@@ -33,7 +33,7 @@ namespace internal {
 // it into a unique_ptr) to prevent leaks.
 template <class Arc>
 SymbolTable *PrepareInputSymbols(SymbolTable *syms, MutableFst<Arc> *fst) {
-  bool relabel;
+  bool relabel = false;
   SymbolTable *new_syms = MergeSymbols(syms, fst->InputSymbols(), &relabel);
   if (!new_syms) return syms ? syms->Copy() : nullptr;
   if (relabel) {  // Relabeling necessary.
@@ -52,7 +52,7 @@ SymbolTable *PrepareInputSymbols(SymbolTable *syms, MutableFst<Arc> *fst) {
 // it into a unique_ptr) to prevent leaks.
 template <class Arc>
 SymbolTable *PrepareOutputSymbols(SymbolTable *syms, MutableFst<Arc> *fst) {
-  bool relabel;
+  bool relabel = false;
   SymbolTable *new_syms = MergeSymbols(syms, fst->OutputSymbols(), &relabel);
   if (!new_syms) return syms ? syms->Copy() : nullptr;
   if (relabel) {  // Relabeling necessary.
@@ -70,5 +70,5 @@ SymbolTable *PrepareOutputSymbols(SymbolTable *syms, MutableFst<Arc> *fst) {
 }  // namespace internal
 }  // namespace fst
 
-#endif  // PYNINI_COMMON_H_
+#endif  // PYNINI_PYNINI_COMMON_H_
 

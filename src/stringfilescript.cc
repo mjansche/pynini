@@ -15,23 +15,25 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#include "split.h"
+#include <fst/script/script-impl.h>
+#include "stringfilescript.h"
 
-namespace strings {
+namespace fst {
+namespace script {
 
-std::vector<string> Split(const string &str, char separator) {
-  std::vector<string> tokens;
-  auto left = str.begin();
-  auto end = str.end();
-  auto not_separator = [separator](char ch){ return ch == separator; };
-  while (true) {
-    left = std::find_if_not(left, end, not_separator);
-    if (left == end) break;
-    auto right = std::find(left, end, separator);
-    tokens.emplace_back(string(left, right));
-    left = right;
-  }
-  return std::move(tokens);
+bool StringFile(const string &fname, TokenType itype, TokenType otype,
+                MutableFstClass *fst, const SymbolTable *isyms,
+                const SymbolTable *osyms) {
+  StringFileInnerArgs iargs(fname, itype, otype, fst, isyms, osyms);
+  StringFileArgs args(iargs);
+  Apply<Operation<StringFileArgs>>("StringFile", fst->ArcType(), &args);
+  return args.retval;
 }
 
-}  // namespace strings
+REGISTER_FST_OPERATION(StringFile, StdArc, StringFileArgs);
+REGISTER_FST_OPERATION(StringFile, LogArc, StringFileArgs);
+REGISTER_FST_OPERATION(StringFile, Log64Arc, StringFileArgs);
+
+}  // namespace script
+}  // namespace fst
+

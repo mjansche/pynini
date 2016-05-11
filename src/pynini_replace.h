@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef PYNINI_REPLACE_H_
-#define PYNINI_REPLACE_H_
+#ifndef PYNINI_PYNINI_REPLACE_H_
+#define PYNINI_PYNINI_REPLACE_H_
 
 // This file contains two main utility functions which extends FST replacement
 // in the style of Thrax. Rather than passing pairs of integer labels and the
@@ -58,39 +58,41 @@ bool PrepareReplacePairs(const Fst<Arc> &root,
     const std::vector<std::pair<string, const Fst<Arc> *>> &pairs,
     std::vector<std::pair<typename Arc::Label, const Fst<Arc> *>> *new_pairs) {
   using Label = typename Arc::Label;
-  // We assume new_pairs is properly sized already. During replacement, all
-  // symbols are kept in "global" input and output tables attached to the root
-  // while symbol tables attached to the replacement FSTs are deleted. The
-  // replacement routines copies the symbol tables from the first FST in the
-  // RTN set (which here is alwyas the root) to the output FST, so we attach
-  // these global tables to a (copy of) the root.
-  // The first time through, we put a dummy index index into the first slot of
-  // each pair.
+  auto size = pairs.size();
+  new_pairs->resize(size + 1);
+  // During replacement, all symbols are kept in "global" input and output
+  // tables attached to the root while symbol tables attached to the
+  // replacement FSTs are deleted. The replacement routines copy symbol tables
+  // from the first FST in the RTN set (which here is alwyas the root) to the
+  // output FST, so we attach these global tables to a (copy of) the root.
   std::unique_ptr<SymbolTable> isyms(root.InputSymbols()->Copy());
   std::unique_ptr<SymbolTable> osyms(root.OutputSymbols()->Copy());
-  auto mroot = new VectorFst<Arc>(root);
-  (*new_pairs)[0] = std::make_pair(kNoLabel, mroot);
-  auto i = 1;
-  for (auto it = pairs.begin(); it != pairs.end(); ++i, ++it) {
-    auto replace_fst = new VectorFst<Arc>(*it->second);
+  // The first time through, we put a dummy index index into the first slot of
+  // each pair, as we don't have the complete symbol table yet.
+  for (auto i = 0; i < size; ++i) {
+    auto replace_fst = new VectorFst<Arc>(*pairs[i].second);
     isyms.reset(PrepareInputSymbols(isyms.get(), replace_fst));
     osyms.reset(PrepareOutputSymbols(osyms.get(), replace_fst));
-    (*new_pairs)[i] = std::make_pair(kNoLabel, replace_fst);
+    (*new_pairs)[i + 1] = std::make_pair(kNoLabel, replace_fst);
   }
-  // The second time, we set all non-initial replacement labels. As elsewhere
-  // in the library, the output labels/symbols are used for non-terminals.
-  i = 0;
-  for (auto it = new_pairs->begin() + 1; it != new_pairs->end(); ++i, ++it) {
+  // Now we set all non-initial replacement labels using the global symbol
+  // table. As elsewhere in the library, output labels/symbols are used when
+  // we have to choose just one table.
+  for (auto i = 0; i < size; ++i) {
     auto nonterm = pairs[i].first;
     auto idx = osyms->Find(nonterm);
     if (idx == kNoLabel) {
       FSTERROR() << "Replacement requested for unknown label: " << nonterm;
       return false;
     }
-    it->first = static_cast<Label>(idx);
+    (*new_pairs)[i + 1].first = static_cast<Label>(idx);
   }
-  mroot->SetInputSymbols(isyms.get());
-  mroot->SetOutputSymbols(osyms.get());
+  // Finally, we add the root FST to the RTN set, using kNoLabel as the root
+  // label.
+  auto root_copy = new VectorFst<Arc>(root);
+  root_copy->SetInputSymbols(isyms.get());
+  root_copy->SetOutputSymbols(osyms.get());
+  (*new_pairs)[0] = std::make_pair(kNoLabel, root_copy);
   return true;
 }
 
@@ -116,8 +118,7 @@ void PyniniReplace(const Fst<Arc> &root,
     ofst->SetProperties(kError, kError);
     return;
   }
-  std::vector<std::pair<typename Arc::Label, const Fst<Arc> *>>
-      new_pairs(size + 1);
+  std::vector<std::pair<typename Arc::Label, const Fst<Arc> *>> new_pairs;
   if (!internal::PrepareReplacePairs(root, pairs, &new_pairs)) {
     ofst->SetProperties(kError, kError);
     return;
@@ -152,15 +153,16 @@ void PyniniReplace(const Fst<Arc> &root,
     return;
   }
   std::vector<std::pair<typename Arc::Label, const Fst<Arc> *>>
-      new_pairs(size + 1);
+      new_pairs;
   if (!internal::PrepareReplacePairs(root, pairs, &new_pairs)) {
     ofst->SetProperties(kError, kError);
     return;
   }
   // Performs PDT replacement.
   auto start_paren_labels = static_cast<Label>(
-      pairs[0].second->OutputSymbols() ?
-      pairs[0].second->OutputSymbols()->AvailableKey() + 1 : kNoLabel);
+      new_pairs[0].second->OutputSymbols() ?
+      new_pairs[0].second->OutputSymbols()->AvailableKey() : kNoLabel);
+  // We use kNoLabel as the root label.
   PdtReplaceOptions<Arc> opts(kNoLabel, type, start_paren_labels);
   Replace(new_pairs, ofst, parens, opts);
   internal::CleanUpNewPairs(&new_pairs);
@@ -230,5 +232,5 @@ void PyniniPdtReplace(const FstClass &root,
 }  // namespace script
 }  // namespace fst
 
-#endif  // PYNINI_REPLACE_H_
+#endif  // PYNINI_PYNINI_REPLACE_H_
 

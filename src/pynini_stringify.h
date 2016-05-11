@@ -15,13 +15,12 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef PYNINI_STRINGIFY_H_
-#define PYNINI_STRINGIFY_H_
+#ifndef PYNINI_PYNINI_STRINGIFY_H_
+#define PYNINI_PYNINI_STRINGIFY_H_
 
 // This file contains utility functions which allow conversion of kString
 // FSTs to C++ strings; attempting to call these on a non-kString FST may
-// produce jibberish; the reason(s) your FST is not kString will be printed
-// to VLOG(2).
+// produce jibberish.
 
 #include <fst/fstlib.h>
 #include <fst/script/arg-packs.h>
@@ -40,10 +39,22 @@ typedef args::WithReturnValue<bool, PyniniStringifyInnerArgs>
 template <class Arc>
 void PyniniStringify(PyniniStringifyArgs *args) {
   const Fst<Arc> &fst = *(args->args.arg1.GetFst<Arc>());
-  const SymbolTable *syms = args->args.arg3;
   StringPrinter<Arc> sprinter(GetStringPrinterTokenType<Arc>(args->args.arg2),
-                              syms);
-  args->retval = sprinter(fst, args->args.arg4);
+                              args->args.arg3);
+  // We destroy output epsilons if present.
+  if (fst.Properties(kNoOEpsilons, false) != kNoOEpsilons) {
+    VectorFst<Arc> fst_copy(fst);
+    // Allows for deletion of epsilons on output side only.
+    if (fst_copy.Properties(kAcceptor, false) != kAcceptor)
+      Project(&fst_copy, PROJECT_OUTPUT);
+    // Optimizes for RmEpsilon.
+    if (fst_copy.Properties(kUnweighted, false) != kUnweighted)
+      ArcMap(&fst_copy, RmWeightMapper<Arc>());
+    RmEpsilon(&fst_copy);
+    args->retval = sprinter(fst_copy, args->args.arg4);
+  } else {
+    args->retval = sprinter(fst, args->args.arg4);
+  }
 }
 
 bool PyniniStringify(const FstClass &fst, TokenType token_type,
@@ -52,5 +63,5 @@ bool PyniniStringify(const FstClass &fst, TokenType token_type,
 }  // namespace script
 }  // namespace fst
 
-#endif  // PYNINI_STRINGIFY_H_
+#endif  // PYNINI_PYNINI_STRINGIFY_H_
 

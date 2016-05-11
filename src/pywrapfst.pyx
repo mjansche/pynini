@@ -40,7 +40,26 @@ Python variables here use snake_case and constants are in all caps, minus the
 normal `k` prefix.
 """
 
-
+# Overview of the file:
+#
+# * Imports
+# * Custom exceptions
+# * General helpers
+# * Weight and helpers
+# * _SymbolTable, _ConstSymbolTable, SymbolTable, and helpers
+# * SymbolTableIterator
+# * EncodeMapper
+# * _Fst, _MutableFst, Fst, and helpers
+# * FST properties
+# * Arc, ArcIterator, and MutableArcIterator
+# * StateIterator
+# * FST operations
+# * Compiler
+# * FarReader and FarWriter
+# * Cleanup operations for module entrance and exit.
+#
+# TODO(kbg): Try breaking this apart into smaller pieces.
+#
 # A few of the more idiosyncratic choices made here are due to "impedance
 # mismatches" between C++ and Python, as follows.
 #
@@ -62,6 +81,8 @@ normal `k` prefix.
 # value could be used before it is populated.
 
 
+## Imports.
+
 # C imports.
 from libc.limits cimport INT_MAX
 
@@ -78,7 +99,6 @@ from cython.operator cimport preincrement as inc   # ++foo
 
 # Python imports.
 import atexit
-import collections
 import numbers
 import subprocess
 import logging
@@ -87,7 +107,7 @@ import logging
 cdef size_t SIZE_MAX = <size_t> -1
 
 
-# Custom exceptions.
+## Custom exceptions.
 
 
 class FstError(Exception):
@@ -130,7 +150,7 @@ class FstUnknownWeightTypeError(FstError, ValueError):
   pass
 
 
-# Various helpers used throughout.
+## General helpers.
 
 
 cdef string tostring(data, encoding="utf8") except *:
@@ -346,6 +366,9 @@ cdef fst.ReplaceLabelType _get_replace_label_type(string rlt,
   raise FstArgError("Unknown replace label type: {!r}".format(rlt))
 
 
+## Weight and helpers.
+
+
 cdef class Weight(object):
 
   """
@@ -519,6 +542,8 @@ cdef Weight _Weight_NoWeight(weight_type):
   return result
 
 
+## _SymbolTable, _ConstSymbolTable, SymbolTable, and helpers.
+#
 # SymbolTable hierarchy:
 #
 # _SymbolTable: abstract base class; has-a SymbolTable*.
@@ -528,8 +553,6 @@ cdef Weight _Weight_NoWeight(weight_type):
 # NB: The underlying pointer is "owned" by this class (meaning that it is
 # deallocated upon garbage collection) only when the SymbolTable constructor
 # is invoked, or when it is constructed via a copy operation.
-#
-# SymbolTableIterator is also exposed.
 
 
 cdef class _SymbolTable(object):
@@ -868,13 +891,11 @@ cdef SymbolTable _init_SymbolTable(SymbolTable_ptr table, bool owner):
   return result
 
 
-
 # The caller must cast the pointer themselves, because reasons.
 cdef _ConstSymbolTable _init_ConstSymbolTable(SymbolTable_ptr table):
   cdef _ConstSymbolTable result = _ConstSymbolTable.__new__(_ConstSymbolTable)
   result._table = table
   return result
-
 
 
 # Constructive SymbolTable operations.
@@ -923,7 +944,7 @@ cpdef SymbolTable merge_symbol_table(_SymbolTable lhs, _SymbolTable rhs):
                                                 deref(rhs._table), NULL), True)
 
 
-# SymbolTable iteration.
+## SymbolTableIterator.
 
 
 cdef class SymbolTableIterator(object):
@@ -1026,9 +1047,7 @@ cdef class SymbolTableIterator(object):
     return self._siter.Value()
 
 
-# FST-based symbol table functions are defined after the Fst class hierarchy
-# and operations.
-
+## EncodeMapper.
 
 
 cdef class EncodeMapper(object):
@@ -1079,7 +1098,7 @@ cdef class EncodeMapper(object):
 
   # Python's equivalent to operator().
 
-  def __call__(self, int64 ilabel, int64 olabel, weight, int64 nextstate):
+  def __call__(self, Arc arc):
     """
     self(state, ilabel, olabel, weight, nextstate)
 
@@ -1095,10 +1114,7 @@ cdef class EncodeMapper(object):
     Raises:
       FstOpError: Incompatible or invalid weight.
     """
-    cdef fst.WeightClass wc = _get_WeightClass_or_One(self._weight_type(),
-                                                      weight)
-    return _init_Arc(self._encoder.__call__(fst.ArcClass(ilabel, olabel, wc,
-                                                         nextstate)))
+    return _init_Arc(self._encoder.__call__(deref(arc._arc)))
 
   cdef uint32 _flags(self):
     return self._encoder.Flags()
@@ -1179,6 +1195,8 @@ cdef class EncodeMapper(object):
     return self._weight_type()
 
 
+## _Fst, _MutableFst, Fst, and helpers.
+#
 # Fst hierarchy:
 #
 # _Fst: base class; has-a FstClass*.
@@ -1206,7 +1224,6 @@ cdef class _Fst(object):
   """
 
   # IPython notebook magic to produce an SVG of the FST.
-
   def _repr_svg_(self):
     """IPython notebook magic to produce an SVG of the FST using GraphViz.
 
@@ -1503,9 +1520,9 @@ cdef class _Fst(object):
     output labels, or state labels, respectively.
 
     Args:
-      isyms: An optional symbol table used to label input symbols.
-      osyms: An optional symbol table used to label output symbols.
-      ssyms: An optional symbol table used to label states.
+      isymbols: An optional symbol table used to label input symbols.
+      osymbols: An optional symbol table used to label output symbols.
+      ssymbols: An optional symbol table used to label states.
       acceptor: Should the FST be rendered in acceptor format if possible?
       show_weight_one: Should weights equivalent to semiring One be printed?
       missing_symbol: The string to be printed when symbol table lookup fails.
@@ -1588,20 +1605,25 @@ cdef class _MutableFst(_Fst):
     if self._fst.Properties(fst.kError, True) == fst.kError:
       raise FstOpError("Operation failed")
 
-  cpdef void add_arc(self, int64 state, int64 ilabel,
-      int64 olabel, weight, int64 nextstate) except *:
-    """
-    add_arc(self, state, ilabel, olabel, weight, nextstate)
+  cdef void _add_arc(self, int64 state, Arc arc) except *:
+    if not self._fst.ValidStateId(state):
+      raise FstIndexError("State index out of range")
+    if not self._mfst.AddArc(state, deref(arc._arc)):
+      raise FstOpError("Incompatible or invalid weight type")
+    self._check_mutating_imethod()
 
-    Adds a new arc to the FST.
+  def add_arc(self, int64 state, Arc arc):
+    """
+    add_arc(self, state, arc)
+
+    Adds a new arc to the FST and return self.
 
     Args:
       state: The integer index of the source state.
-      ilabel: The integer index of the input label.
-      olabel: The integer index of the output label.
-      weight: A Weight or weight string indicating the desired final weight; if
-        null, it is set to semiring One.
-      nextstate: The integer index of the destination state.
+      arc: The arc to add.
+
+    Returns:
+      self.
 
     Raises:
       FstIndexError: State index out of range.
@@ -1609,18 +1631,14 @@ cdef class _MutableFst(_Fst):
 
     See also: `add_state`.
     """
-    if not self._fst.ValidStateId(state):
-      raise FstIndexError("State index out of range")
-    if not self._mfst.AddArc(state, fst.ArcClass(ilabel, olabel,
-        _get_WeightClass_or_One(self.weight_type, weight), nextstate)):
-      raise FstOpError("Incompatible or invalid weight type")
-    self._check_mutating_imethod()
+    self._add_arc(state, arc)
+    return self
 
   cpdef int64 add_state(self) except *:
     """
     add_state(self)
 
-    Adds a new state to the FST.
+    Adds a new state to the FST and returns the state ID.
 
     Returns:
       The integer index of the new state.
@@ -1631,7 +1649,19 @@ cdef class _MutableFst(_Fst):
     self._check_mutating_imethod()
     return result
 
-  cpdef void arcsort(self, sort_type=b"ilabel") except *:
+  cdef void _arcsort(self, sort_type=b"ilabel") except *:
+    cdef fst.ArcSortType ast
+    sort_type = tostring(sort_type)
+    if sort_type == b"ilabel":
+      ast = fst.ILABEL_COMPARE
+    elif sort_type == b"olabel":
+      ast = fst.OLABEL_COMPARE
+    else:
+      raise FstArgError("Unknown sort type {!r}".format(sort_type))
+    fst.ArcSort(self._mfst, ast)
+    self._check_mutating_imethod()
+
+  def arcsort(self, sort_type=b"ilabel"):
     """
     arcsort(self, sort_type="ilabel")
 
@@ -1644,21 +1674,16 @@ cdef class _MutableFst(_Fst):
       sort_type: Either "ilabel" (sort arcs according to input labels) or
           "olabel" (sort arcs according to output labels).
 
+    Returns:
+      self.
+
     Raises:
       FstArgError: Unknown sort type.
 
     See also: `topsort`.
     """
-    cdef fst.ArcSortType ast
-    sort_type = tostring(sort_type)
-    if sort_type == b"ilabel":
-      ast = fst.ILABEL_COMPARE
-    elif sort_type == b"olabel":
-      ast = fst.OLABEL_COMPARE
-    else:
-      raise FstArgError("Unknown sort type {!r}".format(sort_type))
-    fst.ArcSort(self._mfst, ast)
-    self._check_mutating_imethod()
+    self._arcsort(sort_type)
+    return self
 
   cdef void _closure(self, bool closure_plus=False) except *:
     fst.Closure(self._mfst, fst.CLOSURE_PLUS if closure_plus else
@@ -1679,8 +1704,12 @@ cdef class _MutableFst(_Fst):
 
     Args:
       closure_plus: If False, do not accept the empty string.
+
+    Returns:
+      self.
     """
     self._closure(closure_plus)
+    return self
 
   cdef void _concat(self, _Fst ifst) except *:
     fst.Concat(self._mfst, deref(ifst._fst))
@@ -1699,10 +1728,18 @@ cdef class _MutableFst(_Fst):
 
     Args:
       ifst: The second input FST.
+
+    Returns:
+      self.
     """
     self._concat(ifst)
+    return self
 
-  cpdef void connect(self) except *:
+  cdef void _connect(self) except *:
+    fst.Connect(self._mfst)
+    self._check_mutating_imethod()
+
+  def connect(self):
     """
     connect(self)
 
@@ -1710,11 +1747,18 @@ cdef class _MutableFst(_Fst):
 
     This operation destructively trims the FST, removing states and arcs that
     are not part of any successful path.
+
+    Returns:
+      self.
     """
-    fst.Connect(self._mfst)
+    self._connect()
+    return self
+
+  cdef void _decode(self, EncodeMapper encoder) except *:
+    fst.Decode(self._mfst, deref(encoder._encoder))
     self._check_mutating_imethod()
 
-  cpdef void decode(self, EncodeMapper encoder) except *:
+  def decode(self, EncodeMapper encoder):
     """
     decode(self, encoder)
 
@@ -1725,12 +1769,21 @@ cdef class _MutableFst(_Fst):
     Args:
       encoder: An EncodeMapper object used to encode the FST.
 
+    Returns:
+      self.
+
     See also: `encode`.
     """
-    fst.Decode(self._mfst, deref(encoder._encoder))
+    self._decode(encoder)
+    return self
+
+  cdef void _delete_arcs(self, int64 state, size_t n=0) except *:
+    if not (self._mfst.DeleteArcs(state, n) if n else
+            self._mfst.DeleteArcs(state)):
+      raise FstIndexError("State index out of range")
     self._check_mutating_imethod()
 
-  cpdef void delete_arcs(self, int64 state, size_t n=0) except *:
+  def delete_arcs(self, int64 state, size_t n=0):
     """
     delete_arcs(self, state, n=0)
 
@@ -1742,17 +1795,27 @@ cdef class _MutableFst(_Fst):
           argument is omitted or passed as zero, all arcs from this state are
           deleted.
 
+    Returns:
+      self.
+
     Raises:
       FstIndexError: State index out of range.
 
     See also: `delete_states`.
     """
-    if not (self._mfst.DeleteArcs(state, n) if n else
-            self._mfst.DeleteArcs(state)):
-      raise FstIndexError("State index out of range")
+    self._delete_arcs(state, n)
+    return self
+
+  cdef void _delete_states(self, states=None) except *:
+    # Only the former signature has a possible indexing failure.
+    if states:
+      if not self._mfst.DeleteStates(<const vector[int64]> states):
+        raise FstIndexError("State index out of range")
+    else:
+      self._mfst.DeleteStates()
     self._check_mutating_imethod()
 
-  cpdef void delete_states(self, states=None) except *:
+  def delete_states(self, states=None):
     """
     delete_states(self, states=None)
 
@@ -1762,20 +1825,22 @@ cdef class _MutableFst(_Fst):
       states: An optional iterable of integer indices of the states to be
           deleted. If this argument is omitted, all states are deleted.
 
+    Returns:
+      self.
+
     Raises:
       FstIndexError: State index out of range.
 
     See also: `delete_arcs`.
     """
-    # Only the former signature has a possible indexing failure.
-    if states:
-      if not self._mfst.DeleteStates(<const vector[int64]> states):
-        raise FstIndexError("State index out of range")
-    else:
-      self._mfst.DeleteStates()
+    self._delete_states(states)
+    return self
+
+  cdef void _encode(self, EncodeMapper encoder) except *:
+    fst.Encode(self._mfst, encoder._encoder)
     self._check_mutating_imethod()
 
-  cpdef void encode(self, EncodeMapper encoder) except *:
+  def encode(self, EncodeMapper encoder):
     """
     encode(self, encoder)
 
@@ -1791,12 +1856,19 @@ cdef class _MutableFst(_Fst):
     Args:
       encoder: An EncodeMapper object to be used as the encoder.
 
+    Returns:
+      self.
+
     See also: `decode`.
     """
-    fst.Encode(self._mfst, encoder._encoder)
+    self._encode(encoder)
+    return self
+
+  cdef void _invert(self) except *:
+    fst.Invert(self._mfst)
     self._check_mutating_imethod()
 
-  cpdef void invert(self) except *:
+  def invert(self):
     """
     invert(self)
 
@@ -1804,11 +1876,19 @@ cdef class _MutableFst(_Fst):
 
     This operation destructively inverts the FST's transduction by exchanging
     input and output labels.
+
+    Returns:
+      self.
     """
-    fst.Invert(self._mfst)
+    self._invert()
+    return self
+
+  cdef void _minimize(self, float delta=fst.kDelta) except *:
+    # This runs in-place when the second argument is null.
+    fst.Minimize(self._mfst, NULL, delta)
     self._check_mutating_imethod()
 
-  cpdef void minimize(self, float delta=fst.kDelta) except *:
+  def minimize(self, float delta=fst.kDelta):
     """
     minimize(self, delta=0.0009765625)
 
@@ -1829,10 +1909,12 @@ cdef class _MutableFst(_Fst):
 
     Args:
       delta: Comparison/quantization delta.
+
+    Returns:
+      self.
     """
-    # This runs in-place when the second argument is null.
-    fst.Minimize(self._mfst, NULL, delta)
-    self._check_mutating_imethod()
+    self._minimize(delta)
+    return self
 
   cpdef MutableArcIterator mutable_arcs(self, int64 state):
     """
@@ -1878,7 +1960,12 @@ cdef class _MutableFst(_Fst):
   def num_states(self):
     return self._num_states()
 
-  cpdef void project(self, bool project_output=False) except *:
+  cdef void _project(self, bool project_output=False) except *:
+    fst.Project(self._mfst, fst.PROJECT_OUTPUT if project_output else
+                            fst.PROJECT_INPUT)
+    self._check_mutating_imethod()
+
+  def project(self, bool project_output=False):
     """
     project(self, project_output=False)
 
@@ -1891,14 +1978,23 @@ cdef class _MutableFst(_Fst):
     Args:
       project_output: Should the output labels be projected?
 
+    Returns:
+      self.
+
     See also: `decode`, `encode`, `relabel_pairs`, `relabel_symbols`.
     """
-    fst.Project(self._mfst, fst.PROJECT_OUTPUT if project_output else
-                            fst.PROJECT_INPUT)
+    self._project(project_output)
+    return self
+
+  cdef void _prune(self, float delta=fst.kDelta, int64 nstate=fst.kNoStateId,
+                   weight=None) except *:
+    # Threshold is set to semiring Zero (no pruning) if no weight is specified.
+    cdef fst.WeightClass wc = _get_WeightClass_or_Zero(self.weight_type, weight)
+    fst.Prune(self._mfst, wc, nstate, delta)
     self._check_mutating_imethod()
 
-  cpdef void prune(self, float delta=fst.kDelta, int64 nstate=fst.kNoStateId,
-                   weight=None) except *:
+  def prune(self, float delta=fst.kDelta, int64 nstate=fst.kNoStateId,
+            weight=None):
     """
     prune(self, delta=0.0009765625, nstate=-1, weight=None)
 
@@ -1915,15 +2011,23 @@ cdef class _MutableFst(_Fst):
       weight: A Weight or weight string indicating the desired weight threshold
           below which paths are pruned; if omitted, no paths are pruned.
 
+    Returns:
+      self.
+
     See also: The constructive variant.
     """
-    # Threshold is set to semiring Zero (no pruning) if no weight is specified.
-    cdef fst.WeightClass wc = _get_WeightClass_or_Zero(self.weight_type, weight)
-    fst.Prune(self._mfst, wc, nstate, delta)
+    self._prune(delta, nstate, weight)
+    return self
+
+  cdef void _push(self, float delta=fst.kDelta, bool remove_total_weight=False,
+                  bool to_final=False) except *:
+    cdef fst.ReweightType rt = (fst.REWEIGHT_TO_FINAL if to_final else
+                                fst.REWEIGHT_TO_INITIAL)
+    fst.Push(self._mfst, rt, delta, remove_total_weight)
     self._check_mutating_imethod()
 
-  cpdef void push(self, float delta=fst.kDelta, bool remove_total_weight=False,
-                  bool to_final=False) except *:
+  def push(self, float delta=fst.kDelta, bool remove_total_weight=False,
+           bool to_final=False):
     """
     push(self, delta=0.0009765625, remove_total_weight=False, to_final=False)
 
@@ -1944,21 +2048,35 @@ cdef class _MutableFst(_Fst):
           removed?
       to_final: Push towards final states?
 
+    Returns:
+      self.
+
     See also: The constructive variant, which also supports label pushing.
     """
-    cdef fst.ReweightType rt = (fst.REWEIGHT_TO_FINAL if to_final else
-                                fst.REWEIGHT_TO_INITIAL)
-    fst.Push(self._mfst, rt, delta, remove_total_weight)
-    self._check_mutating_imethod()
+    self._push(delta, remove_total_weight, to_final)
+    return self
 
-  cdef void _relabel_pairs(self, vector[fst.LabelPair] *ipairs,
-                                 vector[fst.LabelPair] *opairs) except *:
-    if ipairs.empty() and opairs.empty():
-      raise FstArgError("No relabeling pairs specified.")
-    fst.Relabel(self._mfst, deref(ipairs), deref(opairs))
-    self._check_mutating_imethod()
+  cdef void _relabel_pairs(self, ipairs=None, opairs=None) except *:
+    cdef vector[fst.LabelPair] *_ipairs = new vector[fst.LabelPair]()
+    cdef vector[fst.LabelPair] *_opairs = new vector[fst.LabelPair]()
+    cdef int64 before
+    cdef int64 after
+    if ipairs:
+      for (before, after) in ipairs:
+        _ipairs.push_back(fst.LabelPair(before, after))
+    if opairs:
+      for (before, after) in opairs:
+        _opairs.push_back(fst.LabelPair(before, after))
+    try:
+      if _ipairs.empty() and _opairs.empty():
+        raise FstArgError("No relabeling pairs specified.")
+      fst.Relabel(self._mfst, deref(_ipairs), deref(_opairs))
+      self._check_mutating_imethod()
+    finally:
+      del _ipairs
+      del _opairs
 
-  cpdef void relabel_pairs(self, ipairs=None, opairs=None) except *:
+  def relabel_pairs(self, ipairs=None, opairs=None):
     """
     relabel_pairs(self, ipairs=None, opairs=None)
 
@@ -1972,31 +2090,40 @@ cdef class _MutableFst(_Fst):
       ipairs: An iterable containing (older index, newer index) integer pairs.
       opairs: An iterable containing (older index, newer index) integer pairs.
 
+    Returns:
+      self.
+
     Raises:
       FstArgError: No relabeling pairs specified.
 
     See also: `decode`, `encode`, `project`, `relabel_tables`.
     """
-    cdef vector[fst.LabelPair] *_ipairs = new vector[fst.LabelPair]()
-    cdef vector[fst.LabelPair] *_opairs = new vector[fst.LabelPair]()
-    cdef int64 before
-    cdef int64 after
-    if ipairs:
-      for (before, after) in ipairs:
-        _ipairs.push_back(fst.LabelPair(before, after))
-    if opairs:
-      for (before, after) in opairs:
-        _opairs.push_back(fst.LabelPair(before, after))
-    try:
-      self._relabel_pairs(_ipairs, _opairs)
-    finally:
-      del _ipairs
-      del _opairs
+    self._relabel_pairs(ipairs, opairs)
+    return self
 
-  cpdef void relabel_tables(self, _SymbolTable old_isymbols=None,
+  cdef void _relabel_tables(self, _SymbolTable old_isymbols=None,
       _SymbolTable new_isymbols=None, bool attach_new_isymbols=True,
       _SymbolTable old_osymbols=None, _SymbolTable new_osymbols=None,
       bool attach_new_osymbols=True) except *:
+    if new_isymbols is None and new_osymbols is None:
+      raise FstArgError("No new SymbolTables specified")
+    cdef SymbolTable_ptr new_isymbols_ptr = NULL
+    if new_isymbols is not None:
+      new_isymbols_ptr = new_isymbols._table
+    cdef SymbolTable_ptr new_osymbols_ptr = NULL
+    if new_osymbols is not None:
+      new_osymbols_ptr = new_osymbols._table
+    fst.Relabel(self._mfst,
+        self._fst.InputSymbols() if old_isymbols is None else
+        old_isymbols._table, new_isymbols_ptr, attach_new_isymbols,
+        self._fst.OutputSymbols() if old_osymbols is None else
+        old_osymbols._table, new_osymbols_ptr, attach_new_osymbols)
+    self._check_mutating_imethod()
+
+  def relabel_tables(self, _SymbolTable old_isymbols=None,
+      _SymbolTable new_isymbols=None, bool attach_new_isymbols=True,
+      _SymbolTable old_osymbols=None, _SymbolTable new_osymbols=None,
+      bool attach_new_osymbols=True):
     """
     relabel_tables(self, old_isymbols=None, new_isymbols=None,
                    attach_new_isymbols=True, old_osymbols=None,
@@ -2018,28 +2145,25 @@ cdef class _MutableFst(_Fst):
        new_osymbols: A SymbolTable used to relabel the output labels.
        attach_new_isymbols: Should new_osymbols be made the FST's output symbol
           table?
-s
+
+    Returns:
+      self.
+
     Raises:
       FstArgError: No SymbolTable specified.
 
     See also: `decode`, `encode`, `project`, `relabel_pairs`.
     """
-    if new_isymbols is None and new_osymbols is None:
-      raise FstArgError("No new SymbolTables specified")
-    cdef SymbolTable_ptr new_isymbols_ptr = NULL
-    if new_isymbols is not None:
-      new_isymbols_ptr = new_isymbols._table
-    cdef SymbolTable_ptr new_osymbols_ptr = NULL
-    if new_osymbols is not None:
-      new_osymbols_ptr = new_osymbols._table
-    fst.Relabel(self._mfst,
-        self._fst.InputSymbols() if old_isymbols is None else
-        old_isymbols._table, new_isymbols_ptr, attach_new_isymbols,
-        self._fst.OutputSymbols() if old_osymbols is None else
-        old_osymbols._table, new_osymbols_ptr, attach_new_osymbols)
+    self._relabel_tables(old_isymbols, new_isymbols, attach_new_isymbols,
+                         old_osymbols, new_osymbols, attach_new_osymbols)
+    return self
+
+  cdef void _reserve_arcs(self, int64 state, size_t n) except *:
+    if not self._mfst.ReserveArcs(state, n):
+      raise FstIndexError("State index out of range")
     self._check_mutating_imethod()
 
-  cpdef void reserve_arcs(self, int64 state, size_t n) except *:
+  def reserve_arcs(self, int64 state, size_t n):
     """
     reserve_arcs(self, state, n)
 
@@ -2049,16 +2173,22 @@ s
       state: The integer index of a state.
       n: The number of arcs to reserve.
 
+    Returns:
+      self.
+
     Raises:
       FstIndexError: State index out of range.
 
     See also: `reserve_states`.
     """
-    if not self._mfst.ReserveArcs(state, n):
-      raise FstIndexError("State index out of range")
+    self._reserve_arcs(state, n)
+    return self
+
+  cdef void _reserve_states(self, int64 n) except *:
+    self._mfst.ReserveStates(n)
     self._check_mutating_imethod()
 
-  cpdef void reserve_states(self, int64 n) except *:
+  def reserve_states(self, int64 n):
     """
     reserve_states(self, n)
 
@@ -2067,19 +2197,28 @@ s
     Args:
       n: The number of states to reserve.
 
+    Returns:
+      self.
+
     See also: `reserve_arcs`.
     """
-    self._mfst.ReserveStates(n)
-    self._check_mutating_imethod()
+    self._reserve_states(n)
+    return self
 
-  cdef void _reweight(self, vector[fst.WeightClass] *potentials,
-                      bool to_final=False) except *:
+  cdef void _reweight(self, potentials, bool to_final=False) except *:
     cdef fst.ReweightType rt = (fst.REWEIGHT_TO_FINAL if to_final else
                                 fst.REWEIGHT_TO_INITIAL)
-    fst.Reweight(self._mfst, deref(potentials), rt)
-    self._check_mutating_imethod()
+    cdef vector[fst.WeightClass] *_potentials = new vector[fst.WeightClass]()
+    cdef string weight_type = self._weight_type()
+    for weight in potentials:
+        _potentials.push_back(_get_WeightClass_or_One(self.weight_type, weight))
+    fst.Reweight(self._mfst, deref(_potentials), rt)
+    try:
+      self._check_mutating_imethod()
+    finally:
+      del _potentials
 
-  cpdef void reweight(self, potentials, bool to_final=False) except *:
+  def reweight(self, potentials, bool to_final=False):
     """
     reweight(self, potentials, to_final=False)
 
@@ -2097,19 +2236,23 @@ s
     Args:
       potentials: An iterable of Weight or weight strings.
       to_final: Push towards final states?
+
+    Returns:
+      self.
     """
-    cdef vector[fst.WeightClass] *_potentials = new vector[fst.WeightClass]()
-    cdef string weight_type = self._weight_type()
-    for weight in potentials:
-        _potentials.push_back(_get_WeightClass_or_One(self.weight_type, weight))
-    try:
-      self._reweight(_potentials, to_final)
-    finally:
-      del _potentials
+    self._reweight(potentials, to_final)
+    return self
+
+  cdef void _rmepsilon(self, bool connect=True, float delta=fst.kDelta,
+                       int64 nstate=fst.kNoStateId, weight=None) except *:
+    # Threshold is set to semiring Zero (no pruning) if weight unspecified.
+    cdef fst.WeightClass wc = _get_WeightClass_or_Zero(self.weight_type,
+                                                        weight)
+    fst.RmEpsilon(self._mfst, connect, wc, nstate, delta)
     self._check_mutating_imethod()
 
-  cpdef void rmepsilon(self, bool connect=True, float delta=fst.kDelta,
-                       int64 nstate=fst.kNoStateId, weight=None) except *:
+  def rmepsilon(self, bool connect=True, float delta=fst.kDelta,
+                int64 nstate=fst.kNoStateId, weight=None):
     """
     rmepsilon(self, connect=True, delta=0.0009765625, nstate=-1, weight=None)
 
@@ -2125,16 +2268,24 @@ s
       weight: A Weight or weight string indicating the desired weight threshold
           below which paths are pruned; if omitted, no paths are pruned.
 
+    Returns:
+      self.
+
     See also: The constructive variant, which also supports epsilon removal in
         reverse (and which may be more efficient).
     """
-    # The threshold is set to semiring Zero (no pruning) if weight unspecified.
-    cdef fst.WeightClass wc = _get_WeightClass_or_Zero(self.weight_type,
-                                                        weight)
-    fst.RmEpsilon(self._mfst, connect, wc, nstate, delta)
+    self._rmepsilon(connect, delta, nstate, weight)
+    return self
+
+  cdef void _set_final(self, int64 state, weight=None) except *:
+    if not self._mfst.ValidStateId(state):
+      raise FstIndexError("State index out of range")
+    cdef fst.WeightClass wc = _get_WeightClass_or_One(self.weight_type, weight)
+    if not self._mfst.SetFinal(state, wc):
+      raise FstOpError("incompatible or invalid weight")
     self._check_mutating_imethod()
 
-  cpdef void set_final(self, int64 state, weight=None) except *:
+  def set_final(self, int64 state, weight=None):
     """
     set_final(self, state, weight)
 
@@ -2151,14 +2302,13 @@ s
 
     See also: `set_start`.
     """
-    if not self._mfst.ValidStateId(state):
-      raise FstIndexError("State index out of range")
-    cdef fst.WeightClass wc = _get_WeightClass_or_One(self.weight_type, weight)
-    if not self._mfst.SetFinal(state, wc):
-      raise FstOpError("incompatible or invalid weight")
-    self._check_mutating_imethod()
+    self._set_final(state, weight)
+    return self
 
-  cpdef void set_properties(self, uint64 props, uint64 mask) except *:
+  cdef void _set_properties(self, uint64 props, uint64 mask) except *:
+    self._mfst.SetProperties(props, mask)
+
+  def set_properties(self, uint64 props, uint64 mask):
     """
     set_properties(self, props, mask)
 
@@ -2168,10 +2318,19 @@ s
       props: The properties to be set.
       mask: A mask to be applied to the `props` argument before
         setting the FST's properties.
-    """
-    self._mfst.SetProperties(props, mask)
 
-  cpdef void set_start(self, int64 state) except *:
+    Returns:
+      self.
+    """
+    self._set_properties(props, mask)
+    return self
+
+  cdef void _set_start(self, int64 state) except *:
+    if not self._mfst.SetStart(state):
+      raise FstIndexError("State index out of range")
+    self._check_mutating_imethod()
+
+  def set_start(self, int64 state):
     """
     set_start(self, state)
 
@@ -2180,16 +2339,25 @@ s
     Args:
       state: The integer index of a state.
 
+    Returns:
+      self.
+
     Raises:
       FstIndexError: State index out of range.
 
     See also: `set_final`.
     """
-    if not self._mfst.SetStart(state):
-      raise FstIndexError("State index out of range")
+    self._set_start(state)
+    return self
+
+  cdef void _set_input_symbols(self, _SymbolTable syms) except *:
+    if syms is None:
+      self._mfst.SetInputSymbols(NULL)
+      return
+    self._mfst.SetInputSymbols(syms._table)
     self._check_mutating_imethod()
 
-  cpdef void set_input_symbols(self, _SymbolTable syms) except *:
+  def set_input_symbols(self, _SymbolTable syms):
     """
     set_input_symbols(self, syms)
 
@@ -2200,15 +2368,22 @@ s
     Args:
       syms: A SymbolTable.
 
+    Returns:
+      self.
+
     See also: `set_output_symbols`.
     """
+    self._set_input_symbols(syms)
+    return self
+
+  cdef void _set_output_symbols(self, _SymbolTable syms) except *:
     if syms is None:
-      self._mfst.SetInputSymbols(NULL)
+      self._mfst.SetOutputSymbols(NULL)
       return
-    self._mfst.SetInputSymbols(syms._table)
+    self._mfst.SetOutputSymbols(syms._table)
     self._check_mutating_imethod()
 
-  cpdef void set_output_symbols(self, _SymbolTable syms) except *:
+  def set_output_symbols(self, _SymbolTable syms):
     """
     set_output_symbols(self, syms)
 
@@ -2219,15 +2394,21 @@ s
     Args:
       syms: A SymbolTable.
 
+    Returns:
+      self.
+
     See also: `set_input_symbols`.
     """
-    if syms is None:
-      self._mfst.SetOutputSymbols(NULL)
-      return
-    self._mfst.SetOutputSymbols(syms._table)
+    self._set_output_symbols(syms)
+    return self
+
+  cdef void _topsort(self) except *:
+    # TopSort returns False if the FST is cyclic, and thus can't be TopSorted.
+    if not fst.TopSort(self._mfst):
+      logging.warning("Cannot topsort cyclic FST.")
     self._check_mutating_imethod()
 
-  cpdef void topsort(self) except *:
+  def topsort(self):
     """
     topsort(self)
 
@@ -2237,14 +2418,13 @@ s
     otherwise it remains unchanged. Once sorted, all transitions are from lower
     state IDs to higher state IDs
 
+    Returns:
+       self.
+
     See also: `arcsort`.
     """
-    # TopSort returns False if the FST is cyclic, and thus can't be TopSorted.
-    if not fst.TopSort(self._mfst):
-      logging.warning("Cannot topsort cyclic FST.")
-    self._check_mutating_imethod()
-
-  # Unfortunate clash with the C keyword.
+    self._topsort()
+    return self
 
   cdef void _union(self, _Fst ifst) except *:
     fst.Union(self._mfst, deref(ifst._fst))
@@ -2262,9 +2442,12 @@ s
 
     Args:
       ifst: The second input FST.
+
+    Returns:
+      self.
     """
     self._union(ifst)
-    self._check_mutating_imethod()
+    return self
 
 
 # Pseudo-constructors for _Fst and _MutableFst.
@@ -2376,7 +2559,7 @@ class Fst(object):
      return _read_Fst(filename, fst_type)
 
 
-# Fst properties, exposed to Python users.
+## FST properties.
 
 
 EXPANDED = fst.kExpanded
@@ -2439,20 +2622,78 @@ NEG_TRINARY_PROPERTIES = fst.kNegTrinaryProperties
 FST_PROPERTIES = fst.kFstProperties
 
 
-# Definition and construction of an arc.
+## Arc, ArcIterator, and MutableArcIterator.
 
 
-Arc = collections.namedtuple("Arc", ("ilabel", "olabel", "weight", "nextstate"))
+cdef class Arc(object):
+
+  """
+  Arc(ilabel, olabel, weight, nextstate)
+
+  This class represents an arc while remaining agnostic about the underlying arc
+  type.  Attributes of the arc can be accessed or mutated, and the arc can be
+  copied.
+
+  Attributes:
+    ilabel: The input label.
+    olabel: The output label.
+    weight: The arc weight.
+    nextstate: The destination state for the arc.
+  """
+
+  def __repr__(self):
+    return "<Arc at 0x{:x}>".format(id(self))
+
+  def __init__(self, int64 ilabel, int64 olabel, weight, int64 nextstate):
+    cdef fst.WeightClass wc = _get_WeightClass_or_One(b"tropical", weight)
+    self._arc = new fst.ArcClass(ilabel, olabel, wc, nextstate)
+
+  def __dealloc__(self):
+    del self._arc
+
+  cpdef Arc copy(self):
+    return Arc(self.ilabel, self.olabel, self.weight, self.nextstate)
+
+  property ilabel:
+
+    def __get__(self):
+      return deref(self._arc).ilabel
+
+    def __set__(self, int64 value):
+      deref(self._arc).ilabel = value
+
+  property olabel:
+
+    def __get__(self):
+      return deref(self._arc).olabel
+
+    def __set__(self, int64 value):
+      deref(self._arc).olabel = value
+
+  property weight:
+
+    def __get__(self):
+      cdef Weight weight = Weight.__new__(Weight)
+      weight._weight = new fst.WeightClass(deref(self._arc).weight)
+      return weight
+
+    def __set__(self, weight):
+      deref(self._arc).weight = _get_WeightClass_or_One(b"tropical", weight)
+
+  property nextstate:
+
+    def __get__(self):
+      return deref(self._arc).nextstate
+
+    def __set__(self, int64 value):
+      deref(self._arc).nextstate = value
 
 
-cdef object _init_Arc(const fst.ArcClass &arc):
+cdef Arc _init_Arc(const fst.ArcClass &arc):
   cdef Weight weight = Weight.__new__(Weight)
   weight._weight = new fst.WeightClass(arc.weight)
   return Arc(<int64> arc.ilabel, <int64> arc.olabel, weight,
              <int64> arc.nextstate)
-
-
-# Arc iterators.
 
 
 cdef class ArcIterator(object):
@@ -2593,7 +2834,6 @@ cdef class ArcIterator(object):
     return _init_Arc(self._aiter.Value())
 
 
-
 cdef class MutableArcIterator(object):
 
   """
@@ -2724,25 +2964,16 @@ cdef class MutableArcIterator(object):
     """
     self._maiter.SetFlags(flags, mask)
 
-  cpdef void set_value(self, int64 ilabel, int64 olabel, weight,
-                       int64 nextstate) except *:
+  cpdef void set_value(self, Arc arc):
     """
-    set_value(self, ilabel, olabel, weight, nextstate)
+    set_value(self, arc)
 
     Replace the current arc with a new arc.
 
     Args:
-      ilabel: The integer index of the input label.
-      olabel: The integer index of the output label.
-      weight: A Weight or weight string indicating the desired final weight; if
-        null, it is set to semiring One.
-      nextstate: The integer index of the destination state.
-
-    Raises:
-      FstBadWeightError: invalid weight.
+      arc: The arc to replace the current arc with.
     """
-    self._maiter.SetValue(fst.ArcClass(ilabel, olabel,
-        _get_WeightClass_or_One(self._weight_type, weight), nextstate))
+    self._maiter.SetValue(deref(arc._arc))
 
   cpdef object value(self):
     """
@@ -2754,6 +2985,9 @@ cdef class MutableArcIterator(object):
     should use the Pythonic API.
     """
     return _init_Arc(self._maiter.Value())
+
+
+## StateIterator.
 
 
 cdef class StateIterator(object):
@@ -2832,10 +3066,7 @@ cdef class StateIterator(object):
     return self._siter.Value()
 
 
-# Constructive and boolean operations.
-
-
-# This function can handle both state (`arc_sum`) and arc mapping operations.
+## FST operations.
 
 
 cdef _Fst _map(_Fst ifst, float delta=fst.kDelta, map_type=b"identity",
@@ -3016,7 +3247,7 @@ cpdef _MutableFst determinize(_Fst ifst, float delta=fst.kDelta,
   See also: `disambiguate`, `rmepsilon`.
   """
   cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
-  # The threshold is set to semiring Zero (no pruning) if weight unspecified.
+  # Threshold is set to semiring Zero (no pruning) if weight unspecified.
   cdef fst.WeightClass wc = _get_WeightClass_or_Zero(ifst.weight_type, weight)
   det_type = tostring(det_type)
   cdef fst.DeterminizeType dt = fst.DETERMINIZE_FUNCTIONAL
@@ -3096,7 +3327,7 @@ cpdef _MutableFst disambiguate(_Fst ifst, float delta=fst.kDelta,
   See also: `determinize`, `rmepsilon`.
   """
   cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
-  # The threshold is set to semiring Zero (no pruning) if no weight is specified.
+  # Threshold is set to semiring Zero (no pruning) if no weight is specified.
   cdef fst.WeightClass wc = _get_WeightClass_or_Zero(ifst.weight_type, weight)
   cdef const fst.DisambiguateOptions *opts = new fst.DisambiguateOptions(delta,
       wc, nstate, subsequential_label)
@@ -3342,7 +3573,7 @@ cpdef _MutableFst push(_Fst ifst, float delta=fst.kDelta,
 
 cpdef bool randequivalent(_Fst ifst1, _Fst ifst2, float delta=fst.kDelta,
                           int32 max_length=INT_MAX, int32 npath=1,
-                          time_t seed=time(NULL),
+                          time_t seed=0,
                           select=b"uniform") except *:
   """
   randequivalent(ifst1, ifst2, delta=0.0009765625, max_length=INT_MAX, npath=1,
@@ -3370,7 +3601,7 @@ cpdef bool randequivalent(_Fst ifst1, _Fst ifst2, float delta=fst.kDelta,
     True if the two transducers satisfy the above condition, else False.
 
   Raise:
-    FstOpeError: Random equivalence test encountered error.
+    FstOpError: Random equivalence test encountered error.
 
   See also: `equal`, `equivalent`, `isomorphic`, `randgen`.
   """
@@ -3379,6 +3610,8 @@ cpdef bool randequivalent(_Fst ifst1, _Fst ifst2, float delta=fst.kDelta,
       new fst.RandGenOptions[fst.RandArcSelection](ras, max_length)
   cdef bool error
   cdef bool result
+  if seed == 0:
+    seed = time(NULL)
   result = fst.RandEquivalent(deref(ifst1._fst), deref(ifst2._fst), seed, npath,
       delta, deref(opts), &error)
   del opts
@@ -3389,7 +3622,7 @@ cpdef bool randequivalent(_Fst ifst1, _Fst ifst2, float delta=fst.kDelta,
 
 cpdef _MutableFst randgen(_Fst ifst, int32 max_length=INT_MAX, int32 npath=1,
                           bool remove_total_weight=False,
-                          time_t seed=time(NULL), select=b"uniform",
+                          time_t seed=0, select=b"uniform",
                           bool weighted=False):
   """
   randgen(ifst, max_length=INT_MAX, npath=1, remove_total_weight=False,
@@ -3425,6 +3658,8 @@ cpdef _MutableFst randgen(_Fst ifst, int32 max_length=INT_MAX, int32 npath=1,
   cdef const fst.RandGenOptions[fst.RandArcSelection] *opts = \
       new fst.RandGenOptions[fst.RandArcSelection](ras, max_length)
   cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
+  if seed == 0:
+    seed = time(NULL)
   fst.RandGen(deref(ifst._fst), tfst, seed, deref(opts))
   del opts
   return _init_MutableFst(tfst)
@@ -3558,7 +3793,7 @@ cpdef _MutableFst rmepsilon(_Fst ifst, bool connect=True,
 
 cdef vector[fst.WeightClass] *_shortestdistance(_Fst ifst,
     float delta=fst.kDelta, int64 nstate=fst.kNoStateId, qt=b"auto",
-    bool reverse=False):
+    bool reverse=False) except *:
   cdef vector[fst.WeightClass] *distance = new vector[fst.WeightClass]()
   # For scoping reasons, these have to be declared here even though they may
   # not be used in all cases.
@@ -3665,7 +3900,6 @@ cpdef _MutableFst shortestpath(_Fst ifst, float delta=fst.kDelta,
   return _init_MutableFst(tfst)
 
 
-
 cpdef _Fst statemap(_Fst ifst, map_type=b"arc_sum"):
   """
   state_map(ifst, map_type="arc_sum")
@@ -3715,8 +3949,7 @@ cpdef _MutableFst synchronize(_Fst ifst):
   return _init_MutableFst(tfst)
 
 
-
-# FST compiler class.
+## Compiler.
 
 
 cdef class Compiler(object):
@@ -3839,6 +4072,9 @@ cdef class Compiler(object):
       expression: A string expression to add to compiler string buffer.
     """
     deref(self._sstrm) << tostring(expression)
+
+
+## FarReader and FarWriter.
 
 
 cdef class FarReader(object):
@@ -3979,9 +4215,7 @@ cdef class FarReader(object):
     Returns:
       A copy of the FST at the current position.
     """
-    # The reference returned by the underlying library is invalided if the
-    # archive's current position moves. So we make a copy.
-    cdef fst.FstClass *tfst = new fst.FstClass(self._reader.GetFstClass())
+    cdef fst.FstClass *tfst = new fst.FstClass(deref(self._reader.GetFstClass()))
     return _init_XFst(tfst)
 
   cpdef string get_key(self):
@@ -4153,6 +4387,8 @@ cdef class FarWriter(object):
   def __setitem__(self, key, _Fst fst):
     self.add(key, fst)
 
+
+## Cleanup operations for module entrance and exit.
 
 
 # Masks fst_error_fatal flags while this module is running, returning to the

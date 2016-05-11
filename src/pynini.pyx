@@ -36,6 +36,7 @@ from cython.operator cimport preincrement as inc   # ++foo
 
 from libcpp cimport bool
 
+from libcpp.utility cimport pair
 from libcpp.vector cimport vector
 
 from basictypes cimport int32
@@ -52,7 +53,6 @@ from fst cimport LabelFstClassPair
 from fst cimport MutableFstClass
 from fst cimport ReplaceLabelType
 from fst cimport ReplaceOptions
-from fst cimport SymbolTable
 from fst cimport VectorFstClass
 from fst cimport WeightClass
 
@@ -68,8 +68,8 @@ from pywrapfst cimport _MutableFst
 from pywrapfst cimport _SymbolTable
 from pywrapfst cimport FarReader
 from pywrapfst cimport FarWriter
-from pywrapfst cimport Weight
-
+from pywrapfst cimport SymbolTable_ptr
+from pywrapfst cimport Weight as _Weight
 
 from pywrapfst cimport _get_WeightClass_or_One
 from pywrapfst cimport \
@@ -77,7 +77,6 @@ from pywrapfst cimport \
 from pywrapfst cimport _get_queue_type
 from pywrapfst cimport _get_replace_label_type
 from pywrapfst cimport _read_Fst
-
 from pywrapfst cimport tostring
 
 # C++ code from fst_util.
@@ -88,8 +87,10 @@ from fst_util cimport CompileSymbolString
 from fst_util cimport CrossProduct
 from fst_util cimport MergeSymbols
 from fst_util cimport Optimize
-from fst_util cimport OptimizeStringCrossProduct
 from fst_util cimport Repeat
+from fst_util cimport StringFile
+from fst_util cimport StringMap
+from fst_util cimport StringPair
 from fst_util cimport StringPathsClass
 
 from fst_util cimport MergeSymbolsType
@@ -148,6 +149,7 @@ from pynini_includes cimport PDT_LEFT_PARSER
 from pynini_includes cimport PDT_LEFT_SR_PARSER
 
 
+
 # Python imports needed for implementation.
 
 
@@ -188,7 +190,7 @@ cdef TokenType _get_token_type(string token_type) except *:
   """Matches string with the appropriate TokenType enum value.
 
   This function takes a string argument and returns the matching TokenType
-  enum value used by StringPathsClass and PyniniStringify.
+  enum value used by StringMap, StringPathsClass and PyniniStringify.
 
   Args:
     token_type: A string matching a known token type.
@@ -269,8 +271,8 @@ cdef void _add_parentheses_symbols(MutableFstClass *fst,
 
   This function is not visible to Python users.
   """
-  cdef SymbolTable *source_syms
-  cdef SymbolTable *sink_syms
+  cdef SymbolTable_ptr source_syms
+  cdef SymbolTable_ptr sink_syms
   cdef size_t i = 0
   cdef int64 label
   cdef string symbol
@@ -346,12 +348,12 @@ cdef class Fst(_MutableFst):
     Args:
       filename: The string location of the input file.
 
-     Returns:
-       An FST.
+    Returns:
+      An FST.
 
-     Raises:
-       FstIOError: Read failed.
-       FstOpError: Read-time conversion failed.
+    Raises:
+      FstIOError: Read failed.
+      FstOpError: Read-time conversion failed.
     """
     return _init_Fst_from_MutableFst(_read_Fst(filename, fst_type=b"vector"))
 
@@ -498,12 +500,18 @@ cdef class Fst(_MutableFst):
     /x{N,}/\t\tx.closure(N)
     /x{,N}/\t\tx.closure(0, N)
 
+    Args:
+      lower: lower bound.
+      upper: upper bound.
+
+    Returns:
+      self.
+
     See also `ques`, `star`, `plus`.
     """
     Repeat(self._mfst, lower, upper)
     self._check_pynini_op_error()
-
-  # Closure aliases, which make copies.
+    return self
 
   @property
   def plus(self):
@@ -511,11 +519,11 @@ cdef class Fst(_MutableFst):
     Constructively computes +-closure.
 
     Returns:
-      A +-closure FST.
+      Closure-d copy.
 
     See also: `closure`.
     """
-    cdef Fst result = self.copy()
+    result = self.copy()
     Closure(result._mfst, CLOSURE_PLUS)
     result._check_pynini_op_error()
     return result
@@ -526,11 +534,11 @@ cdef class Fst(_MutableFst):
     Constructively computes ?-closure.
 
     Returns:
-      A ?-closure FST.
+      Closure-d copy.
 
     See also: `closure`.
     """
-    cdef Fst result = self.copy()
+    result = self.copy()
     Repeat(result._mfst, 0, 1)
     result._check_pynini_op_error()
     return result
@@ -541,15 +549,14 @@ cdef class Fst(_MutableFst):
     Constructively computes *-closure.
 
     Returns:
-      A *-closure FST.
+      Closure-d copy.
 
     See also: `closure`.
     """
-    cdef Fst result = self.copy()
+    result = self.copy()
     Closure(result._mfst, CLOSURE_STAR)
     result._check_pynini_op_error()
     return result
-
 
   def concat(self, ifst):
     """
@@ -565,17 +572,25 @@ cdef class Fst(_MutableFst):
     Args:
       ifst: The second input Fst.
 
+    Returns:
+      self.
+
     Raises:
       FstSymbolTableMergeError: Unable to resolve symbol table conflict
           without relabeling.
     """
-    cdef Fst rhs = _compile_Fst(ifst, arc_type=self.arc_type)
+    cdef Fst rhs = _compile_or_copy_Fst(ifst, arc_type=self.arc_type)
     if not MergeSymbols(self._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
     self._concat(rhs)
+    return self
 
-  cpdef void optimize(self, bool compute_props=False):
+  cdef void _optimize(self, bool compute_props=False) except *:
+    Optimize(self._mfst, compute_props)
+    self._check_pynini_op_error()
+
+  def optimize(self, bool compute_props=False):
     """
     optimize(self, compute_props=False)
 
@@ -609,10 +624,13 @@ cdef class Fst(_MutableFst):
 
     Args:
       compute_props: Should unknown FST properties be computed to help choose
-        appropriate optimizations?
+          appropriate optimizations?
+
+    Returns:
+      self.
     """
-    Optimize(self._mfst, compute_props)
-    self._check_pynini_op_error()
+    self._optimize(compute_props)
+    return self
 
   def union(self, ifst):
     """
@@ -632,19 +650,20 @@ cdef class Fst(_MutableFst):
       FstSymbolTableMergeError: Unable to resolve symbol table conflict
           without relabeling.
     """
-    cdef Fst rhs = _compile_Fst(ifst, arc_type=self.arc_type)
+    cdef Fst rhs = _compile_or_copy_Fst(ifst, arc_type=self.arc_type)
     if not MergeSymbols(self._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
     self._union(rhs)
+    return self
 
   # Operator overloads.
 
   def __richcmp__(self, other, int op):
     cdef string arc_type = (self.arc_type if hasattr(self, "arc_type") else
                             other.arc_type)
-    cdef Fst lhs = _compile_Fst(self, arc_type=arc_type)
-    cdef Fst rhs = _compile_Fst(other, arc_type=arc_type)
+    cdef Fst lhs = _compile_or_copy_Fst(self, arc_type=arc_type)
+    cdef Fst rhs = _compile_or_copy_Fst(other, arc_type=arc_type)
     if op == 2:    # ==
       return Equal(deref(lhs._fst), deref(rhs._fst), kDelta)
     elif op == 3:  # !=
@@ -656,46 +675,26 @@ cdef class Fst(_MutableFst):
   def __add__(self, other):
     cdef string arc_type = (self.arc_type if hasattr(self, "arc_type") else
                             other.arc_type)
-    cdef Fst lhs = _compile_Fst(self, arc_type=arc_type)
+    cdef Fst lhs = _compile_or_copy_Fst(self, arc_type=arc_type)
     lhs.concat(other)
     return lhs
 
   # x - y
 
   def __sub__(self, other):
-    cdef string arc_type = (self.arc_type if hasattr(self, "arc_type") else
-                            other.arc_type)
-    cdef Fst lhs = _compile_Fst(self, arc_type=arc_type)
-    cdef Fst rhs = _compile_Fst(other, arc_type=arc_type)
-    if not MergeSymbols(lhs._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
-      raise FstSymbolTableMergeError(
-          "Unable to resolve symbol table conflict without relabeling")
-    return _init_Fst_from_MutableFst(pywrapfst.difference(lhs, rhs))
+    return difference(self, other)
 
   # x * y
 
   def __mul__(self, other):
-    cdef string arc_type = (self.arc_type if hasattr(self, "arc_type") else
-                            other.arc_type)
-    cdef Fst lhs = _compile_Fst(self, arc_type=arc_type)
-    cdef Fst rhs = _compile_Fst(other, arc_type=arc_type)
-    lhs.arcsort(sort_type="olabel")
-    rhs.arcsort(sort_type="ilabel")
-    if not MergeSymbols(lhs._mfst, rhs._mfst,
-                        MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
-      raise FstSymbolTableMergeError(
-          "Unable to resolve symbol table conflict without relabeling")
-    lhs = _init_Fst_from_MutableFst(pywrapfst.compose(lhs, rhs))
-    if not lhs.num_states:
-      logging.warning("Composed FST has no connected states")
-    return lhs
+    return compose(self, other)
 
   # x | y
 
   def __or__(self, other):
     cdef string arc_type = (self.arc_type if hasattr(self, "arc_type") else
                             other.arc_type)
-    cdef Fst lhs = _compile_Fst(self, arc_type=arc_type)
+    cdef Fst lhs = _compile_or_copy_Fst(self, arc_type=arc_type)
     lhs.union(other)
     return lhs
 
@@ -704,7 +703,7 @@ cdef class Fst(_MutableFst):
 # it into an acceptor.
 
 
-cpdef Fst _compile_Fst(arg, arc_type=b"standard"):
+cpdef Fst _compile_or_copy_Fst(arg, arc_type=b"standard"):
   if not isinstance(arg, Fst):
     return acceptor(arg, arc_type=arc_type)
   else:
@@ -759,7 +758,7 @@ cpdef Fst acceptor(astring, weight=None, arc_type=b"standard",
   cdef Fst result = Fst(tostring(arc_type))
   cdef WeightClass wc = _get_WeightClass_or_One(result.weight_type, weight)
   cdef string _astring = tostring(astring)
-  cdef SymbolTable *syms
+  cdef SymbolTable_ptr syms
   try:
     token_type = tostring(token_type)
     if token_type == b"byte":
@@ -772,7 +771,7 @@ cpdef Fst acceptor(astring, weight=None, arc_type=b"standard",
       raise FstArgError("Unknown token type: {!r}".format(token_type))
   except (FstArgError, UnicodeDecodeError):
     if isinstance(token_type, pywrapfst._SymbolTable):
-      syms = (<SymbolTable *> (<_SymbolTable> token_type)._table)
+      syms = (<SymbolTable_ptr> (<_SymbolTable> token_type)._table)
       if not CompileSymbolString(_astring, wc, deref(syms), result._mfst):
         raise FstStringCompilationError("Symbol string compilation failed")
     else:
@@ -810,9 +809,9 @@ cpdef Fst transducer(istring, ostring, weight=None, arc_type=b"standard",
         encoded as arc labels---one of: utf8" (encodes strings as UTF-8 encoded
         Unicode strings), "byte" (encodes strings as raw bytes)---or a
         SymbolTable to be used to encode the string.
-    output_token_type: Either a string indicating how the output strings are to be
-        encoded as arc labels---one of: utf8" (encodes strings as UTF-8 encoded
-        Unicode strings), "byte" (encodes strings as raw bytes)---or a
+    output_token_type: Either a string indicating how the output strings are to
+        be encoded as arc labels---one of: utf8" (encodes strings as UTF-8
+        encoded Unicode strings), "byte" (encodes strings as raw bytes)---or a
         SymbolTable to be used to encode the string.
 
   Returns:
@@ -842,10 +841,6 @@ cpdef Fst transducer(istring, ostring, weight=None, arc_type=b"standard",
       logging.warning("Expecting acceptor or string argument, got a transducer")
   # Actually computes cross-product.
   CrossProduct(deref(upper._fst), deref(lower._fst), result._mfst)
-  # Optimizes output, if both inputs were strings or string FSTs.
-  if (lower._fst.Properties(kAcceptorAndString, True) == kAcceptorAndString and
-      upper._fst.Properties(kAcceptorAndString, True) == kAcceptorAndString):
-    OptimizeStringCrossProduct(result._mfst)
   result._check_pynini_op_error()
   return result
 
@@ -904,11 +899,11 @@ cpdef Fst cdrewrite(tau, lambda_, rho, sigma_star, direction=b"ltr",
     cm = OPTIONAL
   else:
     raise FstArgError("Unknown rewrite mode type: {!r}".format(mode))
-  cdef Fst tau_compiled = _compile_Fst(tau)
+  cdef Fst tau_compiled = _compile_or_copy_Fst(tau)
   cdef string arc_type = tau_compiled.arc_type
-  cdef Fst lambda_compiled = _compile_Fst(lambda_, arc_type)
-  cdef Fst rho_compiled = _compile_Fst(rho, arc_type)
-  cdef Fst sigma_star_compiled = _compile_Fst(sigma_star, arc_type)
+  cdef Fst lambda_compiled = _compile_or_copy_Fst(lambda_, arc_type)
+  cdef Fst rho_compiled = _compile_or_copy_Fst(rho, arc_type)
+  cdef Fst sigma_star_compiled = _compile_or_copy_Fst(sigma_star, arc_type)
   cdef Fst result = Fst(arc_type)
   PyniniCDRewrite(deref(tau_compiled._fst), deref(lambda_compiled._fst),
                   deref(rho_compiled._fst), deref(sigma_star_compiled._fst),
@@ -919,17 +914,71 @@ cpdef Fst cdrewrite(tau, lambda_, rho, sigma_star, direction=b"ltr",
   return result
 
 
-def string_map(*pairs, arc_type=b"standard", input_token_type=b"byte",
+def string_file(filename, arc_type=b"standard", input_token_type=b"byte",
+                output_token_type=b"byte"):
+  """
+  string_file(filename, arc_type="standard", input_token_type="byte",
+             output_token_type="byte")
+
+  Creates a transducer that maps between elements of mappings read from
+  a tab-delimited file.
+
+  Args:
+    filename: The path to a file consisting of lines of input/output pairs
+        separated by a tab character; if a line element is a singleton, the
+        identity mapping is used.
+    arc_type: A string indicating the arc type.
+    input_token_type: A string indicating how the input strings are to be
+        encoded as arc labels---one of: utf8" (encodes strings as a UTF-8
+        encoded Unicode strings), "byte" (encodes strings as raw bytes)---or a
+        SymbolTable.
+    output_token_type: A string indicating how the output strings are to be
+        encoded as arc labels---one of: utf8" (encodes strings as a UTF-8
+        encoded Unicode strings), "byte" (encodes strings as raw bytes)---or a
+        SymbolTable.
+
+  Returns:
+    An FST.
+
+  Raises:
+    FstIOError: Read failed.
+  """
+  cdef TokenType itype
+  cdef TokenType otype
+  cdef SymbolTable_ptr isyms = NULL
+  cdef SymbolTable_ptr osyms = NULL
+  try:
+    itype = _get_token_type(tostring(input_token_type))
+  except FstArgError:
+    if isinstance(input_token_type, pywrapfst._SymbolTable):
+      isyms = (<SymbolTable_ptr> (<_SymbolTable> input_token_type)._table)
+      itype = SYMBOL
+  try:
+    otype = _get_token_type(tostring(output_token_type))
+  except FstArgError:
+    if isinstance(output_token_type, pywrapfst._SymbolTable):
+      osyms = (<SymbolTable_ptr> (<_SymbolTable> output_token_type)._table)
+      otype = SYMBOL
+  cdef Fst result = Fst(arc_type)
+  if not StringFile(tostring(filename), itype, otype, result._mfst, isyms,
+                    osyms):
+    raise FstIOError("Read failed")
+  return result
+
+
+def string_map(pairs, arc_type=b"standard", input_token_type=b"byte",
                output_token_type=b"byte"):
   """
-  string_map(*pairs, arc_type="standard", input_token_type="byte",
+  string_map(pairs, arc_type="standard", input_token_type="byte",
              output_token_type="byte")
 
   Creates a transducer that maps between elements of mappings.
 
   Args:
-    *pairs: an iterable of of input-output pairs of strings. If an element is
-        a singleton, the identity mapping is used.
+    pairs: An iterable containing strings. If the iterable implements .iteritems
+      or .items, this is used to extract the pairs. If any element of the
+      iterable is a string, or an iterable containing exactly one string, the
+      identity mapping is used.
     arc_type: A string indicating the arc type.
     input_token_type: A string indicating how the input strings are to be
         encoded as arc labels---one of: utf8" (encodes strings as a UTF-8
@@ -945,56 +994,84 @@ def string_map(*pairs, arc_type=b"standard", input_token_type=b"byte",
 
   Raises:
     FstArgError: Mappings must be of length 1 or 2.
+    FstArgError: String map compilation failed.
   """
+  cdef TokenType itype
+  cdef TokenType otype
+  cdef SymbolTable_ptr isyms = NULL
+  cdef SymbolTable_ptr osyms = NULL
+  try:
+    itype = _get_token_type(tostring(input_token_type))
+  except FstArgError:
+    if isinstance(input_token_type, pywrapfst._SymbolTable):
+      isyms = (<SymbolTable_ptr> (<_SymbolTable> input_token_type)._table)
+      itype = SYMBOL
+  try:
+    otype = _get_token_type(tostring(output_token_type))
+  except FstArgError:
+    if isinstance(output_token_type, pywrapfst._SymbolTable):
+      osyms = (<SymbolTable_ptr> (<_SymbolTable> output_token_type)._table)
+      otype = SYMBOL
   cdef Fst result = Fst(arc_type)
-  cdef Fst tfst
+  cdef vector[StringPair] *new_pairs = new vector[StringPair]()
+  if hasattr(pairs, "iteritems"):
+    pairs = pairs.iteritems()
+  elif hasattr(pairs, "items"):
+    pairs = pairs.items()
   for pair in pairs:
-    if (not 0 < len(pair) <= 2):
-      raise FstArgError("Mappings must be of length 1 or 2")
-    try:
-      (p0, p1) = pair
-    except ValueError:
-      p1 = p0 = pair[0]
-    tfst = transducer(p0, p1, arc_type=result.arc_type,
-                      input_token_type=input_token_type,
-                      output_token_type=output_token_type)
-    result.union(tfst)
+    if hasattr(pair, "__iter__"):
+      if len(pair) == 2:
+        new_pairs.push_back(StringPair(tostring(pair[0]), tostring(pair[1])))
+      elif len(pair) == 1:
+        string = tostring(pair[0])
+        new_pairs.push_back(StringPair(string, string))
+      else:
+        raise FstArgError("Mappings must be of length 1 or 2")
+    else:
+      string = tostring(pair)
+      new_pairs.push_back(StringPair(string, string))
+  cdef bool success = StringMap(deref(new_pairs), itype, otype, result._mfst,
+                                isyms, osyms)
+  del new_pairs
+  if not success:
+    raise FstArgError("String map compilation failed")
   return result
 
 
 # Decorator for one-argument constructive FST operations.
 
 
-def _1arg(fnc):
+def _1arg_patch(fnc):
   @functools.wraps(fnc)
   def patch(arg, *args, **kwargs):
-    return _init_Fst_from_MutableFst(fnc(_compile_Fst(arg), *args, **kwargs))
+    cdef Fst fst = _compile_or_copy_Fst(arg)
+    return _init_Fst_from_MutableFst(fnc(fst, *args, **kwargs))
   return patch
 
 
-arcmap = _1arg(pywrapfst.arcmap)
-determinize = _1arg(pywrapfst.determinize)
-disambiguate = _1arg(pywrapfst.disambiguate)
-epsnormalize = _1arg(pywrapfst.epsnormalize)
-prune = _1arg(pywrapfst.prune)
-push = _1arg(pywrapfst.push)
-randgen = _1arg(pywrapfst.randgen)
-reverse = _1arg(pywrapfst.reverse)
-rmepsilon = _1arg(pywrapfst.rmepsilon)
-shortestpath = _1arg(pywrapfst.shortestpath)
-statemap = _1arg(pywrapfst.statemap)
-synchronize = _1arg(pywrapfst.synchronize)
+arcmap = _1arg_patch(pywrapfst.arcmap)
+determinize = _1arg_patch(pywrapfst.determinize)
+disambiguate = _1arg_patch(pywrapfst.disambiguate)
+epsnormalize = _1arg_patch(pywrapfst.epsnormalize)
+prune = _1arg_patch(pywrapfst.prune)
+push = _1arg_patch(pywrapfst.push)
+randgen = _1arg_patch(pywrapfst.randgen)
+reverse = _1arg_patch(pywrapfst.reverse)
+rmepsilon = _1arg_patch(pywrapfst.rmepsilon)
+shortestpath = _1arg_patch(pywrapfst.shortestpath)
+statemap = _1arg_patch(pywrapfst.statemap)
+synchronize = _1arg_patch(pywrapfst.synchronize)
 
 
-
-def _shortestdistance(fnc):
+def _shortestdistance_patch(fnc):
   @functools.wraps(fnc)
   def patch(arg, *args, **kwargs):
-    return fnc(_compile_Fst(arg), *args, **kwargs)
+    cdef Fst fst = _compile_or_copy_Fst(arg)
+    return fnc(fst, *args, **kwargs)
   return patch
 
 
-shortestdistance = _shortestdistance(pywrapfst.shortestdistance)
+shortestdistance = _shortestdistance_patch(pywrapfst.shortestdistance)
 
 
 # Two-argument constructive FST operations. If just one of the two FST
@@ -1002,11 +1079,58 @@ shortestdistance = _shortestdistance(pywrapfst.shortestdistance)
 # determine the arc type of the not-yet-compiled argument.
 
 
-def _difference(fnc):
+def _compose_patch(fnc):
   @functools.wraps(fnc)
   def patch(arg1, arg2, *args, **kwargs):
-    cdef Fst lhs = _compile_Fst(arg1)
-    cdef Fst rhs = _compile_Fst(arg2)
+    cdef Fst lhs = _compile_or_copy_Fst(arg1)
+    cdef Fst rhs = _compile_or_copy_Fst(arg2, arc_type=lhs.arc_type)
+    if not MergeSymbols(lhs._mfst, rhs._mfst,
+                        MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
+      raise FstSymbolTableMergeError(
+           "Unable to resolve symbol table conflict without relabeling")
+    lhs.arcsort(sort_type="olabel")
+    rhs.arcsort(sort_type="ilabel")
+    lhs = _init_Fst_from_MutableFst(fnc(lhs, rhs, *args, **kwargs))
+    if not lhs.num_states:
+      logging.warning("Composed FST has no connected states")
+    return lhs
+  return patch
+
+
+compose = _compose_patch(pywrapfst.compose)
+
+
+def _difference_patch(fnc):
+  @functools.wraps(fnc)
+  def patch(arg1, arg2, *args, **kwargs):
+    cdef Fst lhs = _compile_or_copy_Fst(arg1)
+    cdef Fst rhs = _compile_or_copy_Fst(arg2, arc_type=lhs.arc_type)
+    if not MergeSymbols(lhs._mfst, rhs._mfst,
+                        MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
+      raise FstSymbolTableMergeError(
+          "Unable to resolve symbol table conflict without relabeling")
+    if not MergeSymbols(lhs._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
+      raise FstSymbolTableMergeError(
+          "Unable to resolve symbol table conflict without relabeling")
+    # Following Thrax, we do what we can to make rhs epsilon-free and
+    # deterministic.
+    rhs.optimize(True)
+    return _init_Fst_from_MutableFst(fnc(lhs, rhs, *args, **kwargs))
+  return patch
+
+
+difference = _difference_patch(pywrapfst.difference)
+
+
+def _intersect_patch(fnc):
+  @functools.wraps(fnc)
+  def patch(arg1, arg2, *args, **kwargs):
+    cdef Fst lhs = _compile_or_copy_Fst(arg1)
+    cdef Fst rhs = _compile_or_copy_Fst(arg2, arc_type=lhs.arc_type)
+    if not MergeSymbols(lhs._mfst, rhs._mfst,
+                        MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
+      raise FstSymbolTableMergeError(
+          "Unable to resolve symbol table conflict without relabeling")
     if not MergeSymbols(lhs._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
@@ -1014,49 +1138,33 @@ def _difference(fnc):
   return patch
 
 
-difference = _difference(pywrapfst.difference)
-
-
-def _intersect(fnc):
-  @functools.wraps(fnc)
-  def patch(arg1, arg2, *args, **kwargs):
-    cdef Fst lhs = _compile_Fst(arg1)
-    cdef Fst rhs = _compile_Fst(arg2)
-    if not MergeSymbols(lhs._mfst, rhs._mfst,
-                        MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
-      raise FstSymbolTableMergeError(
-          "Unable to resolve symbol table conflict without relabeling")
-    return _init_Fst_from_MutableFst(fnc(lhs, rhs, *args, **kwargs))
-  return patch
-
-
-intersect = _intersect(pywrapfst.intersect)
+intersect = _intersect_patch(pywrapfst.intersect)
 
 
 # Simple comparison operations.
 
 
-def _comp(fnc):
+def _comp_patch(fnc):
   @functools.wraps(fnc)
   def patch(arg1, arg2, *args, **kwargs):
-    cdef Fst lhs = _compile_Fst(arg1)
-    cdef Fst rhs = _compile_Fst(arg2)
+    cdef Fst lhs = _compile_or_copy_Fst(arg1)
+    cdef Fst rhs = _compile_or_copy_Fst(arg2, arc_type=lhs.arc_type)
     return fnc(lhs, rhs, *args, **kwargs)
   return patch
 
 
-equal = _comp(pywrapfst.equal)
-isomorphic = _comp(pywrapfst.isomorphic)
+equal = _comp_patch(pywrapfst.equal)
+isomorphic = _comp_patch(pywrapfst.isomorphic)
 
 
 # Comparison operations that require compatible symbol tables.
 
 
-def _comp_merge(fnc):
+def _comp_merge_patch(fnc):
   @functools.wraps(fnc)
   def patch(arg1, arg2, *args, **kwargs):
-    cdef Fst lhs = _compile_Fst(arg1)
-    cdef Fst rhs = _compile_Fst(arg2)
+    cdef Fst lhs = _compile_or_copy_Fst(arg1)
+    cdef Fst rhs = _compile_or_copy_Fst(arg2, arc_type=lhs.arc_type)
     if not MergeSymbols(lhs._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
@@ -1064,62 +1172,8 @@ def _comp_merge(fnc):
   return patch
 
 
-equivalent = _comp_merge(pywrapfst.equivalent)
-randequivalent = _comp_merge(pywrapfst.randequivalent)
-
-
-# Speciality constructive varargs FST operations.
-
-
-def compose(*args, **kwargs):
-  """
-  compose(*args, cf="auto", connect=True)
-
-  Constructively composes two or more FSTs.
-
-  This operation computes the composition of two or more FSTs. If A transduces
-  string x to y with weight a and B transduces y to z with weight b, then their
-  composition transduces string x to z with weight a \otimes b. The output
-  labels of the first transducer or the input labels of the second transducer
-  must be sorted (or otherwise support appropriate matchers).
-
-  Args:
-    *args: Two or more input FSTs.
-    cf: A string matching a known composition filter; one of: "alt_sequence",
-        "auto", "match", "null", "sequence", "trivial".
-    connect: Should output be trimmed?
-
-  Returns:
-    A composed FST.
-
-  Raises:
-    FstArgError: Input FSTs must have the same arc type.
-    FstArgError: Expected at least 2 positional arguments.
-    FstSymbolTableMergeError: Unable to resolve symbol table conflict
-         without relabeling.
-  """
-  # TODO(kbg): Heuristically optimize composition order somehow; it currently
-  # just does left-associative composition.
-  # TODO(kbg): Heuristically optimize arcsorting somehow; it currently sorts
-  # the output labels of the LHS and the input labels of the RHS.
-  (first, *rest) = args
-  if len(rest) < 1:
-    raise FstArgError("Expected at least 2 positional arguments "
-                         "({} given)".format(len(rest) + 1))
-  cdef Fst lhs = _compile_Fst(first)
-  cdef Fst rhs
-  for arg in rest:
-    rhs = _compile_Fst(arg, arc_type=lhs.arc_type)
-    lhs.arcsort(sort_type="olabel")
-    rhs.arcsort(sort_type="ilabel")
-    if not MergeSymbols(lhs._mfst, rhs._mfst,
-                        MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
-      raise FstSymbolTableMergeError(
-          "Unable to resolve symbol table conflict without relabeling")
-    lhs = _init_Fst_from_MutableFst(pywrapfst.compose(lhs, rhs, **kwargs))
-    if kwargs.get("connect", True) and not lhs.num_states:
-      logging.warning("Composed FST has no connected states")
-  return lhs
+equivalent = _comp_merge_patch(pywrapfst.equivalent)
+randequivalent = _comp_merge_patch(pywrapfst.randequivalent)
 
 
 def replace(root, *, call_arc_labeling=b"neither",
@@ -1169,13 +1223,13 @@ def replace(root, *, call_arc_labeling=b"neither",
 
   See also: `pdt_replace`.
   """
-  cdef Fst root_fst = _compile_Fst(root)
+  cdef Fst root_fst = _compile_or_copy_Fst(root)
   cdef string arc_type = root_fst.arc_type
   cdef vector[StringFstClassPair] pairs
   # This has the pleasant effect of preventing Python from garbage-collecting
   # these FSTs until we're ready.
   # TODO(kbg): Is there a better way?
-  replacement_set = [(tostring(nt), _compile_Fst(rep, arc_type)) for (nt, rep)
+  replacement_set = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type)) for (nt, rep)
                      in replacements.iteritems()]
   cdef string nonterm
   cdef Fst replacement
@@ -1214,7 +1268,7 @@ def union(*args):
   if len(args) < 1:
     raise FstArgError("Expected at least 2 positional arguments "
                          "({} given)".format(len(rest) + 1))
-  cdef Fst lhs = _compile_Fst(first)
+  cdef Fst lhs = _compile_or_copy_Fst(first)
   for rhs in rest:
     lhs.union(rhs)
   return lhs
@@ -1352,8 +1406,8 @@ def pdt_compose(ifst1, ifst2, PdtParentheses parens, cf=b"paren",
     FstSymbolTableMergeError: Unable to resolve symbol table conflict
         without relabeling.
   """
-  cdef Fst lhs = _compile_Fst(ifst1)
-  cdef Fst rhs = _compile_Fst(ifst2, lhs.arc_type)
+  cdef Fst lhs = _compile_or_copy_Fst(ifst1)
+  cdef Fst rhs = _compile_or_copy_Fst(ifst2, lhs.arc_type)
   lhs.arcsort(sort_type="olabel")
   rhs.arcsort(sort_type="ilabel")
   if not MergeSymbols(lhs._mfst, rhs._mfst,
@@ -1408,7 +1462,7 @@ def pdt_expand(ipdt, PdtParentheses parens, bool connect=True,
   Raises:
     FstOpError: Operation failed.
   """
-  cdef Fst pdt = _compile_Fst(ipdt)
+  cdef Fst pdt = _compile_or_copy_Fst(ipdt)
   cdef Fst result = Fst(pdt.arc_type)
   cdef WeightClass wc = _get_WeightClass_or_Zero(result.weight_type, weight)
   cdef PdtExpandOptions *opts = new PdtExpandOptions(connect,
@@ -1456,13 +1510,13 @@ def pdt_replace(root, pdt_parser_type=b"left", **replacements):
 
   See also: `replace`.
   """
-  cdef Fst root_fst = _compile_Fst(root)
+  cdef Fst root_fst = _compile_or_copy_Fst(root)
   cdef string arc_type = root_fst.arc_type
   cdef vector[StringFstClassPair] pairs
   # This has the pleasant effect of preventing Python from garbage-collecting
   # these FSTs until we're ready.
   # TODO(kbg): Is there a better way?
-  replacement_set = [(tostring(nt), _compile_Fst(rep, arc_type)) for (nt, rep)
+  replacement_set = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type)) for (nt, rep)
                      in replacements.iteritems()]
   cdef string nonterm
   cdef Fst replacement
@@ -1494,7 +1548,7 @@ def pdt_reverse(ipdt, PdtParentheses parens):
   Returns:
     The FST component of a PDT resulting from reversing the input PDT.
   """
-  cdef Fst pdt = _compile_Fst(ipdt)
+  cdef Fst pdt = _compile_or_copy_Fst(ipdt)
   cdef Fst result = Fst(pdt.arc_type)
   PdtReverse(deref(pdt._fst), parens._parens, result._mfst)
   result._check_pynini_op_error()
@@ -1527,7 +1581,7 @@ def pdt_shortestpath(ipdt, PdtParentheses parens, qt=b"fifo",
   Raises:
     FstOpError: Operation failed.
   """
-  cdef Fst pdt = _compile_Fst(ipdt)
+  cdef Fst pdt = _compile_or_copy_Fst(ipdt)
   cdef Fst result = Fst(pdt.arc_type)
   cdef PdtShortestPathOptions *opts = new PdtShortestPathOptions(
         _get_queue_type(tostring(qt)), keep_parentheses, path_gc)
@@ -1681,8 +1735,8 @@ cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens, cf=b"paren",
 
   See also: `compose`.
   """
-  cdef Fst lhs = _compile_Fst(ifst1)
-  cdef Fst rhs = _compile_Fst(ifst2, lhs.arc_type)
+  cdef Fst lhs = _compile_or_copy_Fst(ifst1)
+  cdef Fst rhs = _compile_or_copy_Fst(ifst2, lhs.arc_type)
   lhs.arcsort(sort_type="olabel")
   rhs.arcsort(sort_type="ilabel")
   if not MergeSymbols(lhs._mfst, rhs._mfst,
@@ -1736,7 +1790,7 @@ def mpdt_expand(impdt, MPdtParentheses parens, bool connect=True,
   Raises:
     FstOpError: Operation failed.
   """
-  cdef Fst mpdt = _compile_Fst(impdt)
+  cdef Fst mpdt = _compile_or_copy_Fst(impdt)
   cdef Fst result = Fst(mpdt.arc_type)
   cdef MPdtExpandOptions *opts = new MPdtExpandOptions(connect,
                                                        keep_parentheses)
@@ -1766,7 +1820,7 @@ def mpdt_reverse(impdt, MPdtParentheses parens):
   Returns:
     A (Fst, MPdtParentheses) pair specifying the reversed MPDT.
   """
-  cdef Fst mpdt = _compile_Fst(impdt)
+  cdef Fst mpdt = _compile_or_copy_Fst(impdt)
   cdef Fst result_fst = Fst(mpdt.arc_type)
   cdef MPdtParentheses result_parens = parens.copy()
   MPdtReverse(deref(mpdt._fst), result_parens._parens,
@@ -1824,9 +1878,9 @@ cdef class StringPaths(object):
     if tt == SYMBOL:
       # Makes reference-counted copies of the symbol tables.
       self._paths = new StringPathsClass(deref(self._fst), tt,
-          (<SymbolTable *> NULL) if isymbols is None else
+          (<SymbolTable_ptr> NULL) if isymbols is None else
               isymbols._table.Copy(),
-          (<SymbolTable *> NULL) if osymbols is None else
+          (<SymbolTable_ptr> NULL) if osymbols is None else
               osymbols._table.Copy())
     else:
       self._paths = new StringPathsClass(deref(self._fst), tt, NULL, NULL)
@@ -1847,7 +1901,7 @@ cdef class StringPaths(object):
       raise StopIteration
     cdef string istring = self.istring()
     cdef string ostring = self.ostring()
-    cdef Weight weight = self.weight()
+    cdef _Weight weight = self.weight()
     self.next()
     return (istring, ostring, weight)
 
@@ -1926,7 +1980,7 @@ cdef class StringPaths(object):
     """
     return self._paths.OString()
 
-  cpdef Weight weight(self):
+  cpdef _Weight weight(self):
     """
     weight(self)
 
@@ -1938,7 +1992,7 @@ cdef class StringPaths(object):
     Returns:
       The path's Weight.
     """
-    cdef Weight weight = Weight.__new__(Weight)
+    cdef _Weight weight = _Weight.__new__(_Weight)
     weight._weight = new WeightClass(self._paths.Weight())
     return weight
 
@@ -2217,6 +2271,7 @@ from pywrapfst import ArcIterator
 from pywrapfst import EncodeMapper
 from pywrapfst import MutableArcIterator
 from pywrapfst import StateIterator
+from pywrapfst import SymbolTable
 from pywrapfst import SymbolTableIterator
 from pywrapfst import Weight
 
@@ -2300,46 +2355,42 @@ from pywrapfst import NEG_TRINARY_PROPERTIES
 from pywrapfst import FST_PROPERTIES
 
 
-# The following block executes code that, due to syntactic limitations of
-# Cython, can't be run at compile time. Instead, it is run at module import
-# time.
+# Single-char aliases for the biggest three functions.
 
 
-exec("""
-# Makes module-level variants of destructive operations which work
-# constructively (copying their input and returning the mutated result).
+a = acceptor
+t = transducer
+u = union
 
 
-def _copy(fnc):
+# The following wrapper converts destructive FST operations (defined as
+# instance methods on the Fst class) to module-level functions which make a
+# copy of the input FST and then apply the destructive operation.
+
+
+def _copy_patch(fnc):
   # The junk in the `functools.wraps` decorator is due to a long-standing bug
   # in Python 2.7 (https://bugs.python.org/issue3445).
   @functools.wraps(fnc, ("__name__", "__doc__"))
   def patch(arg1, *args, **kwargs):
-    result = _compile_Fst(arg1)
+    cdef Fst result = _compile_or_copy_Fst(arg1)
     fnc(result, *args, **kwargs)
     return result
   return patch
 
 
-arcsort = _copy(Fst.arcsort)
-closure = _copy(Fst.closure)
-concat = _copy(Fst.concat)
-connect = _copy(Fst.connect)
-decode = _copy(Fst.decode)
-encode = _copy(Fst.encode)
-invert = _copy(Fst.invert)
-minimize = _copy(Fst.minimize)
-optimize = _copy(Fst.optimize)
-project = _copy(Fst.project)
-relabel_pairs = _copy(Fst.relabel_pairs)
-relabel_tables = _copy(Fst.relabel_tables)
-reweight = _copy(Fst.reweight)
-topsort = _copy(Fst.topsort)
-
-
-# Very late imports that conflict with cimports.
-
-SymbolTable = pywrapfst.SymbolTable
-Weight = pywrapfst.Weight
-""")
+arcsort = _copy_patch(Fst.arcsort)
+closure = _copy_patch(Fst.closure)
+concat = _copy_patch(Fst.concat)
+connect = _copy_patch(Fst.connect)
+decode = _copy_patch(Fst.decode)
+encode = _copy_patch(Fst.encode)
+invert = _copy_patch(Fst.invert)
+minimize = _copy_patch(Fst.minimize)
+optimize = _copy_patch(Fst.optimize)
+project = _copy_patch(Fst.project)
+relabel_pairs = _copy_patch(Fst.relabel_pairs)
+relabel_tables = _copy_patch(Fst.relabel_tables)
+reweight = _copy_patch(Fst.reweight)
+topsort = _copy_patch(Fst.topsort)
 

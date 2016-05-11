@@ -673,7 +673,7 @@ cdef extern from "<fst/extensions/far/far-class.h>" \
 
     bool Find(const string &)
 
-    const FstClass &GetFstClass()
+    const FstClass *GetFstClass()
 
     const string &GetKey()
 

@@ -5,6 +5,7 @@ MANIFEST.in
 NEWS
 README.rst
 pynini_test.py
+setup.cfg
 setup.py
 pynini.egg-info/PKG-INFO
 pynini.egg-info/SOURCES.txt
@@ -17,9 +18,9 @@ src/crossproductscript.cc
 src/crossproductscript.h
 src/fst.pxd
 src/fst_util.pxd
+src/gtl.cc
+src/gtl.h
 src/ios.pxd
-src/join.cc
-src/join.h
 src/merge.cc
 src/merge.h
 src/mergescript.cc
@@ -30,6 +31,7 @@ src/optimizescript.h
 src/paths.h
 src/pathsscript.cc
 src/pathsscript.h
+src/prefix_tree.h
 src/pynini.cc
 src/pynini.pyx
 src/pynini_cdrewrite.cc
@@ -46,9 +48,14 @@ src/pywrapfst.pyx
 src/repeat.h
 src/repeatscript.cc
 src/repeatscript.h
-src/split.cc
-src/split.h
 src/stringcompile.cc
 src/stringcompile.h
 src/stringcompilescript.cc
 src/stringcompilescript.h
+src/stringfile.h
+src/stringfilescript.cc
+src/stringfilescript.h
+src/stringmap.h
+src/stringmapscript.cc
+src/stringmapscript.h
+src/tokentype.h

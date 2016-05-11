@@ -27,8 +27,8 @@
 //   California. Santa Cruz, California, 1996.
 //   http://acl.ldc.upenn.edu/P/P96/P96-1031.pdf
 
-#ifndef CDREWRITE_H_
-#define CDREWRITE_H_
+#ifndef PYNINI_CDREWRITE_H_
+#define PYNINI_CDREWRITE_H_
 
 #include <set>
 #include <utility>
@@ -775,5 +775,5 @@ void CDRewriteCompile(const Fst<Arc> &tau,
 
 }  // namespace fst
 
-#endif  // CD_REWRITE_H_
+#endif  // PYNINI_CD_REWRITE_H_
 

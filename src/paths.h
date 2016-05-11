@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef PATHS_H_
-#define PATHS_H_
+#ifndef PYNINI_PATHS_H_
+#define PYNINI_PATHS_H_
 
 // An iterative definition of all paths of an acyclic automaton.
 //
@@ -33,7 +33,7 @@ using std::string;
 
 #include <fst/compat.h>
 #include <fst/fstlib.h>
-#include "join.h"
+#include "gtl.h"
 
 namespace fst {
 
@@ -58,7 +58,7 @@ class PathIterator {
 
   ArcWeight Weight() const {
     ArcWeight weight = ArcWeight::One();
-    for (const auto w : path_weights_)
+    for (const auto& w : path_weights_)
       weight = Times(weight, w);
     return weight;
   }
@@ -288,5 +288,5 @@ string StringPaths<Arc>::String(bool output) {
 
 }  // namespace fst
 
-#endif  // PATHS_H_
+#endif  // PYNINI_PATHS_H_
 

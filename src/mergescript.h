@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef MERGESCRIPT_H_
-#define MERGESCRIPT_H_
+#ifndef PYNINI_MERGESCRIPT_H_
+#define PYNINI_MERGESCRIPT_H_
 
 #include <fst/script/arg-packs.h>
 #include <fst/script/fst-class.h>
@@ -45,5 +45,5 @@ bool MergeSymbols(MutableFstClass *fst1, MutableFstClass *fst2,
 }  // namespace script
 }  // namespace fst
 
-#endif  // MERGESCRIPT_H_
+#endif  // PYNINI_MERGESCRIPT_H_
 

@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef STRINGCOMPILE_H_
-#define STRINGCOMPILE_H_
+#ifndef PYNINI_STRINGCOMPILE_H_
+#define PYNINI_STRINGCOMPILE_H_
 
 #include <cstdlib>
 
@@ -29,7 +29,8 @@
 #include <re2/stringpiece.h>
 #include <re2/re2.h>
 
-#include "split.h"
+#include "gtl.h"
+#include "tokentype.h"
 
 using re2::RE2;
 using re2::StringPiece;
@@ -161,6 +162,8 @@ class SymbolTableFactory {
 const SymbolTableFactory byte_table_factory(kByteSymbolTableName);
 const SymbolTableFactory utf8_table_factory(kUTF8SymbolTableName);
 
+SymbolTable *GetSymbolTable(TokenType ttype, const SymbolTable *syms);
+
 // Adds an integer to the symbol table.
 void AddIntegerToSymbolTable(int64 ch, SymbolTable *syms);
 
@@ -202,7 +205,8 @@ bool ProcessBracketedSpan(string *str,
   using Label = typename Arc::Label;
   RemoveBracketEscapes(str);
   // Splits string on the token separator.
-  std::vector<string> tokens = strings::Split(*str, FLAGS_token_separator[0]);
+  std::vector<string> tokens = strings::Split(*str,
+                                              FLAGS_token_separator.c_str());
   // The span may not be empty, so that is not considered here.
   if (tokens.size() == 1) {
     // A bracketed span that does not contain the token-separator is processed
@@ -298,6 +302,29 @@ bool BracketedUTF8StringToLabels(const string &str,
   return true;
 }
 
+// Creates a vector of labels from a bracketed string using a symbol table.
+template <class A>
+bool SymbolStringToLabels(const string &str,
+                          const SymbolTable &syms,
+                          std::vector<typename A::Label> *labels) {
+  using Arc = A;
+  using Label = typename Arc::Label;
+  std::vector<string> tokens = strings::Split(str,
+                                              FLAGS_token_separator.c_str());
+  labels->reserve(tokens.size());
+  for (const auto &str : tokens) {
+    Label label = static_cast<Label>(syms.Find(str));
+    if (label == kNoLabel) {
+      LOG(ERROR) << "SymbolStringToLabels: Symbol \"" << str << "\" "
+                 << "is not mapped to any integer label in symbol table "
+                 << syms.Name();
+      return false;
+    }
+    labels->push_back(label);
+  }
+  return true;
+}
+
 // Assigns symbol table to FST.
 template <class A>
 inline void AssignSymbolsToFst(const SymbolTable &syms, MutableFst<A> *fst) {
@@ -352,20 +379,11 @@ bool CompileUTF8String(const string &str, const typename A::Weight &weight,
 template <class A>
 bool CompileSymbolString(const string &str, const typename A::Weight &weight,
                          const SymbolTable &syms, MutableFst<A> *fst) {
-  using Label = typename A::Label;
-  std::vector<string> tokens = strings::Split(str, FLAGS_token_separator[0]);
+  using Arc = A;
+  using Label = typename Arc::Label;
   std::vector<Label> labels;
-  labels.reserve(tokens.size());
-  for (const auto &str : tokens) {
-    Label label = static_cast<Label>(syms.Find(str));
-    if (label == kNoLabel) {
-      LOG(ERROR) << "CompileSymbolString: Symbol \"" << str << "\" "
-                 << "is not mapped to any integer label in symbol table "
-                 << syms.Name();
-      return false;
-    }
-    labels.push_back(label);
-  }
+  if (!internal::SymbolStringToLabels<A>(str, syms, &labels))
+    return false;
   internal::CompileStringFromLabels<A>(labels, weight, fst);
   internal::AssignSymbolsToFst(syms, fst);
   return true;
@@ -405,4 +423,4 @@ bool CompileBracketedUTF8String(const string &str,
 
 }  // namespace fst
 
-#endif  // STRINGCOMPILE_H_
+#endif  // PYNINI_STRINGCOMPILE_H_

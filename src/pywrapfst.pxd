@@ -238,30 +238,29 @@ cdef class _MutableFst(_Fst):
 
   cdef void _check_mutating_imethod(self) except *
 
-  cpdef void add_arc(self, int64 state, int64 ilabel,
-      int64 olabel, weight, int64 nextstate) except *
+  cdef void _add_arc(self, int64 state, Arc arc) except *
 
   cpdef int64 add_state(self) except *
 
-  cpdef void arcsort(self, sort_type=?) except *
+  cdef void _arcsort(self, sort_type=?) except *
 
   cdef void _closure(self, bool closure_plus=?) except *
 
   cdef void _concat(self, _Fst ifst) except *
 
-  cpdef void connect(self) except *
+  cdef void _connect(self) except *
 
-  cpdef void decode(self, EncodeMapper) except *
+  cdef void _decode(self, EncodeMapper) except *
 
-  cpdef void delete_arcs(self, int64 state, size_t n=?) except *
+  cdef void _delete_arcs(self, int64 state, size_t n=?) except *
 
-  cpdef void delete_states(self, states=?) except *
+  cdef void _delete_states(self, states=?) except *
 
-  cpdef void encode(self, EncodeMapper) except *
+  cdef void _encode(self, EncodeMapper) except *
 
-  cpdef void invert(self) except *
+  cdef void _invert(self) except *
 
-  cpdef void minimize(self, float delta=?) except *
+  cdef void _minimize(self, float delta=?) except *
 
   cpdef MutableArcIterator mutable_arcs(self, int64 state)
 
@@ -271,48 +270,40 @@ cdef class _MutableFst(_Fst):
 
   cdef int64 _num_states(self)
 
-  cpdef void project(self, bool project_output=?) except *
+  cdef void _project(self, bool project_output=?) except *
 
-  cpdef void prune(self, float delta=?, int64 nstate=?, weight=?) except *
+  cdef void _prune(self, float delta=?, int64 nstate=?, weight=?) except *
 
-  cpdef void push(self, float delta=?, bool remove_total_weight=?,
+  cdef void _push(self, float delta=?, bool remove_total_weight=?,
                   bool to_final=?) except *
 
-  cdef void _relabel_pairs(self, vector[fst.LabelPair] *ipairs,
-                           vector[fst.LabelPair] *opairs) except *
+  cdef void _relabel_pairs(self, ipairs=?, opairs=?) except *
 
-  cpdef void relabel_pairs(self, ipairs=?, opairs=?) except *
-
-  cpdef void relabel_tables(self, _SymbolTable old_isymbols=?,
+  cdef void _relabel_tables(self, _SymbolTable old_isymbols=?,
       _SymbolTable new_isymbols=?, bool attach_new_isymbols=?,
       _SymbolTable old_osymbols=?, _SymbolTable new_osymbols=?,
       bool attach_new_osymbols=?) except *
 
-  cpdef void reserve_arcs(self, int64 state, size_t n) except *
+  cdef void _reserve_arcs(self, int64 state, size_t n) except *
 
-  cpdef void reserve_states(self, int64 n) except *
+  cdef void _reserve_states(self, int64 n) except *
 
-  cdef void _reweight(self, vector[fst.WeightClass] *potentials,
-                      bool to_final=?) except *
+  cdef void _reweight(self, potentials, bool to_final=?) except *
 
-  cpdef void reweight(self, potentials, bool to_final=?) except *
-
-  cpdef void rmepsilon(self, bool connect=?, float delta=?, int64 nstate=?,
+  cdef void _rmepsilon(self, bool connect=?, float delta=?, int64 nstate=?,
                        weight=?) except *
 
-  cpdef void set_final(self, int64 state, weight=?) except *
+  cdef void _set_final(self, int64 state, weight=?) except *
 
-  cpdef void set_properties(self, uint64 props, uint64 mask) except *
+  cdef void _set_properties(self, uint64 props, uint64 mask) except *
 
-  cpdef void set_start(self, int64 state) except *
+  cdef void _set_start(self, int64 state) except *
 
-  cpdef void set_input_symbols(self, _SymbolTable syms) except *
+  cdef void _set_input_symbols(self, _SymbolTable syms) except *
 
-  cpdef void set_output_symbols(self, _SymbolTable syms) except *
+  cdef void _set_output_symbols(self, _SymbolTable syms) except *
 
-  cpdef void topsort(self) except *
-
-  # Unfortunate clash with the C keyword.
+  cdef void _topsort(self) except *
 
   cdef void _union(self, _Fst ifst) except *
 
@@ -335,12 +326,23 @@ cdef _Fst _read_Fst(filename, fst_type=?)
 
 ctypedef fst.ArcClass * ArcClass_ptr
 
+
+cdef class Arc(object):
+
+  cdef ArcClass_ptr _arc
+
+  cpdef Arc copy(self)
+
+
+cdef Arc _init_Arc(const fst.ArcClass &arc)
+
+
 ctypedef fst.ArcIteratorClass * ArcIteratorClass_ptr
 ctypedef fst.MutableArcIteratorClass * MutableArcIteratorClass_ptr
 ctypedef fst.StateIteratorClass * StateIteratorClass_ptr
 
 
-cdef object _init_Arc(const fst.ArcClass &arc)
+
 
 
 cdef class ArcIterator(object):
@@ -384,8 +386,7 @@ cdef class MutableArcIterator(object):
 
   cpdef void set_flags(self, uint32 flags, uint32 mask)
 
-  cpdef void set_value(self, int64 ilabel, int64 olabel, weight,
-                       int64 ostate) except *
+  cpdef void set_value(self, Arc arc)
 
   cpdef object value(self)
 
@@ -463,7 +464,7 @@ cpdef _MutableFst rmepsilon(_Fst ifst, bool connect=?, float delta=?,
 
 cdef vector[fst.WeightClass] *_shortestdistance(_Fst ifst, float delta=?,
                                                 int64 nstate=?, qt=?,
-                                                bool reverse=?)
+                                                bool reverse=?) except *
 
 cpdef _MutableFst shortestpath(_Fst ifst, float delta=?, int32 nshortest=?,
                                int64 nstate=?, qt=?, bool unique=?,

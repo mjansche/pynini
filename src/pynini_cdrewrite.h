@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef PYNINI_CDREWRITE_H_
-#define PYNINI_CDREWRITE_H_
+#ifndef PYNINI_PYNINI_CDREWRITE_H_
+#define PYNINI_PYNINI_CDREWRITE_H_
 
 // This file contains two main utility functions which extend context-dependent
 // rewrite rule compilation to better support symbol tables and boundary
@@ -232,5 +232,5 @@ void PyniniCDRewrite(const FstClass &tau, const FstClass &lambda,
 }  // namespace script
 }  // namespace fst
 
-#endif  // PYNINI_CDREWRITE_H_
+#endif  // PYNINI_PYNINI_CDREWRITE_H_
 

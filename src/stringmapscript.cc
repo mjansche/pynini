@@ -15,27 +15,24 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#include <fst/script/fst-class.h>
 #include <fst/script/script-impl.h>
-#include "crossproductscript.h"
+#include "stringmapscript.h"
 
 namespace fst {
 namespace script {
 
-void CrossProduct(const FstClass &ifst1, const FstClass &ifst2,
-                  MutableFstClass *ofst) {
-  if (!ArcTypesMatch(ifst1, ifst2, "CrossProduct") ||
-      !ArcTypesMatch(ifst2, *ofst, "CrossProduct")) {
-    ofst->SetProperties(kError, kError);
-    return;
-  }
-  CrossProductArgs args(ifst1, ifst2, ofst);
-  Apply<Operation<CrossProductArgs>>("CrossProduct", ofst->ArcType(), &args);
+bool StringMap(const std::vector<std::pair<string, string>> &pairs,
+               TokenType itype, TokenType otype, MutableFstClass *fst,
+               const SymbolTable *isyms, const SymbolTable *osyms) {
+  StringMapInnerArgs iargs(pairs, itype, otype, fst, isyms, osyms);
+  StringMapArgs args(iargs);
+  Apply<Operation<StringMapArgs>>("StringMap", fst->ArcType(), &args);
+  return args.retval;
 }
 
-REGISTER_FST_OPERATION(CrossProduct, StdArc, CrossProductArgs);
-REGISTER_FST_OPERATION(CrossProduct, LogArc, CrossProductArgs);
-REGISTER_FST_OPERATION(CrossProduct, Log64Arc, CrossProductArgs);
+REGISTER_FST_OPERATION(StringMap, StdArc, StringMapArgs);
+REGISTER_FST_OPERATION(StringMap, LogArc, StringMapArgs);
+REGISTER_FST_OPERATION(StringMap, Log64Arc, StringMapArgs);
 
 }  // namespace script
 }  // namespace fst

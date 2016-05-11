@@ -15,8 +15,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef REPEAT_H_
-#define REPEAT_H_
+#ifndef PYNINI_REPEAT_H_
+#define PYNINI_REPEAT_H_
 
 #include <memory>
 
@@ -87,5 +87,5 @@ void Repeat(MutableFst<Arc> *fst, int32 lower, int32 upper) {
 
 }  // namespace fst
 
-#endif  // REPEAT_H_
+#endif  // PYNINI_REPEAT_H_
 

@@ -17,6 +17,8 @@
 
 
 from libcpp cimport bool
+from libcpp.utility cimport pair
+from libcpp.vector cimport vector
 
 from basictypes cimport int32
 
@@ -33,8 +35,6 @@ cdef extern from "crossproductscript.h" \
 
   void CrossProduct(const FstClass &, const FstClass &, MutableFstClass *)
 
-  void OptimizeStringCrossProduct(MutableFstClass *)
-
 
 cdef extern from "optimizescript.h" \
     namespace "fst::script" nogil:
@@ -45,14 +45,20 @@ cdef extern from "optimizescript.h" \
 
   void OptimizeTransducer(MutableFstClass *, bool)
 
+  void OptimizeStringCrossProducts(MutableFstClass *)
 
-cdef extern from "pathsscript.h" \
-    namespace "fst::script" nogil:
+
+cdef extern from "tokentype.h" \
+    namespace "fst" nogil:
 
   enum TokenType:
     SYMBOL
     BYTE
     UTF8
+
+
+cdef extern from "pathsscript.h" \
+    namespace "fst::script" nogil:
 
   cdef cppclass StringPathsClass:
 
@@ -97,6 +103,23 @@ cdef extern from "stringcompilescript.h" \
 
   bool CompileBracketedUTF8String(const string &, const WeightClass &,
                                   MutableFstClass *)
+
+
+cdef extern from "stringfilescript.h" \
+    namespace "fst::script" nogil:
+
+  bool StringFile(const string &, TokenType, TokenType,
+                  MutableFstClass *, const SymbolTable *, const SymbolTable *)
+
+
+ctypedef pair[string, string] StringPair
+
+
+cdef extern from "stringmapscript.h" \
+    namespace "fst::script" nogil:
+
+  bool StringMap(const vector[StringPair] &, TokenType, TokenType,
+                 MutableFstClass *, const SymbolTable *, const SymbolTable *)
 
 
 cdef extern from "merge.h" namespace "fst":

@@ -15,24 +15,20 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef PATHSSCRIPT_H_
-#define PATHSSCRIPT_H_
+#ifndef PYNINI_PATHSSCRIPT_H_
+#define PYNINI_PATHSSCRIPT_H_
 
 #include <vector>
 
 #include <fst/script/arg-packs.h>
 #include <fst/script/fstscript.h>
 #include "paths.h"
+#include "tokentype.h"
 
 namespace fst {
 namespace script {
 
 // Helpers.
-
-// This is an untemplated copy of an internal type declaration of the template
-// class StringPrinter, and while that type doesn't depend on Arc, it's still
-// considered an incomplete type.
-enum TokenType { SYMBOL = 1, BYTE = 2, UTF8 = 3};
 
 template <class Arc>
 inline typename StringPrinter<Arc>::TokenType
@@ -126,5 +122,5 @@ void InitStringPathsClass(InitStringPathsClassArgs *args) {
 }  // namespace script
 }  // namespace fst
 
-#endif  // PATHSSCRIPT_H_
+#endif  // PYNINI_PATHSSCRIPT_H_
 

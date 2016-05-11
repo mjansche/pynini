@@ -44,7 +44,7 @@ transpiler). Minimally, you will want to regenerate ``pywrapfst.cc`` and
     cython -3 --cplus -o pywrapfst.cc pywrapfst.pyx
     cython -3 --cplus -o pynini.cc pynini.pyx
 
-and then (re)compile as described above.
+and then (re)compile as described above. There are still some warts related to the switch from byte to Unicode strings.
 
 License
 -------

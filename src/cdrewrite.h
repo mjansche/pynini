@@ -123,9 +123,8 @@ class CDRewriteRule {
  private:
   enum MarkerType { MARK = 1, CHECK = 2, CHECK_COMPLEMENT = 3};
 
-  void MakeMarker(MutableFst<StdArc> *fst,
-                  MarkerType type,
-                  const vector<pair<Label, Label> > &markers);
+  void MakeMarker(VectorFst<StdArc> *fst, const VectorFst<StdArc> &sigma,
+                  MarkerType type, const vector<pair<Label, Label> > &markers);
   void IgnoreMarkers(MutableFst<Arc> *fst,
                      const vector<pair<Label, Label> > &markers);
   void AddMarkersToSigma(MutableFst<Arc> *sigma,
@@ -169,8 +168,7 @@ class CDRewriteRule {
 // represented by fst, as specified in Mohri and Sproat (1996).
 template <class Arc>
 void CDRewriteRule<Arc>::MakeMarker(
-    MutableFst<StdArc> *fst,
-    MarkerType type,
+    VectorFst<StdArc> *fst, const VectorFst<StdArc> &sigma, MarkerType type,
     const vector<pair<Label, Label> > &markers) {
   typedef typename StdArc::StateId StateId;
   typedef typename StdArc::Weight Weight;
@@ -179,49 +177,71 @@ void CDRewriteRule<Arc>::MakeMarker(
     LOG(FATAL) << "Marker: input fst needs to be an acceptor";
 
   StateId num_states = fst->NumStates();
+  // When num_states == 0, *fst is really Complement(sigma) and we build the
+  // result upon sigma (== Complement(Complement(sigma))) directly in each case.
   switch (type) {
     case MARK:
       // Type 1 in Mohri and Sproat:
       // Insert (or delete) markers after each match.
-      for (StateId i = 0; i < num_states; ++i) {
-        if (fst->Final(i) == Weight::Zero()) {
-          fst->SetFinal(i, Weight::One());
-        } else {
-          StateId j = fst->AddState();
-          fst->SetFinal(j, fst->Final(i));
-          ArcIterator<Fst<StdArc> > arc_iter(*fst, i);
-          for (; !arc_iter.Done(); arc_iter.Next())
-            fst->AddArc(j, arc_iter.Value());
-          fst->SetFinal(i, Weight::Zero());
-          fst->DeleteArcs(i);
-          for (ssize_t k = 0; k < markers.size(); ++k)
-            fst->AddArc(i, StdArc(markers[k].first, markers[k].second,
-                                  Weight::One(), j));
+      if (num_states == 0) {
+        *fst = sigma;
+      } else {
+        for (StateId i = 0; i < num_states; ++i) {
+          if (fst->Final(i) == Weight::Zero()) {
+            fst->SetFinal(i, Weight::One());
+          } else {
+            StateId j = fst->AddState();
+            fst->SetFinal(j, fst->Final(i));
+            ArcIterator<Fst<StdArc> > arc_iter(*fst, i);
+            for (; !arc_iter.Done(); arc_iter.Next())
+              fst->AddArc(j, arc_iter.Value());
+            fst->SetFinal(i, Weight::Zero());
+            fst->DeleteArcs(i);
+            for (ssize_t k = 0; k < markers.size(); ++k)
+              fst->AddArc(i, StdArc(markers[k].first, markers[k].second,
+                                    Weight::One(), j));
+          }
         }
       }
       break;
     case CHECK:
       // Type 2 in Mohri and Sproat:
       // Check that each marker is preceded by a match.
-      for (StateId i = 0; i < num_states; ++i) {
-        if (fst->Final(i) == Weight::Zero()) {
-          fst->SetFinal(i, Weight::One());
-        } else {
-          for (ssize_t k = 0; k < markers.size(); ++k)
-            fst->AddArc(i, StdArc(markers[k].first, markers[k].second,
-                                  Weight::One(), i));
+      if (num_states == 0) {
+        *fst = sigma;
+      } else {
+        for (StateId i = 0; i < num_states; ++i) {
+          if (fst->Final(i) == Weight::Zero()) {
+            fst->SetFinal(i, Weight::One());
+          } else {
+            for (ssize_t k = 0; k < markers.size(); ++k)
+              fst->AddArc(i, StdArc(markers[k].first, markers[k].second,
+                                    Weight::One(), i));
+          }
         }
       }
       break;
     case CHECK_COMPLEMENT:
       // Type 3 in Mohri and Sproat:
       // Check that each marker is not preceded by a match.
-      for (StateId i = 0; i < num_states; ++i) {
-        if (fst->Final(i) == Weight::Zero()) {
-          fst->SetFinal(i, Weight::One());
-          for (ssize_t k = 0; k < markers.size(); ++k)
-            fst->AddArc(i, StdArc(markers[k].first, markers[k].second,
-                                  Weight::One(), i));
+      if (num_states == 0) {
+        *fst = sigma;
+        num_states = fst->NumStates();
+        for (StateId i = 0; i < num_states; ++i) {
+          if (fst->Final(i) != Weight::Zero()) {
+            for (ssize_t k = 0; k < markers.size(); ++k)
+              fst->AddArc(i, StdArc(markers[k].first, markers[k].second,
+                                    Weight::One(), i));
+          }
+        }
+      } else {
+        for (StateId i = 0; i < num_states; ++i) {
+          if (fst->Final(i) == Weight::Zero()) {
+            fst->SetFinal(i, Weight::One());
+            for (ssize_t k = 0; k < markers.size(); ++k)
+              fst->AddArc(i, StdArc(markers[k].first, markers[k].second,
+                                    Weight::One(), i));
+          }
         }
       }
       break;
@@ -334,7 +354,7 @@ void CDRewriteRule<Arc>::MakeFilter(const Fst<Arc> &beta,
   DeterminizeFst<StdArc> det(ufilter);
   Map(det, &ufilter, IdentityMapper<StdArc>());
   Minimize(&ufilter);
-  MakeMarker(&ufilter, type, markers);
+  MakeMarker(&ufilter, usigma, type, markers);
   if (reverse)
     Reverse(MapFst<StdArc, StdArc,
             IdentityMapper<StdArc> >(ufilter, IdentityMapper<StdArc>()),

@@ -1,11 +1,11 @@
 AUTHORS
+CHEATSHEET
 CONTRIBUTING
 LICENSE
 MANIFEST.in
 NEWS
 README.rst
 pynini_test.py
-setup.cfg
 setup.py
 pynini.egg-info/PKG-INFO
 pynini.egg-info/SOURCES.txt
@@ -21,6 +21,7 @@ src/fst_util.pxd
 src/gtl.cc
 src/gtl.h
 src/ios.pxd
+src/memory.pxd
 src/merge.cc
 src/merge.h
 src/mergescript.cc

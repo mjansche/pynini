@@ -20,6 +20,8 @@ from libc.time cimport time
 from libc.time cimport time_t
 
 from libcpp cimport bool
+from libcpp.memory cimport shared_ptr
+from libcpp.memory cimport unique_ptr
 from libcpp.utility cimport pair
 from libcpp.vector cimport vector
 
@@ -28,7 +30,6 @@ from basictypes cimport int64
 from basictypes cimport uint32
 from basictypes cimport uint64
 cimport fst as fst
-from ios cimport ofstream
 from ios cimport stringstream
 from libcpp.string cimport string
 
@@ -61,12 +62,10 @@ cdef fst.WeightClass _get_WeightClass_or_One(const string &weight_type,
 cdef fst.WeightClass _get_WeightClass_or_Zero(const string &weight_type,
                                               weight_string) except *
 
-ctypedef fst.WeightClass * WeightClass_ptr
-
 
 cdef class Weight(object):
 
-  cdef WeightClass_ptr _weight
+  cdef unique_ptr[fst.WeightClass] _weight
 
   cdef string _string(self)
 
@@ -82,15 +81,12 @@ cdef Weight _Weight_NoWeight(weight_type)
 
 # SymbolTable.
 
-
 ctypedef fst.SymbolTable * SymbolTable_ptr
 
 
 cdef class _SymbolTable(object):
 
-  cdef SymbolTable_ptr _table
-
-  cdef bool _owner
+  cdef fst.SymbolTable *_table
 
   cdef int64 _available_key(self)
 
@@ -111,12 +107,17 @@ cdef class _SymbolTable(object):
   cpdef void write_text(self, filename) except *
 
 
-cdef class _ConstSymbolTable(_SymbolTable):
+cdef class _EncodeMapperSymbolTable(_SymbolTable):
 
-  pass
+  cdef shared_ptr[fst.EncodeMapperClass] _encoder
 
 
-cdef class SymbolTable(_SymbolTable):
+cdef class _FstSymbolTable(_SymbolTable):
+
+  cdef shared_ptr[fst.FstClass] _fst
+
+
+cdef class _MutableSymbolTable(_SymbolTable):
 
   cpdef int64 add_symbol(self, symbol, int64 key=?)
 
@@ -125,18 +126,37 @@ cdef class SymbolTable(_SymbolTable):
   cpdef void set_name(self, new_name) except *
 
 
-cdef SymbolTable _init_SymbolTable(SymbolTable_ptr table, bool owner)
+cdef class _MutableFstSymbolTable(_MutableSymbolTable):
+
+  cdef shared_ptr[fst.MutableFstClass] _mfst
 
 
-cdef _ConstSymbolTable _init_ConstSymbolTable(SymbolTable_ptr table)
+cdef class SymbolTable(_MutableSymbolTable):
+
+  cdef unique_ptr[fst.SymbolTable] _smart_table
 
 
-ctypedef fst.SymbolTableIterator * SymbolTableIterator_ptr
+cdef _EncodeMapperSymbolTable _init_EncodeMapperSymbolTable(fst.SymbolTable *table,
+    shared_ptr[fst.EncodeMapperClass] encoder)
+
+
+cdef _FstSymbolTable _init_FstSymbolTable(fst.SymbolTable *table,
+                                          shared_ptr[fst.FstClass] ifst)
+
+
+cdef _MutableFstSymbolTable _init_MutableFstSymbolTable(fst.SymbolTable *table,
+    shared_ptr[fst.MutableFstClass] ifst)
+
+
+cdef SymbolTable _init_SymbolTable(fst.SymbolTable *table)
+
 
 
 cdef class SymbolTableIterator(object):
 
-  cdef SymbolTableIterator_ptr _siter
+  cdef shared_ptr[fst.SymbolTable] _table
+
+  cdef unique_ptr[fst.SymbolTableIterator] _siter
 
   cpdef bool done(self)
 
@@ -152,20 +172,17 @@ cdef class SymbolTableIterator(object):
 # EncodeMapper.
 
 
-ctypedef fst.EncodeMapperClass * EncodeMapperClass_ptr
-
-
 cdef class EncodeMapper(object):
 
-  cdef EncodeMapperClass_ptr _encoder
+  cdef shared_ptr[fst.EncodeMapperClass] _encoder
 
   cdef string _arc_type(self)
 
   cdef uint32 _flags(self)
 
-  cdef _ConstSymbolTable _input_symbols(self)
+  cdef _EncodeMapperSymbolTable _input_symbols(self)
 
-  cdef _ConstSymbolTable _output_symbols(self)
+  cdef _EncodeMapperSymbolTable _output_symbols(self)
 
   cpdef uint64 properties(self, uint64 mask)
 
@@ -186,7 +203,7 @@ ctypedef fst.VectorFstClass * VectorFstClass_ptr
 
 cdef class _Fst(object):
 
-  cdef FstClass_ptr _fst
+  cdef shared_ptr[fst.FstClass] _fst
 
   cdef string _arc_type(self)
 
@@ -205,7 +222,7 @@ cdef class _Fst(object):
 
   cdef string _fst_type(self)
 
-  cdef _ConstSymbolTable _input_symbols(self)
+  cdef _FstSymbolTable _input_symbols(self)
 
   cpdef size_t num_arcs(self, int64 state) except *
 
@@ -213,7 +230,7 @@ cdef class _Fst(object):
 
   cpdef size_t num_output_epsilons(self, int64 state) except *
 
-  cdef _ConstSymbolTable _output_symbols(self)
+  cdef _FstSymbolTable _output_symbols(self)
 
   cpdef uint64 properties(self, uint64 mask, bool test=?)
 
@@ -234,7 +251,7 @@ cdef class _Fst(object):
 
 cdef class _MutableFst(_Fst):
 
-  cdef MutableFstClass_ptr _mfst
+  cdef shared_ptr[fst.MutableFstClass] _mfst
 
   cdef void _check_mutating_imethod(self) except *
 
@@ -264,9 +281,9 @@ cdef class _MutableFst(_Fst):
 
   cpdef MutableArcIterator mutable_arcs(self, int64 state)
 
-  cdef SymbolTable _mutable_input_symbols(self)
+  cdef _MutableFstSymbolTable _mutable_input_symbols(self)
 
-  cdef SymbolTable _mutable_output_symbols(self)
+  cdef _MutableFstSymbolTable _mutable_output_symbols(self)
 
   cdef int64 _num_states(self)
 
@@ -324,12 +341,10 @@ cdef _Fst _read_Fst(filename, fst_type=?)
 
 # Iterators.
 
-ctypedef fst.ArcClass * ArcClass_ptr
-
 
 cdef class Arc(object):
 
-  cdef ArcClass_ptr _arc
+  cdef unique_ptr[fst.ArcClass] _arc
 
   cpdef Arc copy(self)
 
@@ -337,17 +352,11 @@ cdef class Arc(object):
 cdef Arc _init_Arc(const fst.ArcClass &arc)
 
 
-ctypedef fst.ArcIteratorClass * ArcIteratorClass_ptr
-ctypedef fst.MutableArcIteratorClass * MutableArcIteratorClass_ptr
-ctypedef fst.StateIteratorClass * StateIteratorClass_ptr
-
-
-
-
-
 cdef class ArcIterator(object):
 
-  cdef ArcIteratorClass_ptr _aiter
+  cdef shared_ptr[fst.FstClass] _fst
+
+  cdef unique_ptr[fst.ArcIteratorClass] _aiter
 
   cpdef bool done(self)
 
@@ -368,9 +377,9 @@ cdef class ArcIterator(object):
 
 cdef class MutableArcIterator(object):
 
-  cdef MutableArcIteratorClass_ptr _maiter
+  cdef shared_ptr[fst.MutableFstClass] _mfst
 
-  cdef string _weight_type
+  cdef unique_ptr[fst.MutableArcIteratorClass] _aiter
 
   cpdef bool done(self)
 
@@ -393,7 +402,9 @@ cdef class MutableArcIterator(object):
 
 cdef class StateIterator(object):
 
-  cdef StateIteratorClass_ptr _siter
+  cdef shared_ptr[fst.FstClass] _fst
+
+  cdef unique_ptr[fst.StateIteratorClass] _siter
 
   cpdef bool done(self)
 
@@ -480,7 +491,7 @@ cpdef _MutableFst synchronize(_Fst ifst)
 
 cdef class Compiler(object):
 
-  cdef stringstream *_sstrm
+  cdef unique_ptr[stringstream] _sstrm
   cdef string _fst_type
   cdef string _arc_type
   cdef const fst.SymbolTable *_isymbols
@@ -501,7 +512,7 @@ cdef class Compiler(object):
 
 cdef class FarReader(object):
 
-  cdef fst.FarReaderClass *_reader
+  cdef unique_ptr[fst.FarReaderClass] _reader
 
   cdef string _arc_type(self)
 
@@ -526,14 +537,13 @@ cdef class FarReader(object):
 
 cdef class FarWriter(object):
 
-  cdef bool _is_open
-  cdef fst.FarWriterClass *_writer
+  cdef unique_ptr[fst.FarWriterClass] _writer
 
   cdef string _arc_type(self)
 
   cdef void _close(self)
 
-  cpdef void add(self, key, _Fst fst) except *
+  cpdef void add(self, key, _Fst ifst) except *
 
   cpdef bool error(self)
 

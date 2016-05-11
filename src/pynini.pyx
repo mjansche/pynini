@@ -35,7 +35,8 @@ from cython.operator cimport dereference as deref  # *foo
 from cython.operator cimport preincrement as inc   # ++foo
 
 from libcpp cimport bool
-
+from libcpp.memory cimport shared_ptr
+from libcpp.memory cimport unique_ptr
 from libcpp.utility cimport pair
 from libcpp.vector cimport vector
 
@@ -62,6 +63,8 @@ from fst cimport kError
 from fst cimport kString
 
 from libcpp.string cimport string
+
+from memory cimport static_pointer_cast
 
 from pywrapfst cimport _Fst
 from pywrapfst cimport _MutableFst
@@ -336,7 +339,9 @@ cdef class Fst(_MutableFst):
     cdef VectorFstClass *tfst = new VectorFstClass(tostring(arc_type))
     if tfst.Properties(kError, True) == kError:
        raise FstArgError("Unknown arc type: {!r}".format(arc_type))
-    self._mfst = self._fst = tfst
+    self._fst.reset(tfst)
+    self._mfst = static_pointer_cast[MutableFstClass,
+                                     FstClass](self._fst)
 
   @classmethod
   def read(cls, filename):
@@ -361,10 +366,12 @@ cdef class Fst(_MutableFst):
   # the error bit.
 
   cdef void _check_pynini_op_error(self) except *:
-    if self._fst.Properties(kError, True) == kError:
+    if self._fst.get().Properties(kError, True) == kError:
       raise FstOpError("Operation failed")
 
-  cpdef StringPaths paths(self, token_type=b"byte", _SymbolTable isymbols=None,
+  cpdef StringPaths paths(self,
+                          token_type=b"byte",
+                          _SymbolTable isymbols=None,
                           _SymbolTable osymbols=None):
     """
     paths(self, token_type="byte", isymbols=None, osymbols=None)
@@ -446,8 +453,8 @@ cdef class Fst(_MutableFst):
     else:
      raise FstArgError("Unknown token type: {!r}".format(token_type))
     cdef string result
-    if not PyniniStringify(deref(self._fst), tt, self._fst.OutputSymbols(),
-                           addr(result)):
+    if not PyniniStringify(deref(self._fst), tt,
+                           self._fst.get().OutputSymbols(), addr(result)):
       raise FstArgError("FST is not a string")
     return result
 
@@ -509,7 +516,7 @@ cdef class Fst(_MutableFst):
 
     See also `ques`, `star`, `plus`.
     """
-    Repeat(self._mfst, lower, upper)
+    Repeat(self._mfst.get(), lower, upper)
     self._check_pynini_op_error()
     return self
 
@@ -524,7 +531,7 @@ cdef class Fst(_MutableFst):
     See also: `closure`.
     """
     result = self.copy()
-    Closure(result._mfst, CLOSURE_PLUS)
+    Closure(result._mfst.get(), CLOSURE_PLUS)
     result._check_pynini_op_error()
     return result
 
@@ -539,7 +546,7 @@ cdef class Fst(_MutableFst):
     See also: `closure`.
     """
     result = self.copy()
-    Repeat(result._mfst, 0, 1)
+    Repeat(result._mfst.get(), 0, 1)
     result._check_pynini_op_error()
     return result
 
@@ -554,7 +561,7 @@ cdef class Fst(_MutableFst):
     See also: `closure`.
     """
     result = self.copy()
-    Closure(result._mfst, CLOSURE_STAR)
+    Closure(result._mfst.get(), CLOSURE_STAR)
     result._check_pynini_op_error()
     return result
 
@@ -580,14 +587,15 @@ cdef class Fst(_MutableFst):
           without relabeling.
     """
     cdef Fst rhs = _compile_or_copy_Fst(ifst, arc_type=self.arc_type)
-    if not MergeSymbols(self._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
+    if not MergeSymbols(self._mfst.get(), rhs._mfst.get(),
+                        MERGE_INPUT_AND_OUTPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
     self._concat(rhs)
     return self
 
   cdef void _optimize(self, bool compute_props=False) except *:
-    Optimize(self._mfst, compute_props)
+    Optimize(self._mfst.get(), compute_props)
     self._check_pynini_op_error()
 
   def optimize(self, bool compute_props=False):
@@ -651,7 +659,8 @@ cdef class Fst(_MutableFst):
           without relabeling.
     """
     cdef Fst rhs = _compile_or_copy_Fst(ifst, arc_type=self.arc_type)
-    if not MergeSymbols(self._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
+    if not MergeSymbols(self._mfst.get(), rhs._mfst.get(),
+                        MERGE_INPUT_AND_OUTPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
     self._union(rhs)
@@ -716,17 +725,17 @@ cpdef Fst _compile_or_copy_Fst(arg, arc_type=b"standard"):
 
 cdef Fst _init_Fst_from_MutableFst(_MutableFst rhs):
   cdef Fst result = Fst.__new__(Fst)
-  result._mfst = rhs._mfst
   result._fst = rhs._fst
-  rhs._mfst = rhs._fst = NULL
-  del rhs
+  result._mfst = rhs._mfst
   return result
 
 
 # Functions for FST compilation.
 
 
-cpdef Fst acceptor(astring, weight=None, arc_type=b"standard",
+cpdef Fst acceptor(astring,
+                   weight=None,
+                   arc_type=b"standard",
                    token_type=b"byte"):
   """
   acceptor(astring, weight=None, arc_type="standard", token_type="byte")
@@ -762,17 +771,17 @@ cpdef Fst acceptor(astring, weight=None, arc_type=b"standard",
   try:
     token_type = tostring(token_type)
     if token_type == b"byte":
-      if not CompileBracketedByteString(_astring, wc, result._mfst):
+      if not CompileBracketedByteString(_astring, wc, result._mfst.get()):
         raise FstStringCompilationError("Bytestring compilation failed")
     elif token_type == b"utf8":
-      if not CompileBracketedUTF8String(_astring, wc, result._mfst):
+      if not CompileBracketedUTF8String(_astring, wc, result._mfst.get()):
         raise FstStringCompilationError("UTF8 string compilation failed")
     else:
       raise FstArgError("Unknown token type: {!r}".format(token_type))
   except (FstArgError, UnicodeDecodeError):
     if isinstance(token_type, pywrapfst._SymbolTable):
       syms = (<SymbolTable_ptr> (<_SymbolTable> token_type)._table)
-      if not CompileSymbolString(_astring, wc, deref(syms), result._mfst):
+      if not CompileSymbolString(_astring, wc, deref(syms), result._mfst.get()):
         raise FstStringCompilationError("Symbol string compilation failed")
     else:
       raise
@@ -780,8 +789,12 @@ cpdef Fst acceptor(astring, weight=None, arc_type=b"standard",
   return result
 
 
-cpdef Fst transducer(istring, ostring, weight=None, arc_type=b"standard",
-                     input_token_type=b"byte", output_token_type=b"byte"):
+cpdef Fst transducer(istring,
+                     ostring,
+                     weight=None,
+                     arc_type=b"standard",
+                     input_token_type=b"byte",
+                     output_token_type=b"byte"):
   """
   transducer(istring, ostring, weight=None, arc_type="standard",
              input_token_type="byte", output_token_type=="byte")
@@ -829,7 +842,7 @@ cpdef Fst transducer(istring, ostring, weight=None, arc_type=b"standard",
     upper = acceptor(istring, arc_type=arc_type, token_type=input_token_type)
   else:
     upper = istring
-  if upper._fst.Properties(kAcceptor, True) != kAcceptor:
+  if upper._fst.get().Properties(kAcceptor, True) != kAcceptor:
     logging.warning("Expecting acceptor or string argument, got a transducer")
   # Sets up lower language, and passes weight.
   if not isinstance(ostring, Fst):
@@ -837,15 +850,19 @@ cpdef Fst transducer(istring, ostring, weight=None, arc_type=b"standard",
                      token_type=output_token_type)
   else:
     lower = ostring
-    if lower._fst.Properties(kAcceptor, True) != kAcceptor:
+    if lower._fst.get().Properties(kAcceptor, True) != kAcceptor:
       logging.warning("Expecting acceptor or string argument, got a transducer")
   # Actually computes cross-product.
-  CrossProduct(deref(upper._fst), deref(lower._fst), result._mfst)
+  CrossProduct(deref(upper._fst), deref(lower._fst), result._mfst.get())
   result._check_pynini_op_error()
   return result
 
 
-cpdef Fst cdrewrite(tau, lambda_, rho, sigma_star, direction=b"ltr",
+cpdef Fst cdrewrite(tau,
+                    lambda_,
+                    rho,
+                    sigma_star,
+                    direction=b"ltr",
                     mode=b"obl"):
   """
   cdrewrite(tau, lambda, rho, sigma_star, direction="ltr", mode="obl")
@@ -907,14 +924,16 @@ cpdef Fst cdrewrite(tau, lambda_, rho, sigma_star, direction=b"ltr",
   cdef Fst result = Fst(arc_type)
   PyniniCDRewrite(deref(tau_compiled._fst), deref(lambda_compiled._fst),
                   deref(rho_compiled._fst), deref(sigma_star_compiled._fst),
-                  result._mfst, cd, cm)
+                  result._mfst.get(), cd, cm)
   result._check_pynini_op_error()
   if not result.num_states:
     logging.warning("Compiled rewrite rule has no connected states")
   return result
 
 
-def string_file(filename, arc_type=b"standard", input_token_type=b"byte",
+def string_file(filename,
+                arc_type=b"standard",
+                input_token_type=b"byte",
                 output_token_type=b"byte"):
   """
   string_file(filename, arc_type="standard", input_token_type="byte",
@@ -960,13 +979,15 @@ def string_file(filename, arc_type=b"standard", input_token_type=b"byte",
       osyms = (<SymbolTable_ptr> (<_SymbolTable> output_token_type)._table)
       otype = SYMBOL
   cdef Fst result = Fst(arc_type)
-  if not StringFile(tostring(filename), itype, otype, result._mfst, isyms,
-                    osyms):
+  if not StringFile(tostring(filename), itype, otype, result._mfst.get(),
+                    isyms, osyms):
     raise FstIOError("Read failed")
   return result
 
 
-def string_map(pairs, arc_type=b"standard", input_token_type=b"byte",
+def string_map(pairs,
+               arc_type=b"standard",
+               input_token_type=b"byte",
                output_token_type=b"byte"):
   """
   string_map(pairs, arc_type="standard", input_token_type="byte",
@@ -1013,7 +1034,8 @@ def string_map(pairs, arc_type=b"standard", input_token_type=b"byte",
       osyms = (<SymbolTable_ptr> (<_SymbolTable> output_token_type)._table)
       otype = SYMBOL
   cdef Fst result = Fst(arc_type)
-  cdef vector[StringPair] *new_pairs = new vector[StringPair]()
+  cdef unique_ptr[vector[StringPair]] new_pairs
+  new_pairs.reset(new vector[StringPair]())
   if hasattr(pairs, "iteritems"):
     pairs = pairs.iteritems()
   elif hasattr(pairs, "items"):
@@ -1021,18 +1043,18 @@ def string_map(pairs, arc_type=b"standard", input_token_type=b"byte",
   for pair in pairs:
     if hasattr(pair, "__iter__"):
       if len(pair) == 2:
-        new_pairs.push_back(StringPair(tostring(pair[0]), tostring(pair[1])))
+        new_pairs.get().push_back(StringPair(tostring(pair[0]),
+                                             tostring(pair[1])))
       elif len(pair) == 1:
         string = tostring(pair[0])
-        new_pairs.push_back(StringPair(string, string))
+        new_pairs.get().push_back(StringPair(string, string))
       else:
         raise FstArgError("Mappings must be of length 1 or 2")
     else:
       string = tostring(pair)
-      new_pairs.push_back(StringPair(string, string))
-  cdef bool success = StringMap(deref(new_pairs), itype, otype, result._mfst,
-                                isyms, osyms)
-  del new_pairs
+      new_pairs.get().push_back(StringPair(string, string))
+  cdef bool success = StringMap(deref(new_pairs), itype, otype,
+                                result._mfst.get(), isyms, osyms)
   if not success:
     raise FstArgError("String map compilation failed")
   return result
@@ -1084,7 +1106,7 @@ def _compose_patch(fnc):
   def patch(arg1, arg2, *args, **kwargs):
     cdef Fst lhs = _compile_or_copy_Fst(arg1)
     cdef Fst rhs = _compile_or_copy_Fst(arg2, arc_type=lhs.arc_type)
-    if not MergeSymbols(lhs._mfst, rhs._mfst,
+    if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
                         MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
            "Unable to resolve symbol table conflict without relabeling")
@@ -1105,11 +1127,12 @@ def _difference_patch(fnc):
   def patch(arg1, arg2, *args, **kwargs):
     cdef Fst lhs = _compile_or_copy_Fst(arg1)
     cdef Fst rhs = _compile_or_copy_Fst(arg2, arc_type=lhs.arc_type)
-    if not MergeSymbols(lhs._mfst, rhs._mfst,
+    if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
                         MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
-    if not MergeSymbols(lhs._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
+    if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
+                        MERGE_INPUT_AND_OUTPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
     # Following Thrax, we do what we can to make rhs epsilon-free and
@@ -1127,11 +1150,12 @@ def _intersect_patch(fnc):
   def patch(arg1, arg2, *args, **kwargs):
     cdef Fst lhs = _compile_or_copy_Fst(arg1)
     cdef Fst rhs = _compile_or_copy_Fst(arg2, arc_type=lhs.arc_type)
-    if not MergeSymbols(lhs._mfst, rhs._mfst,
+    if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
                         MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
-    if not MergeSymbols(lhs._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
+    if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
+                        MERGE_INPUT_AND_OUTPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
     return _init_Fst_from_MutableFst(fnc(lhs, rhs, *args, **kwargs))
@@ -1165,7 +1189,8 @@ def _comp_merge_patch(fnc):
   def patch(arg1, arg2, *args, **kwargs):
     cdef Fst lhs = _compile_or_copy_Fst(arg1)
     cdef Fst rhs = _compile_or_copy_Fst(arg2, arc_type=lhs.arc_type)
-    if not MergeSymbols(lhs._mfst, rhs._mfst, MERGE_INPUT_AND_OUTPUT_SYMBOLS):
+    if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
+                        MERGE_INPUT_AND_OUTPUT_SYMBOLS):
       raise FstSymbolTableMergeError(
           "Unable to resolve symbol table conflict without relabeling")
     return fnc(lhs, rhs, *args, **kwargs)
@@ -1176,9 +1201,12 @@ equivalent = _comp_merge_patch(pywrapfst.equivalent)
 randequivalent = _comp_merge_patch(pywrapfst.randequivalent)
 
 
-def replace(root, *, call_arc_labeling=b"neither",
-            return_arc_labeling=b"neither", bool epsilon_on_replace=False,
-            int64 return_label=0, **replacements):
+def replace(root, *,
+            call_arc_labeling=b"neither",
+            return_arc_labeling=b"neither",
+            bool epsilon_on_replace=False,
+            int64 return_label=0,
+            **replacements):
   """
   replace(root, **replacements, call_arc_labeling="neither",
           return_arc_labeling="neither", epsilon_on_replace=False,
@@ -1229,21 +1257,20 @@ def replace(root, *, call_arc_labeling=b"neither",
   # This has the pleasant effect of preventing Python from garbage-collecting
   # these FSTs until we're ready.
   # TODO(kbg): Is there a better way?
-  replacement_set = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type)) for (nt, rep)
-                     in replacements.iteritems()]
+  replacement_set = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type)) for
+                     (nt, rep) in replacements.iteritems()]
   cdef string nonterm
   cdef Fst replacement
   for (nonterm, replacement) in replacement_set:
-    pairs.push_back(StringFstClassPair(nonterm, replacement._fst))
+    pairs.push_back(StringFstClassPair(nonterm, replacement._fst.get()))
   cdef ReplaceLabelType cal = _get_replace_label_type(
       tostring(call_arc_labeling), epsilon_on_replace)
   cdef ReplaceLabelType ral = _get_replace_label_type(
       tostring(return_arc_labeling), epsilon_on_replace)
-  cdef ReplaceOptions *opts = new ReplaceOptions(-1, cal, ral, return_label)
+  cdef unique_ptr[ReplaceOptions] opts
+  opts.reset(new ReplaceOptions(-1, cal, ral, return_label))
   cdef Fst result = Fst(arc_type)
-  PyniniReplace(deref(root_fst._fst), pairs, result._mfst, deref(opts))
-  del replacement_set
-  del opts
+  PyniniReplace(deref(root_fst._fst), pairs, result._mfst.get(), deref(opts))
   result._check_pynini_op_error()
   return result
 
@@ -1374,7 +1401,10 @@ cdef class PdtParentheses(object):
       raise FstIOError("Write failed: {!r}".format(filename))
 
 
-def pdt_compose(ifst1, ifst2, PdtParentheses parens, cf=b"paren",
+def pdt_compose(ifst1,
+                ifst2,
+                PdtParentheses parens,
+                cf=b"paren",
                 bool left_pdt=True):
   """
   pdt_compose(ifst1, ifst2, parens, cf="paren", left_pdt=True)
@@ -1410,15 +1440,15 @@ def pdt_compose(ifst1, ifst2, PdtParentheses parens, cf=b"paren",
   cdef Fst rhs = _compile_or_copy_Fst(ifst2, lhs.arc_type)
   lhs.arcsort(sort_type="olabel")
   rhs.arcsort(sort_type="ilabel")
-  if not MergeSymbols(lhs._mfst, rhs._mfst,
+  if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
                       MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
     raise FstSymbolTableMergeError(
         "Unable to resolve symbol table conflict without relabeling")
   cdef Fst result = Fst(lhs.arc_type)
   cdef PdtComposeFilter typed_cf = _get_pdt_compose_filter(tostring(cf))
   cdef PdtComposeOptions *opts = new PdtComposeOptions(True, typed_cf)
-  PdtCompose(deref(lhs._fst), deref(rhs._fst), parens._parens, result._mfst,
-             deref(opts), left_pdt)
+  PdtCompose(deref(lhs._fst), deref(rhs._fst), parens._parens,
+             result._mfst.get(), deref(opts), left_pdt)
   del opts
   if not result.num_states:
     logging.warning("Composed PDT has no connected states")
@@ -1429,12 +1459,15 @@ def pdt_compose(ifst1, ifst2, PdtParentheses parens, cf=b"paren",
     result.rmepsilon()
   # Otherwise, we need to add the parentheses to the result.
   else:
-    _add_parentheses_symbols(result._mfst, parens._parens, left_pdt)
+    _add_parentheses_symbols(result._mfst.get(), parens._parens, left_pdt)
   return result
 
 
-def pdt_expand(ipdt, PdtParentheses parens, bool connect=True,
-               bool keep_parentheses=False, weight=None):
+def pdt_expand(ipdt,
+               PdtParentheses parens,
+               bool connect=True,
+               bool keep_parentheses=False,
+               weight=None):
   """
   pdt_expand(ipdt, parens, connect=True, keep_parentheses=False, weight=None)
 
@@ -1467,13 +1500,15 @@ def pdt_expand(ipdt, PdtParentheses parens, bool connect=True,
   cdef WeightClass wc = _get_WeightClass_or_Zero(result.weight_type, weight)
   cdef PdtExpandOptions *opts = new PdtExpandOptions(connect,
                                                      keep_parentheses, wc)
-  PdtExpand(deref(pdt._fst), parens._parens, result._mfst, deref(opts))
+  PdtExpand(deref(pdt._fst), parens._parens, result._mfst.get(), deref(opts))
   del opts
   result._check_pynini_op_error()
   return result
 
 
-def pdt_replace(root, pdt_parser_type=b"left", **replacements):
+def pdt_replace(root, *,
+                pdt_parser_type=b"left",
+                **replacements):
   """
   pdt_replace(root, pdt_parser_type="left", **replacements)
 
@@ -1516,18 +1551,17 @@ def pdt_replace(root, pdt_parser_type=b"left", **replacements):
   # This has the pleasant effect of preventing Python from garbage-collecting
   # these FSTs until we're ready.
   # TODO(kbg): Is there a better way?
-  replacement_set = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type)) for (nt, rep)
-                     in replacements.iteritems()]
+  replacement_set = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type))
+                     for (nt, rep) in replacements.iteritems()]
   cdef string nonterm
   cdef Fst replacement
   for (nonterm, replacement) in replacement_set:
-    pairs.push_back(StringFstClassPair(nonterm, replacement._fst))
+    pairs.push_back(StringFstClassPair(nonterm, replacement._fst.get()))
   cdef Fst result = Fst(arc_type)
   cdef PdtParentheses parens = PdtParentheses()
-  PyniniPdtReplace(deref(root_fst._fst), pairs, result._mfst,
+  PyniniPdtReplace(deref(root_fst._fst), pairs, result._mfst.get(),
                    addr(parens._parens),
                    _get_pdt_parser_type(tostring(pdt_parser_type)))
-  del replacement_set
   result._check_pynini_op_error()
   return (result, parens)
 
@@ -1550,13 +1584,16 @@ def pdt_reverse(ipdt, PdtParentheses parens):
   """
   cdef Fst pdt = _compile_or_copy_Fst(ipdt)
   cdef Fst result = Fst(pdt.arc_type)
-  PdtReverse(deref(pdt._fst), parens._parens, result._mfst)
+  PdtReverse(deref(pdt._fst), parens._parens, result._mfst.get())
   result._check_pynini_op_error()
   return result
 
 
-def pdt_shortestpath(ipdt, PdtParentheses parens, qt=b"fifo",
-                     bool keep_parentheses=False, bool path_gc=True):
+def pdt_shortestpath(ipdt,
+                     PdtParentheses parens,
+                     qt=b"fifo",
+                     bool keep_parentheses=False,
+                     bool path_gc=True):
   """
   pdt_shortestpath(ipdt, parens, qt="fifo", keep_parentheses=False,
                    path_gc=True)
@@ -1583,10 +1620,11 @@ def pdt_shortestpath(ipdt, PdtParentheses parens, qt=b"fifo",
   """
   cdef Fst pdt = _compile_or_copy_Fst(ipdt)
   cdef Fst result = Fst(pdt.arc_type)
-  cdef PdtShortestPathOptions *opts = new PdtShortestPathOptions(
-        _get_queue_type(tostring(qt)), keep_parentheses, path_gc)
-  PdtShortestPath(deref(pdt._fst), parens._parens, result._mfst, deref(opts))
-  del opts
+  cdef unique_ptr[PdtShortestPathOptions] opts
+  opts.reset(new PdtShortestPathOptions(
+        _get_queue_type(tostring(qt)), keep_parentheses, path_gc))
+  PdtShortestPath(deref(pdt._fst), parens._parens, result._mfst.get(),
+                  deref(opts))
   result._check_pynini_op_error()
   return result
 
@@ -1739,7 +1777,7 @@ cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens, cf=b"paren",
   cdef Fst rhs = _compile_or_copy_Fst(ifst2, lhs.arc_type)
   lhs.arcsort(sort_type="olabel")
   rhs.arcsort(sort_type="ilabel")
-  if not MergeSymbols(lhs._mfst, rhs._mfst,
+  if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
                       MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
     raise FstSymbolTableMergeError(
         "Unable to resolve symbol table conflict without relabeling")
@@ -1747,11 +1785,11 @@ cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens, cf=b"paren",
   cdef PdtComposeFilter typed_cf = _get_pdt_compose_filter(tostring(cf))
   cdef MPdtComposeOptions *opts = new MPdtComposeOptions(True, typed_cf)
   MPdtCompose(deref(lhs._fst), deref(rhs._fst), parens._parens,
-              parens._assign, result._mfst, deref(opts), left_mpdt)
+              parens._assign, result._mfst.get(), deref(opts), left_mpdt)
   del opts
   if not result.num_states:
     logging.warning("Composed MPDT has no connected states")
-  if result._fst.Properties(kError, True) == kError:
+  if result._fst.get().Properties(kError, True) == kError:
     raise FstOpError("Operation failed")
   # If the "expand" filter is selected, all parentheses have been mapped to
   # epsilon. This conveniently removes the arcs that result.
@@ -1759,7 +1797,7 @@ cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens, cf=b"paren",
     result.rmepsilon()
   # Otherwise, we need to add the parentheses to the result.
   else:
-    _add_parentheses_symbols(result._mfst, parens._parens, left_mpdt)
+    _add_parentheses_symbols(result._mfst.get(), parens._parens, left_mpdt)
   return result
 
 
@@ -1794,8 +1832,8 @@ def mpdt_expand(impdt, MPdtParentheses parens, bool connect=True,
   cdef Fst result = Fst(mpdt.arc_type)
   cdef MPdtExpandOptions *opts = new MPdtExpandOptions(connect,
                                                        keep_parentheses)
-  MPdtExpand(deref(mpdt._fst), parens._parens, parens._assign, result._mfst,
-             deref(opts))
+  MPdtExpand(deref(mpdt._fst), parens._parens, parens._assign,
+             result._mfst.get(), deref(opts))
   del opts
   result._check_pynini_op_error()
   return result
@@ -1824,7 +1862,7 @@ def mpdt_reverse(impdt, MPdtParentheses parens):
   cdef Fst result_fst = Fst(mpdt.arc_type)
   cdef MPdtParentheses result_parens = parens.copy()
   MPdtReverse(deref(mpdt._fst), result_parens._parens,
-              addr(result_parens._assign), result_fst._mfst)
+              addr(result_parens._assign), result_fst._mfst.get())
   result_fst._check_pynini_op_error()
   return (result_fst, result_parens)
 
@@ -1847,15 +1885,15 @@ cdef class StringPaths(object):
   concatenation of string labels from a symbol table. This class is normally
   created by invoking the `paths` method of `Fst`.
 
-  Note that this class is an iterator over all paths *at the time of creation*
-  and the iterator will not be affected by any mutations to the argument
-  FST or input symbol tables.
+  Note that this class is an iterator over all paths at the time of creation and
+  the iterator will not be affected by any mutations to the argument FST or
+  input symbol tables.
 
   Args:
-    token_type: A string indicating how arcs labels are to be interpreted as strings;
-        (interprets arc labels as UTF-8 encoded Unicode strings), "byte" (interprets
-        arc labels as byte strings), "symbol" (interprets arc labels according to
-        the provided symbol tables).
+    token_type: A string indicating how arcs labels are to be interpreted as
+        strings; (interprets arc labels as UTF-8 encoded Unicode strings),
+        "byte" (interprets arc labels as byte strings), "symbol" (interprets
+        arc labels according to the provided symbol tables).
     isymbols: Input symbol table (ignored unless token_type is "symbol")
     osymbols: Output symbol table (ignored unless token_type is "symbol")
 
@@ -1864,32 +1902,26 @@ cdef class StringPaths(object):
     FstArgError: FST is not acyclic.
   """
 
-  cdef FstClass *_fst
-  cdef StringPathsClass *_paths
+  cdef shared_ptr[FstClass] _fst
+  cdef unique_ptr[StringPathsClass] _paths
 
   def __repr__(self):
     return "<StringPaths at 0x{:x}>".format(id(self))
 
-  def __init__(self, _Fst fst, token_type=b"byte", _SymbolTable isymbols=None,
+  def __init__(self, _Fst ifst, token_type=b"byte", _SymbolTable isymbols=None,
                _SymbolTable osymbols=None):
-    # Makes a reference-counted copy of the FST.
-    self._fst = new FstClass(deref(fst._fst))
+    # Makes copy of the shared_ptr, potentially extending the FST's lifetime.
+    self._fst = ifst._fst
     cdef TokenType tt = _get_token_type(tostring(token_type))
     if tt == SYMBOL:
-      # Makes reference-counted copies of the symbol tables.
-      self._paths = new StringPathsClass(deref(self._fst), tt,
-          (<SymbolTable_ptr> NULL) if isymbols is None else
-              isymbols._table.Copy(),
-          (<SymbolTable_ptr> NULL) if osymbols is None else
-              osymbols._table.Copy())
+      # FST-referenced symbol tables have the same lifetime as the FST itself.
+      self._paths.reset(new StringPathsClass(deref(self._fst), tt,
+          (<SymbolTable_ptr> NULL) if isymbols is None else isymbols._table,
+          (<SymbolTable_ptr> NULL) if osymbols is None else osymbols._table))
     else:
-      self._paths = new StringPathsClass(deref(self._fst), tt, NULL, NULL)
-    if self._paths.Error():
+      self._paths.reset(new StringPathsClass(deref(self._fst), tt, NULL, NULL))
+    if self._paths.get().Error():
       raise FstArgError("FST is not acyclic")
-
-  def __dealloc__(self):
-    del self._fst
-    del self._paths
 
   # This just registers this class as a possible iterator.
   def __iter__(self):
@@ -1917,7 +1949,7 @@ cdef class StringPaths(object):
     Returns:
       True if the iterator is exhausted, False otherwise.
     """
-    return self._paths.Done()
+    return self._paths.get().Done()
 
   cpdef bool error(self):
     """
@@ -1928,7 +1960,7 @@ cdef class StringPaths(object):
     Returns:
       True if the StringPaths is in an errorful state, False otherwise.
     """
-    return self._paths.Error()
+    return self._paths.get().Error()
 
   cpdef void reset(self):
     """
@@ -1939,7 +1971,7 @@ cdef class StringPaths(object):
     This method is provided for compatibility with the C++ API only; most users
     should use the Pythonic API.
     """
-    self._paths.Reset()
+    self._paths.get().Reset()
 
   cpdef void next(self):
     """
@@ -1950,7 +1982,7 @@ cdef class StringPaths(object):
     This method is provided for compatibility with the C++ API only; most users
     should use the Pythonic API.
     """
-    self._paths.Next()
+    self._paths.get().Next()
 
   cpdef string istring(self):
     """
@@ -1964,7 +1996,7 @@ cdef class StringPaths(object):
     Returns:
       The path's input string.
     """
-    return self._paths.IString()
+    return self._paths.get().IString()
 
   cpdef string ostring(self):
     """
@@ -1978,7 +2010,7 @@ cdef class StringPaths(object):
     Returns:
       The path's output string.
     """
-    return self._paths.OString()
+    return self._paths.get().OString()
 
   cpdef _Weight weight(self):
     """
@@ -1993,7 +2025,7 @@ cdef class StringPaths(object):
       The path's Weight.
     """
     cdef _Weight weight = _Weight.__new__(_Weight)
-    weight._weight = new WeightClass(self._paths.Weight())
+    weight._weight.reset(new WeightClass(self._paths.get().Weight()))
     return weight
 
 

@@ -11,6 +11,7 @@ import math
 import string
 import unittest
 
+
 # This module is designed to be import-safe.
 # pylint: disable=wildcard-import
 # pylint: disable=undefined-variable
@@ -127,6 +128,18 @@ class PyniniClosureTest(unittest.TestCase):
       self.assertNotEqual(compose(a, cheese * i).num_states(), 0)
     # Doesn't accept more than 7 copies.
     self.assertEqual(compose(a, cheese * (n + 1)).num_states(), 0)
+
+
+class PyniniEpsilonMachineTest(unittest.TestCase):
+
+  def testLog64EpsilonMachineHasRightTopology(self):
+    arc_type = "log64"
+    f = epsilon_machine(arc_type)
+    self.assertEqual(f.arc_type(), arc_type)
+    self.assertEqual(f.num_states(), 1)
+    self.assertEqual(f.start(), 0)
+    self.assertEqual(f.num_arcs(f.start()), 0)
+    self.assertEqual(f.final(f.start()), Weight.One(arc_type))
 
 
 class PyniniEqualTest(unittest.TestCase):
@@ -351,6 +364,62 @@ class PyniniReplaceTest(unittest.TestCase):
     self.assertEqual(optimize(project("2 m" * plural, True)), "two meters")
 
 
+class PyniniReprTest(unittest.TestCase):
+
+  def testArcRepr(self):
+    a = Arc(97, 97, Weight.One("tropical"), 1)
+    self.assertTrue(repr(a).startswith("<Arc at"))
+
+  def testArcIteratorRepr(self):
+    f = epsilon_machine()
+    i = ArcIterator(f, f.start())
+    self.assertTrue(repr(i).startswith("<ArcIterator at"))
+
+  def testEncodeMapperRepr(self):
+    e = EncodeMapper()
+    self.assertTrue(repr(e).startswith("<EncodeMapper at"))
+
+  def testFstRepr(self):
+    f = epsilon_machine()
+    self.assertTrue(repr(f).startswith("<vector Fst at"))
+
+  def testMPdtParentheses(self):
+    m = MPdtParentheses()
+    self.assertTrue(repr(m).startswith("<MPdtParentheses at"))
+
+  def testMutableArcIterator(self):
+    f = epsilon_machine()
+    i = MutableArcIterator(f, f.start())
+    self.assertTrue(repr(i).startswith("<MutableArcIterator at"))
+
+  def testPdtParentheses(self):
+    p = PdtParentheses()
+    self.assertTrue(repr(p).startswith("<PdtParentheses at"))
+
+  def testStateIterator(self):
+    f = epsilon_machine()
+    i = StateIterator(f)
+    self.assertTrue(repr(i).startswith("<StateIterator at"))
+
+  def testStringPaths(self):
+    f = epsilon_machine()
+    s = StringPaths(f)
+    self.assertTrue(repr(s).startswith("<StringPaths at"))
+
+  def testSymbolTable(self):
+    s = SymbolTable("Gouda")
+    self.assertTrue(repr(s).startswith("<SymbolTable 'Gouda' at"))
+
+  def testSymbolTableIterator(self):
+    s = SymbolTable()
+    i = SymbolTableIterator(s)
+    self.assertTrue(repr(i).startswith("<SymbolTableIterator at"))
+
+  def testWeight(self):
+    w = Weight("tropical", 0)
+    self.assertTrue(repr(w).startswith("<tropical Weight 0 at"))
+
+
 class PyniniStringTest(unittest.TestCase):
 
   """Tests string compilation and stringification."""
@@ -525,16 +594,16 @@ class PyniniStringTest(unittest.TestCase):
     self.assertEqual(acceptor(cheese, arc_type="log64") * cheese, cheese)
 
   def testLogWeightToStandardAcceptorRaisesFstStringCompilationError(self):
-    with self.assertRaises(FstStringCompilationError):
+    with self.assertRaises(FstOpError):
       unused_a = acceptor("Sage Derby", weight=Weight.One("log"))
 
   def testLog64WeightToLogAcceptorRaisesFstStringCompilationError(self):
-    with self.assertRaises(FstStringCompilationError):
+    with self.assertRaises(FstOpError):
       unused_a = acceptor("Wensleydale", arc_type="log",
                           weight=Weight.One("log64"))
 
-  def testTropicalWeightToLog64TransducerRaisesFstStringCompilationError(self):
-    with self.assertRaises(FstStringCompilationError):
+  def testTropicalWeightToLog64TransducerRaisesFstOpError(self):
+    with self.assertRaises(FstOpError):
       unused_t = transducer("Venezuelan Beaver Cheese", "Not today sir, no",
                             arc_type="log64", weight=Weight.One("tropical"))
 
@@ -543,16 +612,53 @@ class PyniniStringFileTest(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    cls.tsv_name = "testdata/cheese.map"
+    cls.map_file = "testdata/cheese.map"
 
-  def testStringFile(self):
-    mapper = string_file(self.tsv_name)
-    self.assertEqual(project("[Bel Paese]" * mapper, True).optimize(), "Sorry")
-    self.assertEqual(project("Cheddar" * mapper, True).optimize(), "Cheddar")
-    self.assertEqual(project("Caithness" * mapper, True).optimize(),
+  def testByteToByteStringFile(self):
+    mapper = string_file(self.map_file)
+    self.assertEqual(optimize(project("[Bel Paese]" * mapper, True)), "Sorry")
+    self.assertEqual(optimize(project("Cheddar" * mapper, True)), "Cheddar")
+    self.assertEqual(optimize(project("Caithness" * mapper, True)),
                      "Pont-l'Évêque")
-    self.assertEqual(project("Pont-l'Évêque" * mapper, True).optimize(),
-                    "Camembert")
+    self.assertEqual(optimize(project("Pont-l'Évêque" * mapper, True)),
+                     "Camembert")
+
+  def testByteToUtf8StringFile(self):
+    mapper = string_file(self.map_file, output_token_type="utf8")
+    self.assertEqual(optimize(project("[Bel Paese]" * mapper, True)), "Sorry")
+    self.assertEqual(optimize(project("Cheddar" * mapper, True)), "Cheddar")
+    self.assertEqual(optimize(project("Caithness" * mapper, True)),
+                     acceptor("Pont-l'Évêque", token_type="utf8"))
+    self.assertEqual(optimize(project("Pont-l'Évêque" * mapper, True)),
+                     "Camembert")
+
+  def testUtf8ToUtf8StringFile(self):
+    mapper = string_file(self.map_file, input_token_type="utf8",
+                         output_token_type="utf8")
+    self.assertEqual(optimize(project("[Bel Paese]" * mapper, True)), "Sorry")
+    self.assertEqual(optimize(project("Cheddar" * mapper, True)), "Cheddar")
+    self.assertEqual(optimize(project("Caithness" * mapper, True)),
+                     acceptor("Pont-l'Évêque", token_type="utf8"))
+    self.assertEqual(optimize(project(acceptor("Pont-l'Évêque",
+                                               token_type="utf8") * mapper,
+                                      True)),
+                     "Camembert")
+
+  def testByteToSymbolStringFile(self):
+    syms = SymbolTable()
+    syms.add_symbol("<epsilon>")
+    syms.add_symbol("Sorry")
+    syms.add_symbol("Cheddar")
+    syms.add_symbol("Pont-l'Évêque")
+    syms.add_symbol("Camembert")
+    mapper = string_file(self.map_file, output_token_type=syms)
+    sorry = acceptor("Sorry", token_type=syms)
+    self.assertEqual(optimize(project("[Bel Paese]" * mapper, True)), sorry)
+    cheddar = acceptor("Cheddar", token_type=syms)
+    self.assertEqual(optimize(project("Cheddar" * mapper, True)), cheddar)
+    pont_levesque = acceptor("Pont-l'Évêque", token_type=syms)
+    self.assertEqual(optimize(project("Caithness" * mapper, True)),
+                     pont_levesque)
 
 
 class PyniniStringMapTest(unittest.TestCase):
@@ -685,7 +791,7 @@ class PyniniSymbolTableTest(unittest.TestCase):
     f = transducer("Red Windsor", "Normally, sir, yes, "
                                   "but today the van broke down")
     osyms = f.output_symbols().copy()
-    osyms2 = f.output_symbols().copy()
+    osyms2 = f.output_symbols()
     del f  # Should be garbage-collected immediately.
     self.assertEqual(osyms2.labeled_checksum(), osyms.labeled_checksum())
 
@@ -802,8 +908,8 @@ class PyniniWeightTest(unittest.TestCase):
     half = self.log_half
     one = self.log_one
     one_half = self.log_one_half
-    self.assertAlmostEqual(float(str(plus(half, one))),
-                           float(str(one_half)), delta=self.delta)
+    self.assertAlmostEqual(float(plus(half, one)),
+                           float(one_half), delta=self.delta)
 
   def testLogZeroTimesZeroEqualsZero(self):
     zero = self.log_zero
@@ -875,8 +981,8 @@ class PyniniWeightTest(unittest.TestCase):
     half = self.log64_half
     one = self.log64_one
     one_half = self.log64_one_half
-    self.assertAlmostEqual(float(str(plus(half, one))),
-                           float(str(one_half)), delta=self.delta)
+    self.assertAlmostEqual(float(plus(half, one)),
+                           float(one_half), delta=self.delta)
 
   def testLog64ZeroTimesZeroEqualsZero(self):
     zero = self.log64_zero
@@ -944,5 +1050,9 @@ class PyniniWorkedExampleTest(unittest.TestCase):
     self.assertEqual(cascade.stringify(), cheese)
 
 
-if __name__ == "__main__":
+def main(unused_argv):
   unittest.main()
+
+
+if __name__ == "__main__":
+  app.run()

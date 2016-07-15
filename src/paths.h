@@ -108,8 +108,7 @@ PathIterator<Arc>::PathIterator(const Fst<Arc> &fst, bool check_acyclic)
     : error_(false), fst_(fst), pop_labels_(false) {
   if (check_acyclic && !fst.Properties(kAcyclic, true)) {
     error_ = true;
-    FSTERROR() << "An acyclic Fst passed to PathIterator may lead to infinite"
-               << "loops";
+    FSTERROR() << "PathIterator: Cyclic FSTs have an infinite number of paths";
     return;
   }
   Reset();

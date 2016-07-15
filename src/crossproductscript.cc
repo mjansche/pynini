@@ -23,13 +23,27 @@ namespace fst {
 namespace script {
 
 void CrossProduct(const FstClass &ifst1, const FstClass &ifst2,
+                  MutableFstClass *ofst,
+                  const WeightClass &final_weight) {
+  if (!ArcTypesMatch(ifst1, ifst2, "CrossProduct") ||
+      !ArcTypesMatch(ifst2, *ofst, "CrossProduct") ||
+      !ofst->WeightTypesMatch(final_weight, "CrossProduct")) {
+    ofst->SetProperties(kError, kError);
+    return;
+  }
+  CrossProductArgs args(ifst1, ifst2, ofst, final_weight);
+  Apply<Operation<CrossProductArgs>>("CrossProduct", ofst->ArcType(), &args);
+}
+
+// Defaults final weight to semiring One.
+void CrossProduct(const FstClass &ifst1, const FstClass &ifst2,
                   MutableFstClass *ofst) {
   if (!ArcTypesMatch(ifst1, ifst2, "CrossProduct") ||
       !ArcTypesMatch(ifst2, *ofst, "CrossProduct")) {
     ofst->SetProperties(kError, kError);
-    return;
   }
-  CrossProductArgs args(ifst1, ifst2, ofst);
+  const WeightClass final_weight = WeightClass::One(ofst->WeightType());
+  CrossProductArgs args(ifst1, ifst2, ofst, final_weight);
   Apply<Operation<CrossProductArgs>>("CrossProduct", ofst->ArcType(), &args);
 }
 

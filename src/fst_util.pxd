@@ -35,7 +35,7 @@ from libcpp.string cimport string
 cdef extern from "crossproductscript.h" \
     namespace "fst::script" nogil:
 
-  void CrossProduct(const FstClass &, const FstClass &, MutableFstClass *)
+  void CrossProduct(const FstClass &, const FstClass &, MutableFstClass *, const WeightClass &)
 
 
 cdef extern from "optimizescript.h" \

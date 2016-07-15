@@ -35,8 +35,10 @@ constexpr uint64 kAcceptorAndString = kAcceptor | kString;
 // a transducer for the second argument (the lower language), it will act as if
 // it had already been projected onto its output.
 template <class Arc>
-void CrossProduct(const Fst<Arc> &ifst1, const Fst<Arc> &ifst2,
-                  MutableFst<Arc> *ofst) {
+void CrossProduct(
+    const Fst<Arc> &ifst1, const Fst<Arc> &ifst2, MutableFst<Arc> *ofst,
+    const typename Arc::Weight &final_weight = Arc::Weight::One()) {
+  using Weight = typename Arc::Weight;
   // Initialize output FST using upper language.
   *ofst = ifst1;
   // Replaces output arcs on the upper language with epsilon, using the output
@@ -51,6 +53,16 @@ void CrossProduct(const Fst<Arc> &ifst1, const Fst<Arc> &ifst2,
   ArcMap(&tfst, ie_mapper);
   // Concatenates the mapped lower language into the output FST.
   Concat(ofst, tfst);
+  // Adds a superfinal state when a final weight argument is specified. This
+  // is equivalent to setting all final weights to their current value
+  // \otimes final_weight.
+  if (final_weight != Weight::One()) {
+    VectorFst<Arc> superfinal;
+    auto state = superfinal.AddState();
+    superfinal.SetStart(state);
+    superfinal.SetFinal(state, final_weight);
+    Concat(ofst, superfinal);
+  }
   // Optimizes output, if both inputs are known to be string FSTs.
   if (ifst1.Properties(kAcceptorAndString, true) == kAcceptorAndString &&
       ifst2.Properties(kAcceptorAndString, true) == kAcceptorAndString) {

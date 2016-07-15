@@ -60,6 +60,8 @@ from fst cimport WeightClass
 
 from fst cimport kAcceptor
 from fst cimport kDelta
+from fst cimport kIDeterministic
+from fst cimport kNoEpsilons
 from fst cimport kError
 from fst cimport kString
 
@@ -76,8 +78,7 @@ from pywrapfst cimport SymbolTable_ptr
 from pywrapfst cimport Weight as _Weight
 
 from pywrapfst cimport _get_WeightClass_or_One
-from pywrapfst cimport \
-    _get_WeightClass_or_Zero
+from pywrapfst cimport _get_WeightClass_or_Zero
 from pywrapfst cimport _get_compose_filter
 from pywrapfst cimport _get_queue_type
 from pywrapfst cimport _get_replace_label_type
@@ -91,8 +92,7 @@ from fst_util cimport CompileBracketedByteString
 from fst_util cimport CompileBracketedUTF8String
 from fst_util cimport CompileSymbolString
 from fst_util cimport Containment
-from fst_util cimport \
-    FLAGS_fst_relabel_symbol_conflicts
+from fst_util cimport FLAGS_fst_relabel_symbol_conflicts
 from fst_util cimport CrossProduct
 from fst_util cimport LenientlyCompose
 from fst_util cimport MergeSymbols
@@ -105,8 +105,7 @@ from fst_util cimport StringPathsClass
 
 from fst_util cimport MergeSymbolsType
 from fst_util cimport MERGE_INPUT_AND_OUTPUT_SYMBOLS
-from fst_util cimport \
-    MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS
+from fst_util cimport MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS
 
 from fst_util cimport StringTokenType
 from fst_util cimport BYTE
@@ -128,8 +127,7 @@ from pynini_includes cimport PdtExpand
 from pynini_includes cimport PdtExpandOptions
 from pynini_includes cimport PdtReverse
 from pynini_includes cimport PdtShortestPath
-from pynini_includes cimport \
-    PdtShortestPathOptions
+from pynini_includes cimport PdtShortestPathOptions
 from pynini_includes cimport PyniniCDRewrite
 from pynini_includes cimport PyniniPdtReplace
 from pynini_includes cimport PyniniReplace
@@ -177,6 +175,7 @@ import logging
 
 
 cdef uint64 kAcceptorAndString = kAcceptor | kString
+cdef uint64 kDifferenceRhs = kNoEpsilons | kIDeterministic
 
 
 # Custom exceptions.
@@ -828,30 +827,34 @@ cpdef Fst acceptor(astring,
     Raises:
       FstArgError: Unknown arc type.
       FstArgError: Unknown token type.
+      FstOpError: Operation failed.
       FstStringCompilationError: String compilation failed.
   """
   cdef Fst result = Fst(tostring(arc_type))
   cdef WeightClass wc = _get_WeightClass_or_One(result.weight_type(), weight)
   cdef string _astring = tostring(astring)
   cdef SymbolTable_ptr syms
+  cdef bool success
   try:
     token_type = tostring(token_type)
     if token_type == b"byte":
-      if not CompileBracketedByteString(_astring, wc, result._mfst.get()):
-        raise FstStringCompilationError("Bytestring compilation failed")
+      success = CompileBracketedByteString(_astring, wc, result._mfst.get())
     elif token_type == b"utf8":
-      if not CompileBracketedUTF8String(_astring, wc, result._mfst.get()):
-        raise FstStringCompilationError("UTF8 string compilation failed")
+      success = CompileBracketedUTF8String(_astring, wc, result._mfst.get())
     else:
       raise FstArgError("Unknown token type: {!r}".format(token_type))
   except (FstArgError, UnicodeDecodeError):
     if isinstance(token_type, pywrapfst._SymbolTable):
       syms = (<SymbolTable_ptr> (<_SymbolTable> token_type)._table)
-      if not CompileSymbolString(_astring, wc, deref(syms), result._mfst.get()):
-        raise FstStringCompilationError("Symbol string compilation failed")
+      success = CompileSymbolString(_astring, wc, deref(syms),
+                                    result._mfst.get())
     else:
       raise
+  # First we check whether there were problems with arc or weight type, then
+  # for string compilation issues.
   result._check_pynini_op_error()
+  if not success:
+    raise FstStringCompilationError("String compilation failed")
   return result
 
 
@@ -899,7 +902,9 @@ cpdef Fst transducer(istring,
   Raises:
     FstArgError: Unknown arc type.
     FstArgError: Unknown token type.
-    PyniniStringCompilationError: String compilation failed.
+    FstArgError: Weight types do not match.
+    FstOpError: Operation failed.
+    FstStringCompilationError: String compilation failed.
   """
   cdef Fst lower
   cdef Fst upper
@@ -913,14 +918,14 @@ cpdef Fst transducer(istring,
     logging.warning("Expecting acceptor or string argument, got a transducer")
   # Sets up lower language, and passes weight.
   if not isinstance(ostring, Fst):
-    lower = acceptor(ostring, weight=weight, arc_type=arc_type,
-                     token_type=output_token_type)
+    lower = acceptor(ostring, arc_type=arc_type, token_type=output_token_type)
   else:
     lower = ostring
     if lower._fst.get().Properties(kAcceptor, True) != kAcceptor:
       logging.warning("Expecting acceptor or string argument, got a transducer")
   # Actually computes cross-product.
-  CrossProduct(deref(upper._fst), deref(lower._fst), result._mfst.get())
+  CrossProduct(deref(upper._fst), deref(lower._fst), result._mfst.get(),
+               _get_WeightClass_or_One(result.weight_type(), weight))
   result._check_pynini_op_error()
   return result
 
@@ -1080,6 +1085,9 @@ cpdef Fst leniently_compose(ifst1, ifst2, sigma_star, cf=b"auto",
     ifst: The input FST.
     sigma_star: A cyclic, unweighted acceptor representing the closure over the
         alphabet.
+    cf: A string matching a known composition filter; one of: "alt_sequence",
+        "auto", "match", "null", "sequence", "trivial".
+    connect: Should output be trimmed?
 
   Returns:
     An FST.
@@ -1317,7 +1325,8 @@ def _difference_patch(fnc):
           "Unable to resolve symbol table conflict without relabeling")
     # Following Thrax, we do what we can to make rhs epsilon-free and
     # deterministic.
-    rhs.optimize(True)
+    if rhs._fst.get().Properties(kDifferenceRhs, True) != kDifferenceRhs:
+      Optimize(rhs._mfst.get(), True)
     return _init_Fst_from_MutableFst(fnc(lhs, rhs, *args, **kwargs))
   return patch
 

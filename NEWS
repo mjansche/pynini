@@ -1,3 +1,13 @@
+v 1.1
+=====
+
+* Correctly handles final weights in `transducer`
+* Fixes inconsistency whereby the use of incorrect arc or weight types raised
+  `FstOpError` unless the error occurred during string compilation, in which
+  case it'd raise `FstStringCompilationError`; now all arc/weight errors raise
+  `FstOpError` and `FstStringCompilationError` is reserved for problems parsing
+  strings
+
 v. 1.0
 ======
 

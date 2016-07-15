@@ -25,17 +25,23 @@
 namespace fst {
 namespace script {
 
-typedef args::Package<const FstClass &, const FstClass &, MutableFstClass *>
-    CrossProductArgs;
+typedef args::Package<const FstClass &, const FstClass &, MutableFstClass *,
+                      const WeightClass &> CrossProductArgs;
 
 template <class Arc>
 void CrossProduct(CrossProductArgs *args) {
   const Fst<Arc> &ifst1 = *(args->arg1.GetFst<Arc>());
   const Fst<Arc> &ifst2 = *(args->arg2.GetFst<Arc>());
   MutableFst<Arc> *ofst = args->arg3->GetMutableFst<Arc>();
-  CrossProduct(ifst1, ifst2, ofst);
+  const typename Arc::Weight &final_weight =
+      *(args->arg4.GetWeight<typename Arc::Weight>());
+  CrossProduct(ifst1, ifst2, ofst, final_weight);
 }
 
+void CrossProduct(const FstClass &ifst1, const FstClass &ifst2,
+                  MutableFstClass *ofst, const WeightClass &final_weight);
+
+// Defaults final weight to semiring One.
 void CrossProduct(const FstClass &ifst1, const FstClass &ifst2,
                   MutableFstClass *ofst);
 

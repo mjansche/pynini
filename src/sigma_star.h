@@ -15,17 +15,32 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef PYNINI_TOKENTYPE_H_
-#define PYNINI_TOKENTYPE_H_
+#ifndef PYNINI_SIGMA_STAR_H_
+#define PYNINI_SIGMA_STAR_H_
 
-// This header just defines the TokenType enum used by StringMap and
-// StringPathsClass.
+#include <fst/fstlib.h>
+
+// Checks that a "sigma_star" FST is an unweighted cyclic acceptor.
 
 namespace fst {
+namespace internal {
 
-enum TokenType { SYMBOL = 1, BYTE = 2, UTF8 = 3 };
+constexpr uint64 kSigmaStarProperties = kAcceptor | kUnweighted | kCyclic;
 
+template <class Arc>
+bool CheckSigmaStarProperties(const Fst<Arc> &sigma_star,
+                              const string &op_name) {
+  if (sigma_star.Properties(kSigmaStarProperties, true) !=
+      kSigmaStarProperties) {
+    FSTERROR() << op_name << ": sigma_star must be a cyclic unweighted "
+               << "acceptor";
+    return false;
+  }
+  return true;
+}
+
+}  // namespace internal
 }  // namespace fst
 
-#endif  // PYNINI_TOKENTYPE_H_
+#endif  // PYNINI_SIGMA_STAR_H_
 

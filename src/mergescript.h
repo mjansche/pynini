@@ -28,8 +28,8 @@ namespace script {
 // These operations merge FST-attached symbol tables so that they are
 // compatible for other FST operations.
 
-typedef args::Package<MutableFstClass *, MutableFstClass *,
-                      MergeSymbolsType> MergeSymbolsInnerArgs;
+typedef args::Package<MutableFstClass *, MutableFstClass *, MergeSymbolsType>
+    MergeSymbolsInnerArgs;
 typedef args::WithReturnValue<bool, MergeSymbolsInnerArgs> MergeSymbolsArgs;
 
 template <class Arc>

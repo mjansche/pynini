@@ -34,6 +34,7 @@
 DECLARE_bool(fst_relabel_symbol_conflicts);
 
 namespace fst {
+namespace internal {
 
 // Returns a symbol table merging the two argument symbol tables. Symbol/key
 // pairs from the first table are never modified, but pairs from the second
@@ -48,8 +49,8 @@ SymbolTable *MergeSymbols(const SymbolTable *syms1, const SymbolTable *syms2,
 template <class Arc>
 bool MergeInputSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2) {
   bool relabel = false;
-  std::unique_ptr<SymbolTable> new_syms(MergeSymbols(
-      fst1->InputSymbols(), fst2->InputSymbols(), &relabel));
+  std::unique_ptr<SymbolTable> new_syms(
+      MergeSymbols(fst1->InputSymbols(), fst2->InputSymbols(), &relabel));
   if (!new_syms) return true;  // No mutation necessary.
   if (relabel) {
     if (FLAGS_fst_relabel_symbol_conflicts) {
@@ -68,8 +69,8 @@ bool MergeInputSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2) {
 template <class Arc>
 bool MergeOutputSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2) {
   bool relabel = false;
-  std::unique_ptr<SymbolTable> new_syms(MergeSymbols(
-      fst1->OutputSymbols(), fst2->OutputSymbols(), &relabel));
+  std::unique_ptr<SymbolTable> new_syms(
+      MergeSymbols(fst1->OutputSymbols(), fst2->OutputSymbols(), &relabel));
   if (!new_syms) return true;  // No mutation necessary.
   if (relabel) {
     if (FLAGS_fst_relabel_symbol_conflicts) {
@@ -89,8 +90,8 @@ template <class Arc>
 bool MergeLeftOutputAndRightInputSymbols(MutableFst<Arc> *fst1,
                                          MutableFst<Arc> *fst2) {
   bool relabel = false;
-  std::unique_ptr<SymbolTable> new_syms(MergeSymbols(
-      fst1->OutputSymbols(), fst2->InputSymbols(), &relabel));
+  std::unique_ptr<SymbolTable> new_syms(
+      MergeSymbols(fst1->OutputSymbols(), fst2->InputSymbols(), &relabel));
   if (!new_syms) return true;  // No mutation necessary.
   if (relabel) {
     if (FLAGS_fst_relabel_symbol_conflicts) {
@@ -106,6 +107,8 @@ bool MergeLeftOutputAndRightInputSymbols(MutableFst<Arc> *fst1,
   fst2->SetInputSymbols(new_syms.get());
   return true;
 }
+
+}  // namespace internal
 
 // These are encoded so that they be ORed together.
 enum MergeSymbolsType {
@@ -128,14 +131,14 @@ bool MergeSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2,
                   MergeSymbolsType mst) {
   bool success = true;
   if ((mst & MERGE_INPUT_SYMBOLS) == MERGE_INPUT_SYMBOLS) {
-    success &= MergeInputSymbols(fst1, fst2);
+    success &= internal::MergeInputSymbols(fst1, fst2);
   }
   if ((mst & MERGE_OUTPUT_SYMBOLS) == MERGE_OUTPUT_SYMBOLS) {
-    success &= MergeOutputSymbols(fst1, fst2);
+    success &= internal::MergeOutputSymbols(fst1, fst2);
   }
   if ((mst & MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS) ==
       MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS) {
-    success &= MergeLeftOutputAndRightInputSymbols(fst1, fst2);
+    success &= internal::MergeLeftOutputAndRightInputSymbols(fst1, fst2);
   }
   return success;
 }

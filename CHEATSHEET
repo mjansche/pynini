@@ -24,7 +24,7 @@ Compilation:
     a("Do you have Camembert?", ...)
     t("Do you have Camembert?", "No.", ...)
     string_map(((f, g), (h, i), ...))
-    cdrewrite(transducer("s", "z"), "", "[EOS]", sigma_star)
+    cdrewrite(t("s", "z"), "", "[EOS]", sigma_star)
     replace("[DT] [NP] and [DT] [NP]", DT=u("the", "a"),
             NP=u("dog", "cat", "mouse"))
 

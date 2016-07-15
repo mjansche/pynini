@@ -15,27 +15,29 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#include "crossproductscript.h"
-#include <fst/script/fst-class.h>
+#include "lenientlycomposescript.h"
 #include <fst/script/script-impl.h>
 
 namespace fst {
 namespace script {
 
-void CrossProduct(const FstClass &ifst1, const FstClass &ifst2,
-                  MutableFstClass *ofst) {
-  if (!ArcTypesMatch(ifst1, ifst2, "CrossProduct") ||
-      !ArcTypesMatch(ifst2, *ofst, "CrossProduct")) {
+void LenientlyCompose(const FstClass &ifst1, const FstClass &ifst2,
+                      const FstClass &sigma_star, MutableFstClass *ofst,
+                      const ComposeOptions &opts) {
+  if (!ArcTypesMatch(ifst1, ifst2, "LenientlyCompose") ||
+      !ArcTypesMatch(ifst2, sigma_star, "LenientlyCompose") ||
+      !ArcTypesMatch(sigma_star, *ofst, "LenientlyCompose")) {
     ofst->SetProperties(kError, kError);
     return;
   }
-  CrossProductArgs args(ifst1, ifst2, ofst);
-  Apply<Operation<CrossProductArgs>>("CrossProduct", ofst->ArcType(), &args);
+  LenientlyComposeArgs args(ifst1, ifst2, sigma_star, ofst, opts);
+  Apply<Operation<LenientlyComposeArgs>>("LenientlyCompose", ifst1.ArcType(),
+                                         &args);
 }
 
-REGISTER_FST_OPERATION(CrossProduct, StdArc, CrossProductArgs);
-REGISTER_FST_OPERATION(CrossProduct, LogArc, CrossProductArgs);
-REGISTER_FST_OPERATION(CrossProduct, Log64Arc, CrossProductArgs);
+REGISTER_FST_OPERATION(LenientlyCompose, StdArc, LenientlyComposeArgs);
+REGISTER_FST_OPERATION(LenientlyCompose, LogArc, LenientlyComposeArgs);
+REGISTER_FST_OPERATION(LenientlyCompose, Log64Arc, LenientlyComposeArgs);
 
 }  // namespace script
 }  // namespace fst

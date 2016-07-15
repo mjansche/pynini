@@ -15,14 +15,18 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#include <fst/script/script-impl.h>
 #include "stringcompilescript.h"
+#include <fst/script/script-impl.h>
 
 namespace fst {
 namespace script {
 
 bool CompileByteString(const string &str, const WeightClass &wc,
                        MutableFstClass *fst) {
+  if (!fst->WeightTypesMatch(wc, "CompileByteString")) {
+    fst->SetProperties(kError, kError);
+    return false;
+  }
   CompileByteStringInnerArgs iargs(str, wc, fst);
   CompileByteStringArgs args(iargs);
   Apply<Operation<CompileByteStringArgs>>("CompileByteString", fst->ArcType(),
@@ -32,6 +36,10 @@ bool CompileByteString(const string &str, const WeightClass &wc,
 
 bool CompileUTF8String(const string &str, const WeightClass &wc,
                        MutableFstClass *fst) {
+  if (!fst->WeightTypesMatch(wc, "CompileUTF8String")) {
+    fst->SetProperties(kError, kError);
+    return false;
+  }
   CompileUTF8StringInnerArgs iargs(str, wc, fst);
   CompileUTF8StringArgs args(iargs);
   Apply<Operation<CompileUTF8StringArgs>>("CompileUTF8String", fst->ArcType(),
@@ -41,6 +49,10 @@ bool CompileUTF8String(const string &str, const WeightClass &wc,
 
 bool CompileSymbolString(const string &str, const WeightClass &wc,
                          const SymbolTable &syms, MutableFstClass *fst) {
+  if (!fst->WeightTypesMatch(wc, "CompileSymbolString")) {
+    fst->SetProperties(kError, kError);
+    return false;
+  }
   CompileSymbolStringInnerArgs iargs(str, wc, syms, fst);
   CompileSymbolStringArgs args(iargs);
   Apply<Operation<CompileSymbolStringArgs>>("CompileSymbolString",
@@ -50,6 +62,10 @@ bool CompileSymbolString(const string &str, const WeightClass &wc,
 
 bool CompileBracketedByteString(const string &str, const WeightClass &wc,
                                 MutableFstClass *fst) {
+  if (!fst->WeightTypesMatch(wc, "CompileBracketedByteString")) {
+    fst->SetProperties(kError, kError);
+    return false;
+  }
   CompileBracketedByteStringInnerArgs iargs(str, wc, fst);
   CompileBracketedByteStringArgs args(iargs);
   Apply<Operation<CompileBracketedByteStringArgs>>("CompileBracketedByteString",
@@ -59,6 +75,10 @@ bool CompileBracketedByteString(const string &str, const WeightClass &wc,
 
 bool CompileBracketedUTF8String(const string &str, const WeightClass &wc,
                                 MutableFstClass *fst) {
+  if (!fst->WeightTypesMatch(wc, "CompileBracketedUTF8String")) {
+    fst->SetProperties(kError, kError);
+    return false;
+  }
   CompileBracketedUTF8StringInnerArgs iargs(str, wc, fst);
   CompileBracketedUTF8StringArgs args(iargs);
   Apply<Operation<CompileBracketedUTF8StringArgs>>("CompileBracketedUTF8String",

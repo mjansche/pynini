@@ -159,7 +159,8 @@ class CDRewriteRule {
   Label lbrace2_;
   Label rbrace_;
 
-  DISALLOW_COPY_AND_ASSIGN(CDRewriteRule);
+  CDRewriteRule(const CDRewriteRule &) = delete;
+  CDRewriteRule &operator=(const CDRewriteRule &) = delete;
 };
 
 

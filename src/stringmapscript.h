@@ -20,8 +20,8 @@
 
 #include <string>
 using std::string;
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include <fst/fstlib.h>
 #include <fst/script/arg-packs.h>
@@ -32,24 +32,44 @@ namespace fst {
 namespace script {
 
 typedef args::Package<const std::vector<std::pair<string, string>> &,
-                      TokenType, TokenType, MutableFstClass *,
+                      StringTokenType, StringTokenType, MutableFstClass *,
                       const SymbolTable *, const SymbolTable *>
-                      StringMapInnerArgs;
+    StringMapInnerArgs;
 
 typedef args::WithReturnValue<bool, StringMapInnerArgs> StringMapArgs;
 
-template <class A>
+template <class Arc>
 void StringMap(StringMapArgs *args) {
-  using Arc = A;
   MutableFst<Arc> *fst = args->args.arg4->GetMutableFst<Arc>();
-  args->retval = StringMap(args->args.arg1, args->args.arg2, args->args.arg3,
-                           fst, args->args.arg5, args->args.arg6);
+  args->retval =
+      CompileStringMap(args->args.arg1, args->args.arg2, args->args.arg3, fst,
+                       args->args.arg5, args->args.arg6);
 }
 
 bool StringMap(const std::vector<std::pair<string, string>> &pairs,
-               TokenType itype, TokenType otype, MutableFstClass *fst,
-               const SymbolTable *isyms = nullptr,
+               StringTokenType itype, StringTokenType otype,
+               MutableFstClass *fst, const SymbolTable *isyms = nullptr,
                const SymbolTable *osyms = nullptr);
+
+typedef args::Package<const string &, StringTokenType, StringTokenType,
+                      MutableFstClass *, const SymbolTable *,
+                      const SymbolTable *>
+    StringFileInnerArgs;
+
+typedef args::WithReturnValue<bool, StringFileInnerArgs> StringFileArgs;
+
+template <class Arc>
+void StringFile(StringFileArgs *args) {
+  MutableFst<Arc> *fst = args->args.arg4->GetMutableFst<Arc>();
+  args->retval =
+      CompileStringFile(args->args.arg1, args->args.arg2, args->args.arg3, fst,
+                        args->args.arg5, args->args.arg6);
+}
+
+bool StringFile(const string &fname, StringTokenType itype,
+                StringTokenType otype, MutableFstClass *fst,
+                const SymbolTable *isyms = nullptr,
+                const SymbolTable *osyms = nullptr);
 
 }  // namespace script
 }  // namespace fst

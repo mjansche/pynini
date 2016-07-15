@@ -36,7 +36,8 @@ void PyniniCDRewrite(const FstClass &tau, const FstClass &lambda,
                      CDRewriteMode cm) {
   if (!ArcTypesMatch(tau, lambda, "PyniniCDRewrite") ||
       !ArcTypesMatch(lambda, rho, "PyniniCDRewrite") ||
-      !ArcTypesMatch(rho, sigma_star, "PyniniCDRewrite")) return;
+      !ArcTypesMatch(rho, sigma_star, "PyniniCDRewrite"))
+    return;
   PyniniCDRewriteArgs args(tau, lambda, rho, sigma_star, fst, cd, cm);
   Apply<Operation<PyniniCDRewriteArgs>>("PyniniCDRewrite", fst->ArcType(),
                                         &args);

@@ -15,32 +15,35 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef PYNINI_CROSSPRODUCTSCRIPT_H_
-#define PYNINI_CROSSPRODUCTSCRIPT_H_
+#ifndef PYNINI_LENIENTLYCOMPOSESCRIPT_H_
+#define PYNINI_LENIENTLYCOMPOSESCRIPT_H_
 
 #include <fst/script/arg-packs.h>
 #include <fst/script/fst-class.h>
-#include "crossproduct.h"
+#include "lenientlycompose.h"
 
 namespace fst {
 namespace script {
 
-typedef args::Package<const FstClass &, const FstClass &, MutableFstClass *>
-    CrossProductArgs;
+typedef args::Package<const FstClass &, const FstClass &, const FstClass &,
+                      MutableFstClass *, const ComposeOptions &>
+    LenientlyComposeArgs;
 
 template <class Arc>
-void CrossProduct(CrossProductArgs *args) {
+void LenientlyCompose(LenientlyComposeArgs *args) {
   const Fst<Arc> &ifst1 = *(args->arg1.GetFst<Arc>());
   const Fst<Arc> &ifst2 = *(args->arg2.GetFst<Arc>());
-  MutableFst<Arc> *ofst = args->arg3->GetMutableFst<Arc>();
-  CrossProduct(ifst1, ifst2, ofst);
+  const Fst<Arc> &sigma_star = *(args->arg3.GetFst<Arc>());
+  MutableFst<Arc> *ofst = args->arg4->GetMutableFst<Arc>();
+  LenientlyCompose(ifst1, ifst2, sigma_star, ofst, args->arg5);
 }
 
-void CrossProduct(const FstClass &ifst1, const FstClass &ifst2,
-                  MutableFstClass *ofst);
+void LenientlyCompose(const FstClass &ifst1, const FstClass &ifst2,
+                      const FstClass &sigma_star, MutableFstClass *ofst,
+                      const ComposeOptions &copts = ComposeOptions());
 
 }  // namespace script
 }  // namespace fst
 
-#endif  // PYNINI_CROSSPRODUCTSCRIPT_H_
+#endif  // PYNINI_LENIENTLYCOMPOSESCRIPT_H_
 

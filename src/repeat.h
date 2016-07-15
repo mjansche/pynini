@@ -56,6 +56,7 @@ namespace fst {
 
 template <class Arc>
 void Repeat(MutableFst<Arc> *fst, int32 lower, int32 upper) {
+  using Weight = typename Arc::Weight;
   if (upper <= 0) {
     // Special cases.
     if (lower <= 0) {
@@ -67,21 +68,18 @@ void Repeat(MutableFst<Arc> *fst, int32 lower, int32 upper) {
     }
   }
   // Generic cases.
-  typename Arc::Weight One = Arc::Weight::One();
-  if (lower <= 0)   // Lower bound includes 0 repetitions.
-    fst->SetFinal(fst->Start(), One);
+  if (lower <= 0)  // Lower bound includes 0 repetitions.
+    fst->SetFinal(fst->Start(), Weight::One());
   std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-  for (auto i = 0; i < lower - 1; ++i)
-    Concat(fst, *tfst);
+  for (auto i = 0; i < lower - 1; ++i) Concat(fst, *tfst);
   if (upper <= 0) {  // Upper bound is infinite.
     // Concatenates a *-ed copy.
     Closure(tfst.get(), CLOSURE_STAR);
     Concat(fst, *tfst);
-  } else {           // Upper bound is finite.
+  } else {  // Upper bound is finite.
     // Concatenates ?-ed copies.
-    tfst->SetFinal(tfst->Start(), One);
-    for (auto i = lower; i < upper; ++i)
-      Concat(fst, *tfst);
+    tfst->SetFinal(tfst->Start(), Weight::One());
+    for (auto i = lower; i < upper; ++i) Concat(fst, *tfst);
   }
 }
 

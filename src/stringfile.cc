@@ -15,32 +15,42 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef PYNINI_CROSSPRODUCTSCRIPT_H_
-#define PYNINI_CROSSPRODUCTSCRIPT_H_
+#include "stringfile.h"
 
-#include <fst/script/arg-packs.h>
-#include <fst/script/fst-class.h>
-#include "crossproduct.h"
+#include <vector>
+
+#include "gtl.h"
+#include <re2/stringpiece.h>
+using re2::StringPiece;
 
 namespace fst {
-namespace script {
+namespace internal {
 
-typedef args::Package<const FstClass &, const FstClass &, MutableFstClass *>
-    CrossProductArgs;
-
-template <class Arc>
-void CrossProduct(CrossProductArgs *args) {
-  const Fst<Arc> &ifst1 = *(args->arg1.GetFst<Arc>());
-  const Fst<Arc> &ifst2 = *(args->arg2.GetFst<Arc>());
-  MutableFst<Arc> *ofst = args->arg3->GetMutableFst<Arc>();
-  CrossProduct(ifst1, ifst2, ofst);
+void StringFile::Reset() {
+  istrm_.clear();
+  istrm_.seekg(0, istrm_.beg);
+  Next();
 }
 
-void CrossProduct(const FstClass &ifst1, const FstClass &ifst2,
-                  MutableFstClass *ofst);
+void StringFile::Next() {
+  // Reads a line; if it's empty, reads until it runs out of file or it finds a
+  // non-empty one.
+  ++linenum_;
+  if (!std::getline(istrm_, line_)) return;
+  while (line_.empty()) {
+    ++linenum_;
+    if (!std::getline(istrm_, line_)) return;
+  }
+}
 
-}  // namespace script
+bool PairStringFile::Parse() {
+  std::vector<string> pieces = strings::Split(sf_.GetString(), "\t");
+  if (pieces.size() != 2) return false;
+  left_ = pieces[0];
+  right_ = pieces[1];
+  return true;
+}
+
+}  // namespace internal
 }  // namespace fst
-
-#endif  // PYNINI_CROSSPRODUCTSCRIPT_H_
 

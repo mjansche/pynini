@@ -15,35 +15,32 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef PYNINI_OPTIMIZESCRIPT_H_
-#define PYNINI_OPTIMIZESCRIPT_H_
+#ifndef PYNINI_CONTAINMENTSCRIPT_H_
+#define PYNINI_CONTAINMENTSCRIPT_H_
 
 #include <fst/script/arg-packs.h>
 #include <fst/script/fst-class.h>
-#include "optimize.h"
+#include "containment.h"
 
 namespace fst {
 namespace script {
 
-typedef args::Package<MutableFstClass *, bool> OptimizeArgs;
+typedef args::Package<const FstClass &, const FstClass &, MutableFstClass *>
+    ContainmentArgs;
 
 template <class Arc>
-void Optimize(OptimizeArgs *args) {
-  MutableFst<Arc> *fst = args->arg1->GetMutableFst<Arc>();
-  Optimize(fst, args->arg2);
+void Containment(ContainmentArgs *args) {
+  const Fst<Arc> &ifst = *(args->arg1.GetFst<Arc>());
+  const Fst<Arc> &sigma_star = *(args->arg2.GetFst<Arc>());
+  MutableFst<Arc> *ofst = args->arg3->GetMutableFst<Arc>();
+  Containment(ifst, sigma_star, ofst);
 }
 
-void Optimize(MutableFstClass *fst, bool compute_props = false);
-
-template <class Arc>
-void OptimizeStringCrossProducts(MutableFstClass *fst) {
-  OptimizeStringCrossProducts(fst->GetMutableFst<Arc>());
-}
-
-void OptimizeStringCrossProducts(MutableFstClass *fst);
+void Containment(const FstClass &ifst, const FstClass &sigma_star,
+                 MutableFstClass *ofst);
 
 }  // namespace script
 }  // namespace fst
 
-#endif  // PYNINI_OPTIMIZESCRIPT_H_
+#endif  // PYNINI_CONTAINMENTSCRIPT_H_
 

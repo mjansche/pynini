@@ -3,7 +3,8 @@ include CHEATSHEET
 include CONTRIBUTING
 include LICENSE
 include NEWS
+include pynini_test.py
 include src/*.h
 include src/*.pxd
 include src/*.pyx
-include pynini_test.py
+include testdata/*

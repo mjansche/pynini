@@ -15,19 +15,21 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
+#include "pathsscript.h"
 #include <fst/script/fst-class.h>
 #include <fst/script/script-impl.h>
-#include "pathsscript.h"
 
 namespace fst {
 namespace script {
 
 StringPathsClass::StringPathsClass(const FstClass &fst,
-    TokenType token_type, const SymbolTable *isyms, const SymbolTable *osyms) :
-    impl_(nullptr) {
+                                   StringTokenType token_type,
+                                   const SymbolTable *isyms,
+                                   const SymbolTable *osyms)
+    : impl_(nullptr) {
   InitStringPathsClassArgs args(fst, token_type, isyms, osyms, this);
-  Apply<Operation<InitStringPathsClassArgs>>(
-      "InitStringPathsClass", fst.ArcType(), &args);
+  Apply<Operation<InitStringPathsClassArgs>>("InitStringPathsClass",
+                                             fst.ArcType(), &args);
 }
 
 REGISTER_FST_OPERATION(InitStringPathsClass, StdArc, InitStringPathsClassArgs);

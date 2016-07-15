@@ -43,8 +43,7 @@ REGISTER_FST_OPERATION(PyniniReplace, Log64Arc, PyniniReplaceArgs);
 
 void PyniniPdtReplace(const FstClass &root,
                       const std::vector<StringFstClassPair> &pairs,
-                      MutableFstClass *ofst,
-                      std::vector<LabelPair> *parens,
+                      MutableFstClass *ofst, std::vector<LabelPair> *parens,
                       PdtParserType type) {
   if (!ArcTypesMatch(root, *ofst, "PyniniReplace")) {
     ofst->SetProperties(kError, kError);

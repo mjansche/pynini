@@ -23,15 +23,17 @@
 // produce jibberish.
 
 #include <fst/fstlib.h>
+#include <fst/string.h>
 #include <fst/script/arg-packs.h>
 #include <fst/script/fstscript.h>
-#include "pathsscript.h"  // For TokenType, etc.
+#include "pathsscript.h"
 
 namespace fst {
 namespace script {
 
-typedef args::Package<const FstClass &, TokenType,
-                      const SymbolTable *, string *> PyniniStringifyInnerArgs;
+typedef args::Package<const FstClass &, StringTokenType, const SymbolTable *,
+                      string *>
+    PyniniStringifyInnerArgs;
 
 typedef args::WithReturnValue<bool, PyniniStringifyInnerArgs>
     PyniniStringifyArgs;
@@ -57,7 +59,7 @@ void PyniniStringify(PyniniStringifyArgs *args) {
   }
 }
 
-bool PyniniStringify(const FstClass &fst, TokenType token_type,
+bool PyniniStringify(const FstClass &fst, StringTokenType token_type,
                      const SymbolTable *, string *);
 
 }  // namespace script

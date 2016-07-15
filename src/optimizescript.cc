@@ -15,9 +15,9 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
+#include "optimizescript.h"
 #include <fst/script/fst-class.h>
 #include <fst/script/script-impl.h>
-#include "optimizescript.h"
 
 namespace fst {
 namespace script {
@@ -27,32 +27,14 @@ void Optimize(MutableFstClass *fst, bool compute_props) {
   Apply<Operation<OptimizeArgs>>("Optimize", fst->ArcType(), &args);
 }
 
-REGISTER_FST_OPERATION(Optimize, StdArc, OptimizeArgs);
-REGISTER_FST_OPERATION(Optimize, LogArc, OptimizeArgs);
-REGISTER_FST_OPERATION(Optimize, Log64Arc, OptimizeArgs);
-
-void OptimizeAcceptor(MutableFstClass *fst, bool compute_props) {
-  OptimizeArgs args(fst, compute_props);
-  Apply<Operation<OptimizeArgs>>("OptimizeAcceptor", fst->ArcType(), &args);
-}
-
-REGISTER_FST_OPERATION(OptimizeAcceptor, StdArc, OptimizeArgs);
-REGISTER_FST_OPERATION(OptimizeAcceptor, LogArc, OptimizeArgs);
-REGISTER_FST_OPERATION(OptimizeAcceptor, Log64Arc, OptimizeArgs);
-
-void OptimizeTransducer(MutableFstClass *fst, bool compute_props) {
-  OptimizeArgs args(fst, compute_props);
-  Apply<Operation<OptimizeArgs>>("OptimizeTransducer", fst->ArcType(), &args);
-}
-
-REGISTER_FST_OPERATION(OptimizeTransducer, StdArc, OptimizeArgs);
-REGISTER_FST_OPERATION(OptimizeTransducer, LogArc, OptimizeArgs);
-REGISTER_FST_OPERATION(OptimizeTransducer, Log64Arc, OptimizeArgs);
-
 void OptimizeStringCrossProducts(MutableFstClass *fst) {
   Apply<Operation<MutableFstClass>>("OptimizeStringCrossProducts",
                                     fst->ArcType(), fst);
 }
+
+REGISTER_FST_OPERATION(Optimize, StdArc, OptimizeArgs);
+REGISTER_FST_OPERATION(Optimize, LogArc, OptimizeArgs);
+REGISTER_FST_OPERATION(Optimize, Log64Arc, OptimizeArgs);
 
 REGISTER_FST_OPERATION(OptimizeStringCrossProducts, StdArc, MutableFstClass);
 REGISTER_FST_OPERATION(OptimizeStringCrossProducts, LogArc, MutableFstClass);

@@ -21,7 +21,9 @@ from libcpp.utility cimport pair
 from libcpp.vector cimport vector
 
 from basictypes cimport int32
+from basictypes cimport int64
 
+from fst cimport ComposeOptions
 from fst cimport FstClass
 from fst cimport MutableFstClass
 from fst cimport SymbolTable
@@ -48,10 +50,10 @@ cdef extern from "optimizescript.h" \
   void OptimizeStringCrossProducts(MutableFstClass *)
 
 
-cdef extern from "tokentype.h" \
+cdef extern from "<fst/string.h>" \
     namespace "fst" nogil:
 
-  enum TokenType:
+  enum StringTokenType:
     SYMBOL
     BYTE
     UTF8
@@ -62,22 +64,40 @@ cdef extern from "pathsscript.h" \
 
   cdef cppclass StringPathsClass:
 
-    StringPathsClass(const FstClass &, TokenType, const SymbolTable *,
+    StringPathsClass(const FstClass &, StringTokenType, const SymbolTable *,
                      const SymbolTable *)
-
-    bool Done()
 
     bool Error()
 
     string IString()
 
-    void Next()
-
     string OString()
+
+    WeightClass Weight()
+
+    vector[int64] ILabels(bool)
+
+    vector[int64] OLabels(bool)
 
     void Reset()
 
-    WeightClass Weight()
+    void Next()
+
+    bool Done()
+
+
+cdef extern from "containmentscript.h" \
+    namespace "fst::script" nogil:
+
+  void Containment(const FstClass &, const FstClass &, MutableFstClass *)
+
+
+cdef extern from "lenientlycomposescript.h" \
+    namespace "fst::script" nogil:
+
+  void LenientlyCompose(const FstClass &, const FstClass &,
+                        const FstClass &, MutableFstClass *,
+                        const ComposeOptions &)
 
 
 cdef extern from "repeatscript.h" \
@@ -105,21 +125,22 @@ cdef extern from "stringcompilescript.h" \
                                   MutableFstClass *)
 
 
-cdef extern from "stringfilescript.h" \
-    namespace "fst::script" nogil:
-
-  bool StringFile(const string &, TokenType, TokenType,
-                  MutableFstClass *, const SymbolTable *, const SymbolTable *)
-
-
 ctypedef pair[string, string] StringPair
 
 
 cdef extern from "stringmapscript.h" \
     namespace "fst::script" nogil:
 
-  bool StringMap(const vector[StringPair] &, TokenType, TokenType,
+  bool StringFile(const string &, StringTokenType, StringTokenType,
+                  MutableFstClass *, const SymbolTable *, const SymbolTable *)
+
+  bool StringMap(const vector[StringPair] &, StringTokenType, StringTokenType,
                  MutableFstClass *, const SymbolTable *, const SymbolTable *)
+
+
+cdef extern from "merge.h":
+
+  bool FLAGS_fst_relabel_symbol_conflicts
 
 
 cdef extern from "merge.h" namespace "fst":

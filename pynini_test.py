@@ -7,6 +7,7 @@
 
 
 import itertools
+import math
 import string
 import unittest
 
@@ -120,12 +121,12 @@ class PyniniClosureTest(unittest.TestCase):
     a.closure(m, n)
     # Doesn't accept <3 copies.
     for i in xrange(m):
-      self.assertEqual(compose(a, cheese * i).num_states, 0)
+      self.assertEqual(compose(a, cheese * i).num_states(), 0)
     # Accepts between 3-7 copies.
     for i in xrange(m, n + 1):
-      self.assertTrue(compose(a, cheese * i).num_states != 0)
+      self.assertNotEqual(compose(a, cheese * i).num_states(), 0)
     # Doesn't accept more than 7 copies.
-    self.assertEqual(compose(a, cheese * (n + 1)).num_states, 0)
+    self.assertEqual(compose(a, cheese * (n + 1)).num_states(), 0)
 
 
 class PyniniEqualTest(unittest.TestCase):
@@ -271,6 +272,49 @@ class PyniniExceptionsTest(unittest.TestCase):
       self.s.find(1024)
 
 
+class PyniniIOTest(unittest.TestCase):
+
+  def testGarbageReadRaisesFstIOError(self):
+    with self.assertRaises(FstIOError):
+      unused_f = Fst.read("nonexistent")
+
+
+class PyniniLenientlyComposeTest(unittest.TestCase):
+
+  @classmethod
+  def setUpClass(cls):
+    cls.sigstar = u(*string.ascii_letters + " ").closure().optimize()
+    cls.cheese_geography = string_map((("Red Leicester", "England"),
+                                       ("Tilsit", "Russia"),
+                                       ("Caerphilly", "Wales"),
+                                       ("Bel Paese", "Italy"),
+                                       ("Red Windsor", "England"),
+                                       ("Stilton", "England"),
+                                       ("Emmental", "Switzerland"),
+                                       ("Norwegian Jarlsberg", "Norway"),
+                                       ("Liptauer", "Germany"),
+                                       ("Lancashire", "England"),
+                                       ("White Stilton", "England"),
+                                       ("Danish Blue", "Denmark"),
+                                       ("Double Gloucester", "England"),
+                                       ("Cheshire", "England"),
+                                       ("Dorset Blue Vinney", "England"),
+                                       ("Brie", "France"),
+                                       ("Roquefort", "France"),
+                                       ("Port Salut", "France")))
+
+  def testLenientCompositionOfOutOfDomainStringWithTransducerIsIdentity(self):
+    cheese = "Wisconsin Cheddar"
+    self.assertEqual(leniently_compose(cheese, self.cheese_geography,
+                                       self.sigstar), cheese)
+
+  def testLenientCompositionOfInDomainStringWithTransducerIsTransduced(self):
+    cheese = "Lancashire"
+    self.assertEqual(leniently_compose(cheese, self.cheese_geography,
+                                       self.sigstar).project(True).optimize(),
+                     "England")
+
+
 class PyniniPdtReplaceTest(unittest.TestCase):
 
   def testPdtReplace(self):
@@ -346,7 +390,7 @@ class PyniniStringTest(unittest.TestCase):
   def testBracketedTokenizationAcceptorCompilation(self):
     cheese_tokens = self.cheese.split()
     cheese = acceptor("".join("[{}]".format(t) for t in cheese_tokens))
-    i = cheese.input_symbols.find(cheese_tokens[1])  # "Leicester".
+    i = cheese.input_symbols().find(cheese_tokens[1])  # "Leicester".
     self.assertGreater(i, 255)
 
   def testBracketedCharsBytestringAcceptorCompilation(self):
@@ -369,7 +413,7 @@ class PyniniStringTest(unittest.TestCase):
 
   def testEscapedBracketsBytestringAcceptorCompilation(self):
     a = acceptor("[\[Camembert\] is a]\[cheese\]")
-    self.assertEqual(a.num_states, 12)
+    self.assertEqual(a.num_states(), 12)
     # Should have 3 states accepting generated symbols, 8 accepting a byte,
     # and 1 final state.
 
@@ -452,7 +496,7 @@ class PyniniStringTest(unittest.TestCase):
   def testUnicodeSymbolStringify(self):
     a = acceptor(self.imported_cheese, token_type="utf8")
     self.assertEqual(a.stringify("symbol"),
-                     b"P o n t <space> l ' E v <0xea> q u e")
+                     b"P o n t <SPACE> l ' E v <0xea> q u e")
 
   def testUnicodeSymbolStringifyWithNoSymbolTable(self):
     a = acceptor(self.imported_cheese, token_type="utf8")
@@ -463,6 +507,52 @@ class PyniniStringTest(unittest.TestCase):
   def testStringifyOnNonkStringFstRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
       unused_a = union(self.cheese, self.imported_cheese).stringify()
+
+  def testCompositionOfStringAndLogArcWorks(self):
+    cheese = "Greek Feta"
+    self.assertEqual(cheese * acceptor(cheese, arc_type="log"), cheese)
+
+  def testCompositionOfLogArcAndStringWorks(self):
+    cheese = "Tilsit"
+    self.assertEqual(acceptor(cheese, arc_type="log") * cheese, cheese)
+
+  def testCompositionOfStringAndLog64ArcWorks(self):
+    cheese = "Greek Feta"
+    self.assertEqual(cheese * acceptor(cheese, arc_type="log64"), cheese)
+
+  def testCompositionOfLog64ArcAndStringWorks(self):
+    cheese = "Tilsit"
+    self.assertEqual(acceptor(cheese, arc_type="log64") * cheese, cheese)
+
+  def testLogWeightToStandardAcceptorRaisesFstStringCompilationError(self):
+    with self.assertRaises(FstStringCompilationError):
+      unused_a = acceptor("Sage Derby", weight=Weight.One("log"))
+
+  def testLog64WeightToLogAcceptorRaisesFstStringCompilationError(self):
+    with self.assertRaises(FstStringCompilationError):
+      unused_a = acceptor("Wensleydale", arc_type="log",
+                          weight=Weight.One("log64"))
+
+  def testTropicalWeightToLog64TransducerRaisesFstStringCompilationError(self):
+    with self.assertRaises(FstStringCompilationError):
+      unused_t = transducer("Venezuelan Beaver Cheese", "Not today sir, no",
+                            arc_type="log64", weight=Weight.One("tropical"))
+
+
+class PyniniStringFileTest(unittest.TestCase):
+
+  @classmethod
+  def setUpClass(cls):
+    cls.tsv_name = "testdata/cheese.map"
+
+  def testStringFile(self):
+    mapper = string_file(self.tsv_name)
+    self.assertEqual(project("[Bel Paese]" * mapper, True).optimize(), "Sorry")
+    self.assertEqual(project("Cheddar" * mapper, True).optimize(), "Cheddar")
+    self.assertEqual(project("Caithness" * mapper, True).optimize(),
+                     "Pont-l'Évêque")
+    self.assertEqual(project("Pont-l'Évêque" * mapper, True).optimize(),
+                    "Camembert")
 
 
 class PyniniStringMapTest(unittest.TestCase):
@@ -549,6 +639,294 @@ class PyniniStringPathsTest(unittest.TestCase):
                                                self.triples):
       self.assertEqual(triple_res, triple)
 
+  def testStringPathsAfterFstDeletion(self):
+    f = u("Pipo Crem'", "Fynbo")
+    sp = StringPaths(f)
+    del f   # Should be garbage-collected immediately.
+    self.assertEqual(len(list(sp)), 2)
+
+  def testStringPathLabelsWithoutEpsilons(self):
+    cheese = "Cheddar"
+    f = a(cheese)
+    chars = [ord(i) for i in cheese]
+    sp = StringPaths(f)
+    eps_free_ilabels = sp.ilabels(False)
+    self.assertEqual(eps_free_ilabels, chars)
+    self.assertEqual(sp.ilabels(True), eps_free_ilabels)
+    eps_free_olabels = sp.olabels(False)
+    self.assertEqual(eps_free_olabels, eps_free_ilabels)
+    self.assertEqual(sp.olabels(True), eps_free_olabels)
+    sp.next()
+    self.assertTrue(sp.done())
+
+  def testStringPathLabelsWithEpsilons(self):
+    # Note that the Thompson construction for union connects the initial state
+    # of the first FST to the initial state of the second FST with an
+    # epsilon-arc, a fact we take advantage of here.
+    f = u("Ilchester", "Limburger")
+    sp = StringPaths(f)
+    self.assertEqual(sp.ilabels(False), sp.ilabels(True))
+    sp.next()
+    self.assertEqual(sp.ilabels(False), [0] + sp.ilabels(True))
+    sp.next()
+    self.assertTrue(sp.done())
+
+
+class PyniniSymbolTableTest(unittest.TestCase):
+
+  def testInputSymbolTableAccessAfterFstDeletion(self):
+    f = transducer("Greek Feta", "Ah, not as such")
+    isyms = f.input_symbols().copy()
+    isyms2 = f.input_symbols()
+    del f  # Should be garbage-collected immediately.
+    self.assertEqual(isyms2.labeled_checksum(), isyms.labeled_checksum())
+
+  def testOutputSymbolTableAccessAfterFstDeletion(self):
+    f = transducer("Red Windsor", "Normally, sir, yes, "
+                                  "but today the van broke down")
+    osyms = f.output_symbols().copy()
+    osyms2 = f.output_symbols().copy()
+    del f  # Should be garbage-collected immediately.
+    self.assertEqual(osyms2.labeled_checksum(), osyms.labeled_checksum())
+
+
+class PyniniWeightTest(unittest.TestCase):
+
+  @classmethod
+  def setUpClass(cls):
+    half = -math.log(.5)
+    one_half = -math.log(1.5)
+    two = -math.log(2)
+    cls.delta = 1. / 1024.
+    cls.tropical_zero = Weight.Zero("tropical")
+    cls.tropical_half = Weight("tropical", half)
+    cls.tropical_one = Weight.One("tropical")
+    cls.log_zero = Weight.Zero("log")
+    cls.log_half = Weight("log", half)
+    cls.log_one = Weight.One("log")
+    cls.log_one_half = Weight("log", one_half)
+    cls.log_two = Weight("log", two)
+    cls.log64_zero = Weight.Zero("log64")
+    cls.log64_half = Weight("log64", half)
+    cls.log64_one = Weight.One("log64")
+    cls.log64_one_half = Weight("log64", one_half)
+    cls.log64_two = Weight("log64", two)
+
+  # Tropical weights.
+
+  def testTropicalZeroPlusZeroEqualsZero(self):
+    zero = self.tropical_zero
+    self.assertEqual(plus(zero, zero), zero)
+
+  def testTropicalOnePlusOneEqualsOne(self):
+    one = self.tropical_one
+    self.assertEqual(plus(one, one), one)
+
+  def testTropicalOnePlusZeroEqualsOne(self):
+    one = self.tropical_one
+    zero = self.tropical_zero
+    self.assertEqual(plus(one, zero), one)
+    self.assertEqual(plus(zero, one), one)
+
+  def testTropicalHalfPlusHalfEqualsHalf(self):
+    half = self.tropical_half
+    self.assertEqual(plus(half, half), half)
+
+  def testTropicalZeroTimesZeroEqualsZero(self):
+    zero = self.tropical_zero
+    self.assertEqual(times(zero, zero), zero)
+
+  def testTropicalOneTimesOneEqualsOne(self):
+    one = self.tropical_one
+    self.assertEqual(times(one, one), one)
+
+  def testTropicalOneTimesZeroEqualsZero(self):
+    one = self.tropical_one
+    zero = self.tropical_zero
+    self.assertEqual(times(one, zero), zero)
+    self.assertEqual(times(zero, one), zero)
+
+  def testTropicalHalfTimesOneEqualsHalf(self):
+    half = self.tropical_half
+    one = self.tropical_one
+    self.assertEqual(times(half, one), half)
+    self.assertEqual(times(one, half), half)
+
+  def testTropicalZeroDivideOneEqualsZero(self):
+    zero = self.tropical_zero
+    one = self.tropical_one
+    self.assertEqual(divide(zero, one), zero)
+
+  def testTropicalOneDivideZeroRaisesFstBadWeightError(self):
+    zero = self.tropical_zero
+    one = self.tropical_one
+    with self.assertRaises(FstBadWeightError):
+      unused_w = divide(one, zero)
+
+  def testTropicalZeroDivideZeroRaisesFstBadWeightError(self):
+    zero = self.tropical_zero
+    with self.assertRaises(FstBadWeightError):
+      unused_w = divide(zero, zero)
+
+  def testTropicalOneDivideOneEqualsOne(self):
+    one = self.tropical_one
+    self.assertEqual(divide(one, one), one)
+
+  def testTropicalOneToTheTenthPowerEqualsOne(self):
+    one = self.tropical_one
+    self.assertEqual(power(one, 10), one)
+
+  def testTropicalZeroToTheZerothPowerEqualsOne(self):
+    zero = self.tropical_zero
+    one = self.tropical_one
+    self.assertEqual(power(zero, 0), one)
+
+  # Log weights.
+
+  def testLogZeroPlusZeroEqualsZero(self):
+    zero = self.log_zero
+    self.assertEqual(plus(zero, zero), zero)
+
+  def testLogOnePlusOneEqualsTwo(self):
+    one = self.log_one
+    two = self.log_two
+    self.assertAlmostEqual(plus(one, one), two, delta=self.delta)
+
+  def testLogOnePlusZeroEqualsOne(self):
+    one = self.log_one
+    zero = self.log_zero
+    self.assertEqual(plus(one, zero), one)
+    self.assertEqual(plus(zero, one), one)
+
+  def testLogHalfPlusHalfEqualsOneHalf(self):
+    half = self.log_half
+    one = self.log_one
+    one_half = self.log_one_half
+    self.assertAlmostEqual(float(str(plus(half, one))),
+                           float(str(one_half)), delta=self.delta)
+
+  def testLogZeroTimesZeroEqualsZero(self):
+    zero = self.log_zero
+    self.assertEqual(times(zero, zero), zero)
+
+  def testLogOneTimesOneEqualsOne(self):
+    one = self.log_one
+    self.assertEqual(times(one, one), one)
+
+  def testLogOneTimesZeroEqualsZero(self):
+    one = self.log_one
+    zero = self.log_zero
+    self.assertEqual(times(one, zero), zero)
+    self.assertEqual(times(zero, one), zero)
+
+  def testLogHalfTimesOneEqualsHalf(self):
+    half = self.log_half
+    one = self.log_one
+    self.assertEqual(times(half, one), half)
+    self.assertEqual(times(one, half), half)
+
+  def testLogZeroDivideOneEqualsZero(self):
+    zero = self.log_zero
+    one = self.log_one
+    self.assertEqual(divide(zero, one), zero)
+
+  def testLogOneDivideZeroRaisesBadWeightError(self):
+    zero = self.log_zero
+    one = self.log_one
+    with self.assertRaises(FstBadWeightError):
+      unused_w = self.assertEqual(divide(one, zero), zero)
+
+  def testLogZeroDivideZeroRaisesFstBadWeightError(self):
+    zero = self.log_zero
+    with self.assertRaises(FstBadWeightError):
+      unused_w = self.assertEqual(divide(zero, zero), zero)
+
+  def testLogOneDivideOneEqualsOne(self):
+    one = self.log_one
+    self.assertEqual(divide(one, one), one)
+
+  def testLogOneToTheTenthPowerEqualsOne(self):
+    one = self.log_one
+    self.assertEqual(power(one, 10), one)
+
+  def testLogZeroToTheZerothPowerEqualsOne(self):
+    zero = self.log_zero
+    one = self.log_one
+    self.assertEqual(power(zero, 0), one)
+
+  # Log64 weights.
+
+  def testLog64ZeroPlusZeroEqualsZero(self):
+    zero = self.log64_zero
+    self.assertEqual(plus(zero, zero), zero)
+
+  def testLog64OnePlusOneEqualsTwo(self):
+    one = self.log64_one
+    two = self.log64_two
+    self.assertAlmostEqual(plus(one, one), two, delta=self.delta)
+
+  def testLog64OnePlusZeroEqualsOne(self):
+    one = self.log64_one
+    zero = self.log64_zero
+    self.assertEqual(plus(one, zero), one)
+    self.assertEqual(plus(zero, one), one)
+
+  def testLog64HalfPlusHalfEqualsOneHalf(self):
+    half = self.log64_half
+    one = self.log64_one
+    one_half = self.log64_one_half
+    self.assertAlmostEqual(float(str(plus(half, one))),
+                           float(str(one_half)), delta=self.delta)
+
+  def testLog64ZeroTimesZeroEqualsZero(self):
+    zero = self.log64_zero
+    self.assertEqual(times(zero, zero), zero)
+
+  def testLog64OneTimesOneEqualsOne(self):
+    one = self.log64_one
+    self.assertEqual(times(one, one), one)
+
+  def testLog64OneTimesZeroEqualsZero(self):
+    one = self.log64_one
+    zero = self.log64_zero
+    self.assertEqual(times(one, zero), zero)
+    self.assertEqual(times(zero, one), zero)
+
+  def testLog64HalfTimesOneEqualsHalf(self):
+    half = self.log64_half
+    one = self.log64_one
+    self.assertEqual(times(half, one), half)
+    self.assertEqual(times(one, half), half)
+
+  def testLog64ZeroDivideOneEqualsZero(self):
+    zero = self.log64_zero
+    one = self.log64_one
+    self.assertEqual(divide(zero, one), zero)
+
+  def testLog64OneDivideZeroRaisesBadWeightError(self):
+    zero = self.log64_zero
+    one = self.log64_one
+    with self.assertRaises(FstBadWeightError):
+      unused_w = self.assertEqual(divide(one, zero), zero)
+
+  def testLog64ZeroDivideZeroRaisesFstBadWeightError(self):
+    zero = self.log64_zero
+    with self.assertRaises(FstBadWeightError):
+      unused_w = self.assertEqual(divide(zero, zero), zero)
+
+  def testLog64OneDivideOneEqualsOne(self):
+    one = self.log64_one
+    self.assertEqual(divide(one, one), one)
+
+  def testLog64ToTheTenthPowerEqualsOne(self):
+    one = self.log64_one
+    self.assertEqual(power(one, 10), one)
+
+  def testLog64ToTheZerothPowerEqualsOne(self):
+    zero = self.log64_zero
+    one = self.log64_one
+    self.assertEqual(power(zero, 0), one)
+
 
 class PyniniWorkedExampleTest(unittest.TestCase):
 
@@ -561,8 +939,8 @@ class PyniniWorkedExampleTest(unittest.TestCase):
       result = (aword * self.upcaser).project(True).optimize()
       self.assertEqual(result, aword.upper())
     cheese = "Parmesan".lower()
-    cascade = (cheese * self.upcaser * self.downcaser * self.upcaser *
-               self.downcaser)
+    cascade = (cheese * self.upcaser * self.downcaser *
+               self.upcaser * self.downcaser)
     self.assertEqual(cascade.stringify(), cheese)
 
 

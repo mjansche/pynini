@@ -24,32 +24,19 @@
 // by those used in Thrax.
 
 namespace fst {
+namespace internal {
 
 // We don't need to encode weights if the FST has no weighted cycles. This is
 // true if the kUnweightedCycles bit is true, and implied by kAcyclic and
 // kUnweighted.
 const uint64 kDoNotEncodeWeights = kAcyclic | kUnweighted | kUnweightedCycles;
 
-// Generic FST optimization function; use the more-specialized forms below if
-// the FST is known to be an acceptor or a transducer.
-
-// Destructive signature.
-template <class Arc>
-void Optimize(MutableFst<Arc> *fst, bool compute_props = false) {
-  if (fst->Properties(kAcceptor, compute_props) != kAcceptor) {
-    // The FST is (may be) a transducer.
-    OptimizeTransducer(fst, compute_props);
-  } else {
-    // The FST is (known to be) an acceptor.
-    OptimizeAcceptor(fst, compute_props);
-  }
-}
-
 // Generic FST optimization function to be used when the FST is known to be an
 // acceptor.
 
 template <class Arc>
 void OptimizeAcceptor(MutableFst<Arc> *fst, bool compute_props = false) {
+  using Weight = typename Arc::Weight;
   // If the FST is not (known to be) epsilon-free, perform epsilon-removal.
   if (fst->Properties(kNoEpsilons, compute_props) != kNoEpsilons)
     RmEpsilon(fst);
@@ -57,13 +44,15 @@ void OptimizeAcceptor(MutableFst<Arc> *fst, bool compute_props = false) {
   // and sums their weights.
   StateMap(fst, ArcSumMapper<Arc>(*fst));
   // The FST has non-idempotent weights; limiting optimization possibilities.
-  if (!(Arc::Weight::Properties() & kIdempotent)) {
+  if (!(Weight::Properties() & kIdempotent)) {
     if (fst->Properties(kIDeterministic, compute_props) != kIDeterministic) {
       // But "any acyclic weighted automaton over a zero-sum-free semiring has
       // the twins property and is determinizable" (Mohri 2006).
       if (fst->Properties(kAcyclic, compute_props) == kAcyclic) {
-        std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-        Determinize(*tfst, fst);
+        {
+          std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
+          Determinize(*tfst, fst);
+        }
         Minimize(fst);
       }
     } else {
@@ -75,16 +64,22 @@ void OptimizeAcceptor(MutableFst<Arc> *fst, bool compute_props = false) {
       // If the FST is not known to have no weighted cycles, it is encoded
       // before determinization and minimization.
       if (!fst->Properties(kDoNotEncodeWeights, compute_props)) {
-        EncodeMapper<Arc> encoder(kEncodeWeights, ENCODE);
-        Encode(fst, &encoder);
-        std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-        Determinize(*tfst, fst);
-        Minimize(fst);
-        Decode(fst, encoder);
+        {
+          EncodeMapper<Arc> encoder(kEncodeWeights, ENCODE);
+          Encode(fst, &encoder);
+          {
+            std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
+            Determinize(*tfst, fst);
+          }
+          Minimize(fst);
+          Decode(fst, encoder);
+        }
         StateMap(fst, ArcSumMapper<Arc>(*fst));
       } else {
-        std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-        Determinize(*tfst, fst);
+        {
+          std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
+          Determinize(*tfst, fst);
+        }
         Minimize(fst);
       }
     } else {
@@ -99,6 +94,7 @@ void OptimizeAcceptor(MutableFst<Arc> *fst, bool compute_props = false) {
 
 template <class Arc>
 void OptimizeTransducer(MutableFst<Arc> *fst, bool compute_props = false) {
+  using Weight = typename Arc::Weight;
   // If the FST is not (known to be) epsilon-free, perform epsilon-removal.
   if (fst->Properties(kNoEpsilons, compute_props) != kNoEpsilons)
     RmEpsilon(fst);
@@ -106,7 +102,7 @@ void OptimizeTransducer(MutableFst<Arc> *fst, bool compute_props = false) {
   // and sums their weights.
   StateMap(fst, ArcSumMapper<Arc>(*fst));
   // The FST has non-idempotent weights; limiting optimization possibilities.
-  if (!(Arc::Weight::Properties() & kIdempotent)) {
+  if (!(Weight::Properties() & kIdempotent)) {
     if (fst->Properties(kIDeterministic, compute_props) != kIDeterministic) {
       // But "any acyclic weighted automaton over a zero-sum-free semiring has
       // the twins property and is determinizable" (Mohri 2006). We just have to
@@ -114,8 +110,10 @@ void OptimizeTransducer(MutableFst<Arc> *fst, bool compute_props = false) {
       if (fst->Properties(kAcyclic, compute_props)) {
         EncodeMapper<Arc> encoder(kEncodeLabels, ENCODE);
         Encode(fst, &encoder);
-        std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-        Determinize(*tfst, fst);
+        {
+          std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
+          Determinize(*tfst, fst);
+        }
         Minimize(fst);
         Decode(fst, encoder);
       }
@@ -125,28 +123,52 @@ void OptimizeTransducer(MutableFst<Arc> *fst, bool compute_props = false) {
   } else {
     // If the FST is not (known to be) deterministic, determinize it.
     if (fst->Properties(kIDeterministic, compute_props) != kIDeterministic) {
-    // FST labels are always encoded before determinization and minimization.
-    // If the FST is not known to have no weighted cycles, its weights are also
-    // encoded before determinization and minimization.
+      // FST labels are always encoded before determinization and minimization.
+      // If the FST is not known to have no weighted cycles, its weights are
+      // also
+      // encoded before determinization and minimization.
       if (!fst->Properties(kDoNotEncodeWeights, compute_props)) {
-        EncodeMapper<Arc> encoder(kEncodeLabels | kEncodeWeights, ENCODE);
-        Encode(fst, &encoder);
-        std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-        Determinize(*tfst, fst);
-        Minimize(fst);
-        Decode(fst, encoder);
+        {
+          EncodeMapper<Arc> encoder(kEncodeLabels | kEncodeWeights, ENCODE);
+          Encode(fst, &encoder);
+          {
+            std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
+            Determinize(*tfst, fst);
+          }
+          Minimize(fst);
+          Decode(fst, encoder);
+        }
         StateMap(fst, ArcSumMapper<Arc>(*fst));
       } else {
         EncodeMapper<Arc> encoder(kEncodeLabels, ENCODE);
         Encode(fst, &encoder);
-        std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-        Determinize(*tfst, fst);
+        {
+          std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
+          Determinize(*tfst, fst);
+        }
         Minimize(fst);
         Decode(fst, encoder);
       }
     } else {
       Minimize(fst);
     }
+  }
+}
+
+}  // namespace internal
+
+// Generic FST optimization function; use the more-specialized forms below if
+// the FST is known to be an acceptor or a transducer.
+
+// Destructive signature.
+template <class Arc>
+void Optimize(MutableFst<Arc> *fst, bool compute_props = false) {
+  if (fst->Properties(kAcceptor, compute_props) != kAcceptor) {
+    // The FST is (may be) a transducer.
+    internal::OptimizeTransducer(fst, compute_props);
+  } else {
+    // The FST is (known to be) an acceptor.
+    internal::OptimizeAcceptor(fst, compute_props);
   }
 }
 
@@ -157,9 +179,11 @@ void OptimizeTransducer(MutableFst<Arc> *fst, bool compute_props = false) {
 // cross-product; label-pushing may also speed up downstream composition.
 template <class Arc>
 void OptimizeStringCrossProducts(MutableFst<Arc> *fst) {
-  std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-  // Pushes labels towards the initial state.
-  Push<Arc, REWEIGHT_TO_INITIAL>(*tfst, fst, kPushLabels);
+  {
+    std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
+    // Pushes labels towards the initial state.
+    Push<Arc, REWEIGHT_TO_INITIAL>(*tfst, fst, kPushLabels);
+  }
   // Removes any trailing epsilon-to-epsilon arcs this produces.
   RmEpsilon(fst);
 }

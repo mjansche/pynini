@@ -20,12 +20,11 @@
 #include "merge.h"
 
 DEFINE_bool(fst_relabel_symbol_conflicts, true,
-            "Resolve conflicts in FST symbol "
-            "tables by relabeling; if "
-            "false, operations requiring "
-            "relabeling will fail");
+            "Resolve conflicts in FST symbol tables by relabeling; if false, "
+            "operations requiring relabeling will fail");
 
 namespace fst {
+namespace internal {
 
 // TODO(kbg) Consider adding code for the special case where one table is a
 // superset of another.
@@ -62,5 +61,6 @@ SymbolTable *MergeSymbols(const SymbolTable *syms1, const SymbolTable *syms2,
   return merged;
 }
 
+}  // namespace internal
 }  // namespace fst
 

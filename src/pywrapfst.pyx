@@ -87,6 +87,7 @@ normal `k` prefix.
 # C imports.
 from libc.stdint cimport INT32_MAX
 from libc.stdint cimport SIZE_MAX
+from posix.unistd cimport getpid
 
 # C++ imports.
 from libcpp cimport bool
@@ -389,25 +390,42 @@ cdef class Weight(object):
   Raises:
     FstBadWeightError: invalid weight.
     FstUnknownWeightTypeError: weight type not found.
-
-  Attributes:
-    type: A string indicating the weight type.
-    string: A string indicating the underlying weight.
   """
 
   def __repr__(self):
-    return "<{} Weight {} at 0x{:x}>".format(self.type, self.string, id(self))
+    return "<{} Weight {} at 0x{:x}>".format(self.type(), self.to_string(),
+                                             id(self))
 
   def __str__(self):
-    return self._weight.get().ToString()
+    return self.to_string()
+
+  # This attempts to convert the string form into a float, raising
+  # ValueError when that is not appropriate.
+
+  def __float__(self):
+    return float(self.to_string())
 
   def __init__(self, weight_type, weight):
     self._weight.reset(new fst.WeightClass(tostring(weight_type),
                                            weighttostring(weight)))
-    if self._string() == b"BadNumber":
-      raise FstBadWeightError(weight)
-    if self._type() == b"none":
-      raise FstUnknownWeightTypeError(weight_type)
+    self._check_weight()
+
+  cdef void _check_weight(self) except *:
+    if self.type() == b"none":
+      raise FstUnknownWeightTypeError(self.type())
+    if self.to_string() == b"BadNumber":
+      raise FstBadWeightError(self.to_string())
+
+  cpdef Weight copy(self):
+    """
+    copy(self)
+
+    Returns a copy of the Weight.
+    """
+    cdef Weight result = Weight.__new__(Weight)
+    result._weight.reset(new
+        fst.WeightClass(<fst.WeightClass> deref(self._weight)))
+    return result
 
   # To get around the inability to declare cdef class methods, we define
   # the C part out-of-class and then call it from within.
@@ -436,31 +454,148 @@ cdef class Weight(object):
   def __richcmp__(Weight x, Weight y, int op):
     # This is useful for unit tests.
     if op == 2:  # `==`
-      return (x._weight.get().Type() == y._weight.get().Type() and
-              x._weight.get().ToString() == y._weight.get().ToString())
+      return (x.type() == y.type() and x.to_string() == y.to_string())
     elif op == 3:  # `!=`
       return not (x == y)
     else:
       raise NotImplementedError("Invalid operator {!r}".format(op))
 
-  cdef string _string(self):
+  cpdef string to_string(self):
     return self._weight.get().ToString()
 
-  @property
-  def string(self):
-    return self._string()
-
-  cdef string _type(self):
+  cpdef string type(self):
     return self._weight.get().Type()
 
-  @property
-  def type(self):
-    return self._type()
+
+cdef Weight _plus(Weight lhs, Weight rhs):
+  cdef Weight result = Weight.__new__(Weight)
+  result._weight.reset(new fst.WeightClass(fst.Plus(deref(lhs._weight),
+                                                    deref(rhs._weight))))
+  return result
+
+
+def plus(Weight lhs, Weight rhs):
+  """
+  plus(lhs, rhs)
+
+  Computes the sum of two Weights in the same semiring.
+
+  This function computes lhs \oplus rhs, raising an exception if lhs and rhs
+  are not in the same semiring.
+
+  Args:
+     lhs: left-hand side Weight.
+     rhs: right-hand side Weight.
+
+  Returns:
+    A Weight object.
+
+  Raises:
+    FstBadWeightError: invalid weight.
+    FstUnknownWeightTypeError: weights are null or not in the same semiring.
+  """
+  cdef Weight result = _plus(lhs, rhs)
+  result._check_weight()
+  return result
+
+
+cdef Weight _times(Weight lhs, Weight rhs):
+  cdef Weight result = Weight.__new__(Weight)
+  result._weight.reset(new fst.WeightClass(fst.Times(deref(lhs._weight),
+                                                     deref(rhs._weight))))
+  return result
+
+
+def times(Weight lhs, Weight rhs):
+  """
+  times(lhs, rhs)
+
+  Computes the product of two Weights in the same semiring.
+
+  This function computes lhs \otimes rhs, raising an exception if lhs and rhs
+  are not in the same semiring.
+
+  Args:
+     lhs: left-hand side Weight.
+     rhs: right-hand side Weight.
+
+  Returns:
+    A Weight object.
+
+  Raises:
+    FstBadWeightError: invalid weight.
+    FstUnknownWeightTypeError: weights are null or not in the same semiring.
+  """
+  cdef Weight result = _times(lhs, rhs)
+  result._check_weight()
+  return result
+
+
+cdef Weight _divide(Weight lhs, Weight rhs):
+  cdef Weight result = Weight.__new__(Weight)
+  result._weight.reset(new fst.WeightClass(fst.Divide(deref(lhs._weight),
+                                                      deref(rhs._weight))))
+  return result
+
+
+def divide(Weight lhs, Weight rhs):
+  """
+  divide(lhs, rhs)
+
+  Computes the quotient of two Weights in the same semiring.
+
+  This function computes lhs \oslash rhs, raising an exception if lhs and rhs
+  are not in the same semiring. As there is no way to specify whether to use
+  left vs. right division, this assumes a commutative semiring in which these
+  are equivalent operations.
+
+  Args:
+     lhs: left-hand side Weight.
+     rhs: right-hand side Weight.
+
+  Returns:
+    A Weight object.
+
+  Raises:
+    FstBadWeightError: invalid weight.
+    FstUnknownWeightTypeError: weights are null or not in the same semiring.
+  """
+  cdef Weight result = _divide(lhs, rhs)
+  result._check_weight()
+  return result
+
+
+cdef Weight _power(Weight w, size_t n):
+  cdef Weight result = Weight.__new__(Weight)
+  result._weight.reset(new fst.WeightClass(fst.Power(deref(w._weight), n)))
+  return result
+
+
+def power(Weight w, size_t n):
+  """
+  times(lhs, rhs)
+
+  Computes the iterated product of a weight.
+
+  Args:
+     w: The weight.
+     n: The power.
+
+  Returns:
+    A Weight object.
+
+  Raises:
+    FstBadWeightError: invalid weight.
+    FstUnknownWeightTypeError: weights are null or not in the same semiring.
+  """
+  cdef Weight result = _power(w, n)
+  result._check_weight()
+  return result
 
 
 cdef fst.WeightClass _get_WeightClass_or_Zero(const string &weight_type,
                                               weight) except *:
-  """Converts weight string to WeightClass instance.
+  """Converts weight string to a WeightClass.
 
   This function constructs a WeightClass instance of the desired weight type.
   If the first argument is null, the weight is set to semiring Zero.
@@ -471,7 +606,7 @@ cdef fst.WeightClass _get_WeightClass_or_Zero(const string &weight_type,
         set to semiring Zero.
 
   Returns:
-    A WeightClass instance.
+    A WeightClass object.
 
   This function is not visible to Python users.
   """
@@ -483,13 +618,13 @@ cdef fst.WeightClass _get_WeightClass_or_Zero(const string &weight_type,
   else:
     result = fst.WeightClass(weight_type, weighttostring(weight))
     if result.ToString() == b"BadNumber":
-      raise FstBadWeightError(weight)
+      raise FstBadWeightError(weighttostring(weight))
   return result
 
 
 cdef fst.WeightClass _get_WeightClass_or_One(const string &weight_type,
                                              weight) except *:
-  """Converts weight string to WeightClass instance.
+  """Converts weight string to a WeightClass.
 
   This function constructs a WeightClass instance of the desired weight type.
   If the first argument is null, the weight is set to semiring One.
@@ -500,7 +635,7 @@ cdef fst.WeightClass _get_WeightClass_or_One(const string &weight_type,
         set to semiring One.
 
   Returns:
-    A WeightClass instance.
+    A WeightClass object.
 
   This function is not visible to Python users.
   """
@@ -512,7 +647,7 @@ cdef fst.WeightClass _get_WeightClass_or_One(const string &weight_type,
   else:
     result = fst.WeightClass(weight_type, weighttostring(weight))
     if result.ToString() == b"BadNumber":
-      raise FstBadWeightError(weight)
+      raise FstBadWeightError(weighttostring(weight))
   return result
 
 
@@ -579,19 +714,11 @@ cdef class _SymbolTable(object):
   def __iter__(self):
     return SymbolTableIterator(self)
 
-  cdef int64 _available_key(self):
+  cpdef int64 available_key(self):
     return self._table.AvailableKey()
 
-  @property
-  def available_key(self):
-    return self._available_key()
-
-  cdef string _checksum(self):
+  cpdef string checksum(self):
     return self._table.CheckSum()
-
-  @property
-  def checksum(self):
-    return self._checksum()
 
   cpdef SymbolTable copy(self):
     """
@@ -650,26 +777,14 @@ cdef class _SymbolTable(object):
       raise KeyError(pos)
     return result
 
-  cdef string _labeled_checksum(self):
+  cpdef string labeled_checksum(self):
     return self._table.LabeledCheckSum()
 
-  @property
-  def labeled_checksum(self):
-    return self._labeled_checksum()
-
-  cdef string _name(self):
+  cpdef string name(self):
     return self._table.Name()
 
-  @property
-  def name(self):
-    return self._name()
-
-  cdef size_t _num_symbols(self):
+  cpdef size_t num_symbols(self):
     return self._table.NumSymbols()
-
-  @property
-  def num_symbols(self):
-    return self._num_symbols()
 
   cpdef void write(self, filename) except *:
     """
@@ -716,22 +831,13 @@ cdef class _EncodeMapperSymbolTable(_SymbolTable):
   This class wraps a library const SymbolTable and exposes const methods of the
   wrapped object. It is only to be returned by method, never constructed
   directly.
-
-  Attributes:
-    available_key: An integer indicating the next available key index in the
-        table.
-    checksum: A string indicating the label-agnostic MD5 checksum for the table.
-    labeled_checksum: A string indicating the label-dependent MD5 checksum for
-        the table.
-    name: A string indicating the table's name.
-    num_symbols: An integer indicating the number of symbols in the table.
   """
 
   # NB: Do not expose any non-const methods of the wrapped SymbolTable here.
   # Doing so will allow undefined behavior.
 
   def __repr__(self):
-    return "<const EncodeMapper SymbolTable {!r} at 0x{:x}>".format(self.name,
+    return "<const EncodeMapper SymbolTable {!r} at 0x{:x}>".format(self.name(),
                                                                     id(self))
 
 
@@ -745,22 +851,13 @@ cdef class _FstSymbolTable(_SymbolTable):
   This class wraps a library SymbolTable and exposes methods of the
   wrapped object. It is only to be returned by method, never constructed
   directly.
-
-  Attributes:
-    available_key: An integer indicating the next available key index in the
-        table.
-    checksum: A string indicating the label-agnostic MD5 checksum for the table.
-    labeled_checksum: A string indicating the label-dependent MD5 checksum for
-        the table.
-    name: A string indicating the table's name.
-    num_symbols: An integer indicating the number of symbols in the table.
   """
 
   # NB: Do not expose any non-const methods of the wrapped SymbolTable here.
   # Doing so will allow undefined behavior.
 
   def __repr__(self):
-    return "<const Fst SymbolTable {!r} at 0x{:x}>".format(self.name, id(self))
+    return "<const Fst SymbolTable {!r} at 0x{:x}>".format(self.name(), id(self))
 
 
 cdef class _MutableSymbolTable(_SymbolTable):
@@ -831,7 +928,7 @@ cdef class _MutableFstSymbolTable(_MutableSymbolTable):
   """
 
   def __repr__(self):
-    return "<Fst SymbolTable {!r} at 0x{:x}>".format(self.name, id(self))
+    return "<Fst SymbolTable {!r} at 0x{:x}>".format(self.name(), id(self))
 
 
 cdef class SymbolTable(_MutableSymbolTable):
@@ -860,7 +957,7 @@ cdef class SymbolTable(_MutableSymbolTable):
   """
 
   def __repr__(self):
-    return "<SymbolTable {!r} at 0x{:x}>".format(self.name, id(self))
+    return "<SymbolTable {!r} at 0x{:x}>".format(self.name(), id(self))
 
   def __init__(self, name=b"<unspecified>"):
     self._table = new fst.SymbolTable(tostring(name))
@@ -1140,15 +1237,10 @@ cdef class EncodeMapper(object):
     arc_type: A string indicating the arc type.
     encode_labels: Should labels be encoded?
     encode_weights: Should weights be encoded?
-
-  Attributes:
-    arc_type: A string indicating the arc type.
-    encode_type: A string indicating the encoder type.
-    flags: An unsigned integer representing the encoder flags
-    input_symbols: The input symbol table, or None if none is set.
-    output_symbols: The output symbol table, or None if none is set.
-    weight_type: A string indicating the weight type.
   """
+
+  def __repr__(self):
+    return "<EncodeMapper at 0x{:x}>".format(id(self))
 
   def __init__(self,
                arc_type=b"standard",
@@ -1160,12 +1252,8 @@ cdef class EncodeMapper(object):
     if not self._encoder:
       raise FstOpError("Unknown arc type: {!r}".format(arc_type))
 
-  cdef string _arc_type(self):
+  cpdef string arc_type(self):
     return self._encoder.get().ArcType()
-
-  @property
-  def arc_type(self):
-    return self._arc_type()
 
   # Python's equivalent to operator().
 
@@ -1187,32 +1275,20 @@ cdef class EncodeMapper(object):
     """
     return _init_Arc(self._encoder.get().__call__(deref(arc._arc)))
 
-  cdef uint32 _flags(self):
+  cpdef uint32 flags(self):
     return self._encoder.get().Flags()
 
-  @property
-  def flags(self):
-    return self._flags()
-
-  cdef _EncodeMapperSymbolTable _input_symbols(self):
+  cpdef _EncodeMapperSymbolTable input_symbols(self):
     if self._encoder.get().InputSymbols() == NULL:
       return
     return _init_EncodeMapperSymbolTable(const_cast[SymbolTable_ptr](
         self._encoder.get().InputSymbols()), self._encoder)
 
-  @property
-  def input_symbols(self):
-    return self._input_symbols()
-
-  cdef _EncodeMapperSymbolTable _output_symbols(self):
+  cpdef _EncodeMapperSymbolTable output_symbols(self):
     if self._encoder.get().OutputSymbols() == NULL:
       return
     return _init_EncodeMapperSymbolTable(const_cast[SymbolTable_ptr](
         self._encoder.get().OutputSymbols()), self._encoder)
-
-  @property
-  def output_symbols(self):
-    return self._output_symbols()
 
   cpdef uint64 properties(self, uint64 mask):
     """
@@ -1258,12 +1334,8 @@ cdef class EncodeMapper(object):
     """
     self._encoder.get().SetOutputSymbols(syms._table)
 
-  cdef string _weight_type(self):
+  cpdef string weight_type(self):
     return self._encoder.get().WeightType()
-
-  @property
-  def weight_type(self):
-    return self._weight_type()
 
 
 ## _Fst, _MutableFst, Fst, and helpers.
@@ -1284,14 +1356,6 @@ cdef class _Fst(object):
 
   This class is the basic user-facing FST object. It does not itself support any
   mutation operations.
-
-  Attributes:
-    arc_type: A string indicating the arc type.
-    input_symbols: The input symbol table, or None if none is set.
-    fst_type: A string indicating the FST (container) type.
-    output_symbols: The output symbol table, or None if none is set.
-    start: The integer state ID for the start state.
-    weight_type: A string indicating the weight type.
   """
 
   # IPython notebook magic to produce an SVG of the FST.
@@ -1324,7 +1388,7 @@ cdef class _Fst(object):
     return sout.decode("utf8")
 
   def __repr__(self):
-    return "<{} Fst at 0x{:x}>".format(self.fst_type, id(self))
+    return "<{} Fst at 0x{:x}>".format(self.fst_type(), id(self))
 
   def __init__(self):
     raise FstDeletedConstructorError(
@@ -1338,12 +1402,8 @@ cdef class _Fst(object):
         show_weight_one=self._fst.get().Properties(fst.kWeighted, True) ==
         fst.kWeighted).decode("utf8")
 
-  cdef string _arc_type(self):
+  cpdef string arc_type(self):
     return self._fst.get().ArcType()
-
-  @property
-  def arc_type(self):
-    return self._arc_type()
 
   cpdef ArcIterator arcs(self, int64 state):
     """
@@ -1367,8 +1427,7 @@ cdef class _Fst(object):
 
     Makes a copy of the FST.
     """
-    cdef fst.FstClass *tfst = new fst.FstClass(deref(self._fst))
-    return _init_XFst(tfst)
+    return _init_XFst(new fst.FstClass(deref(self._fst)))
 
   cpdef void draw(self,
                   filename,
@@ -1454,32 +1513,14 @@ cdef class _Fst(object):
     weight._weight.reset(new fst.WeightClass(self._fst.get().Final(state)))
     return weight
 
-  cdef string _fst_type(self):
+  cpdef string fst_type(self):
     return self._fst.get().FstType()
 
-  @property
-  def fst_type(self):
-    return self._fst_type()
-
-  cdef _FstSymbolTable _input_symbols(self):
+  cpdef _FstSymbolTable input_symbols(self):
     if self._fst.get().InputSymbols() == NULL:
       return
     return _init_FstSymbolTable(const_cast[SymbolTable_ptr](
         self._fst.get().InputSymbols()), self._fst)
-
-  @property
-  def input_symbols(self):
-    return self._input_symbols()
-
-  cdef _FstSymbolTable _output_symbols(self):
-    if self._fst.get().OutputSymbols() == NULL:
-      return
-    return _init_FstSymbolTable(const_cast[SymbolTable_ptr](
-        self._fst.get().OutputSymbols()), self._fst)
-
-  @property
-  def output_symbols(self):
-    return self._output_symbols()
 
   cpdef size_t num_arcs(self, int64 state) except *:
     """
@@ -1547,6 +1588,12 @@ cdef class _Fst(object):
       raise FstIndexError("State index out of range")
     return result
 
+  cpdef _FstSymbolTable output_symbols(self):
+    if self._fst.get().OutputSymbols() == NULL:
+      return
+    return _init_FstSymbolTable(const_cast[SymbolTable_ptr](
+        self._fst.get().OutputSymbols()), self._fst)
+
   cpdef uint64 properties(self, uint64 mask, bool test=True):
     """
     properties(self, mask, test=True)
@@ -1567,12 +1614,8 @@ cdef class _Fst(object):
     """
     return self._fst.get().Properties(mask, test)
 
-  cdef int64 _start(self):
+  cpdef int64 start(self):
     return self._fst.get().Start()
-
-  @property
-  def start(self):
-    return self._start()
 
   cpdef StateIterator states(self):
     """
@@ -1635,12 +1678,16 @@ cdef class _Fst(object):
     """
     return fst.Verify(deref(self._fst))
 
-  cdef string _weight_type(self):
-    return self._fst.get().WeightType()
+  cpdef string weight_type(self):
+    """
+    weight_type(self)
 
-  @property
-  def weight_type(self):
-    return self._weight_type()
+    Provides the FST's weight type.
+
+    Returns:
+      A string representing the weight type.
+    """
+    return self._fst.get().WeightType()
 
   cpdef void write(self, filename) except *:
     """
@@ -1668,16 +1715,6 @@ cdef class _MutableFst(_Fst):
   Mutable FST class, wrapping MutableFstClass.
 
   This class extends _Fst by adding mutation operations.
-
-  Attributes:
-    arc_type: A string indicating the arc type.
-    fst_type: A string indicating the FST (container) type.
-    input_symbols: The input symbol table, or None if none is set.
-    num_states: The number of states.
-    output_symbols: The output symbol table, or None if none is set.
-    start: The integer state ID for the start state.
-    states: An iterator over FST states.
-    weight_type: A string indicating the weight type.
   """
 
   cdef void _check_mutating_imethod(self) except *:
@@ -1966,14 +2003,15 @@ cdef class _MutableFst(_Fst):
     self._invert()
     return self
 
-  cdef void _minimize(self, float delta=fst.kDelta) except *:
+  cdef void _minimize(self, float delta=fst.kDelta,
+                      bool allow_nondet=False) except *:
     # This runs in-place when the second argument is null.
-    fst.Minimize(self._mfst.get(), NULL, delta)
+    fst.Minimize(self._mfst.get(), NULL, delta, allow_nondet)
     self._check_mutating_imethod()
 
-  def minimize(self, float delta=fst.kDelta):
+  def minimize(self, float delta=fst.kDelta, bool allow_nondet=False):
     """
-    minimize(self, delta=0.0009765625)
+    minimize(self, delta=0.0009765625, allow_nondet=False)
 
     Minimizes the FST.
 
@@ -1992,6 +2030,7 @@ cdef class _MutableFst(_Fst):
 
     Args:
       delta: Comparison/quantization delta.
+      allow_nondet: Attempt minimization of non-deterministic FST?
 
     Returns:
       self.
@@ -2016,32 +2055,20 @@ cdef class _MutableFst(_Fst):
     """
     return MutableArcIterator(self, state)
 
-  cdef _MutableFstSymbolTable _mutable_input_symbols(self):
+  def mutable_input_symbols(self):
     cdef fst.SymbolTable *tst = self._mfst.get().MutableInputSymbols()
     if tst == NULL:
       return
     return _init_MutableFstSymbolTable(tst, self._mfst)
 
-  @property
-  def mutable_input_symbols(self):
-    return self._mutable_input_symbols()
-
-  cdef _MutableFstSymbolTable _mutable_output_symbols(self):
+  def mutable_output_symbols(self):
     cdef fst.SymbolTable *tst = self._mfst.get().MutableOutputSymbols()
     if tst == NULL:
       return
     return _init_MutableFstSymbolTable(tst, self._mfst)
 
-  @property
-  def mutable_output_symbols(self):
-    return self._mutable_output_symbols()
-
-  cdef int64 _num_states(self):
+  cpdef int64 num_states(self):
     return self._mfst.get().NumStates()
-
-  @property
-  def num_states(self):
-    return self._num_states()
 
   cdef void _project(self, bool project_output=False) except *:
     fst.Project(self._mfst.get(),
@@ -2072,7 +2099,8 @@ cdef class _MutableFst(_Fst):
   cdef void _prune(self, float delta=fst.kDelta, int64 nstate=fst.kNoStateId,
                    weight=None) except *:
     # Threshold is set to semiring Zero (no pruning) if no weight is specified.
-    cdef fst.WeightClass wc = _get_WeightClass_or_Zero(self.weight_type, weight)
+    cdef fst.WeightClass wc = _get_WeightClass_or_Zero(self.weight_type(),
+                                                       weight)
     fst.Prune(self._mfst.get(), wc, nstate, delta)
     self._check_mutating_imethod()
 
@@ -2303,9 +2331,9 @@ cdef class _MutableFst(_Fst):
                                 fst.REWEIGHT_TO_INITIAL)
     cdef unique_ptr[vector[fst.WeightClass]] _potentials
     _potentials.reset(new vector[fst.WeightClass]())
-    cdef string weight_type = self._weight_type()
+    cdef string weight_type = self.weight_type()
     for weight in potentials:
-        _potentials.get().push_back(_get_WeightClass_or_One(self.weight_type,
+        _potentials.get().push_back(_get_WeightClass_or_One(self.weight_type(),
                                                             weight))
     fst.Reweight(self._mfst.get(), deref(_potentials), rt)
     self._check_mutating_imethod()
@@ -2341,7 +2369,8 @@ cdef class _MutableFst(_Fst):
                        int64 nstate=fst.kNoStateId,
                        weight=None) except *:
     # Threshold is set to semiring Zero (no pruning) if weight unspecified.
-    cdef fst.WeightClass wc = _get_WeightClass_or_Zero(self.weight_type, weight)
+    cdef fst.WeightClass wc = _get_WeightClass_or_Zero(self.weight_type(),
+                                                       weight)
     fst.RmEpsilon(self._mfst.get(), connect, wc, nstate, delta)
     self._check_mutating_imethod()
 
@@ -2377,7 +2406,8 @@ cdef class _MutableFst(_Fst):
   cdef void _set_final(self, int64 state, weight=None) except *:
     if not self._mfst.get().ValidStateId(state):
       raise FstIndexError("State index out of range")
-    cdef fst.WeightClass wc = _get_WeightClass_or_One(self.weight_type, weight)
+    cdef fst.WeightClass wc = _get_WeightClass_or_One(self.weight_type(),
+                                                      weight)
     if not self._mfst.get().SetFinal(state, wc):
       raise FstOpError("incompatible or invalid weight")
     self._check_mutating_imethod()
@@ -2595,7 +2625,8 @@ cdef _Fst _init_XFst(FstClass_ptr tfst):
 
 
 cdef _MutableFst _create_Fst(arc_type=b"standard"):
-  cdef fst.VectorFstClass *tfst = new fst.VectorFstClass(tostring(arc_type))
+  cdef fst.VectorFstClass *tfst = new fst.VectorFstClass(
+      <string> tostring(arc_type))
   if tfst == NULL:
     raise FstOpError("Unknown arc type: {!r}".format(arc_type))
   return _init_MutableFst(tfst)
@@ -3091,6 +3122,9 @@ cdef class StateIterator(object):
   iteration context and take advantage of the Pythonic API.
   """
 
+  def __repr__(self):
+    return "<StateIterator at 0x{:x}>".format(id(self))
+
   def __init__(self, _Fst ifst):
     # Makes copy of the shared_ptr, potentially extending the FST's lifetime.
     self._fst = ifst._fst
@@ -3193,9 +3227,9 @@ cdef _Fst _map(_Fst ifst,
     mt = fst.TO_STD_MAPPER
   else:
     raise FstArgError("Unknown map type: {!r}".format(map_type))
-  cdef fst.WeightClass wc = (_get_WeightClass_or_One(ifst.weight_type,
+  cdef fst.WeightClass wc = (_get_WeightClass_or_One(ifst.weight_type(),
       weight) if mt == fst.TIMES_MAPPER else
-      _get_WeightClass_or_Zero(ifst.weight_type, weight))
+      _get_WeightClass_or_Zero(ifst.weight_type(), weight))
   return _init_XFst(fst.Map(deref(ifst._fst), mt, delta, wc))
 
 
@@ -3271,7 +3305,7 @@ cpdef _MutableFst compose(_Fst ifst1,
 
   See also: `arcsort`.
   """
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst1.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst1.arc_type())
   cdef unique_ptr[fst.ComposeOptions] opts
   opts.reset(new fst.ComposeOptions(connect, _get_compose_filter(tostring(cf))))
   fst.Compose(deref(ifst1._fst), deref(ifst2._fst), tfst, deref(opts))
@@ -3344,9 +3378,10 @@ cpdef _MutableFst determinize(_Fst ifst,
 
   See also: `disambiguate`, `rmepsilon`.
   """
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type())
   # Threshold is set to semiring Zero (no pruning) if weight unspecified.
-  cdef fst.WeightClass wc = _get_WeightClass_or_Zero(ifst.weight_type, weight)
+  cdef fst.WeightClass wc = _get_WeightClass_or_Zero(ifst.weight_type(),
+                                                     weight)
   det_type = tostring(det_type)
   cdef fst.DeterminizeType dt = fst.DETERMINIZE_FUNCTIONAL
   if det_type == b"functional":
@@ -3390,7 +3425,7 @@ cpdef _MutableFst difference(_Fst ifst1,
   Returns:
     An FST representing the difference of the two input FSTs.
   """
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst1.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst1.arc_type())
   cdef unique_ptr[fst.ComposeOptions] opts
   opts.reset(new fst.ComposeOptions(connect, _get_compose_filter(tostring(cf))))
   fst.Difference(deref(ifst1._fst), deref(ifst2._fst), tfst, deref(opts))
@@ -3427,9 +3462,10 @@ cpdef _MutableFst disambiguate(_Fst ifst,
 
   See also: `determinize`, `rmepsilon`.
   """
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type())
   # Threshold is set to semiring Zero (no pruning) if no weight is specified.
-  cdef fst.WeightClass wc = _get_WeightClass_or_Zero(ifst.weight_type, weight)
+  cdef fst.WeightClass wc = _get_WeightClass_or_Zero(ifst.weight_type(),
+                                                     weight)
   cdef unique_ptr[fst.DisambiguateOptions] opts
   opts.reset(new fst.DisambiguateOptions(delta, wc, nstate,
                                          subsequential_label))
@@ -3459,7 +3495,7 @@ cpdef _MutableFst epsnormalize(_Fst ifst, bool eps_norm_output=False):
 
   See also: `rmepsilon`.
   """
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type())
   fst.EpsNormalize(deref(ifst._fst), tfst, fst.EPS_NORM_OUTPUT if
                                            eps_norm_output else
                                            fst.EPS_NORM_INPUT)
@@ -3544,7 +3580,7 @@ cpdef _MutableFst intersect(_Fst ifst1,
   Returns:
     An equivalent epsilon-normalized FST.
   """
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst1.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst1.arc_type())
   cdef unique_ptr[fst.ComposeOptions] opts
   opts.reset(new fst.ComposeOptions(connect, _get_compose_filter(tostring(cf))))
   fst.Intersect(deref(ifst1._fst), deref(ifst2._fst), tfst, deref(opts))
@@ -3611,8 +3647,8 @@ cpdef _MutableFst prune(_Fst ifst,
 
   See also: The destructive variant.
   """
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
-  cdef fst.WeightClass wc = _get_WeightClass_or_Zero(ifst.weight_type, weight)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type())
+  cdef fst.WeightClass wc = _get_WeightClass_or_Zero(ifst.weight_type(), weight)
   fst.Prune(deref(ifst._fst), tfst, wc, nstate, delta)
   return _init_MutableFst(tfst)
 
@@ -3662,7 +3698,7 @@ cpdef _MutableFst push(_Fst ifst,
   See also: The destructive variant.
   """
   # This is copied, almost verbatim, from nlp/fst/bin/fstpush.cc.
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type())
   cdef uint32 flags = 0
   if push_weights:
     flags |= fst.kPushWeights
@@ -3687,7 +3723,7 @@ cpdef bool randequivalent(_Fst ifst1,
                           select=b"uniform") except *:
   """
   randequivalent(ifst1, ifst2, delta=0.0009765625, max_length=INT32_MAX,
-                 npath=1, seed=time(0), select="uniform")
+                 npath=1, seed=0, select="uniform")
 
   Are two acceptors stochastically equivalent?
 
@@ -3703,7 +3739,8 @@ cpdef bool randequivalent(_Fst ifst1,
     delta: Comparison/quantization delta.
     max_length: The maximum length of each random path.
     npath: The number of random paths to generate.
-    seed: An optional seed value for random path generation.
+    seed: An optional seed value for random path generation; if zero, the
+        current time and process ID is used.
     select: A string matching a known random arc selection type; one of:
         "uniform", "log_prob", "fast_log_prob".
 
@@ -3719,7 +3756,7 @@ cpdef bool randequivalent(_Fst ifst1,
   cdef unique_ptr[fst.RandGenOptions[fst.RandArcSelection]] opts
   opts.reset(new fst.RandGenOptions[fst.RandArcSelection](ras, max_length))
   if seed == 0:
-    seed = time(NULL)
+    seed = time(NULL) + getpid()
   cdef bool error
   cdef bool result = fst.RandEquivalent(deref(ifst1._fst), deref(ifst2._fst),
                                         seed, npath, delta, deref(opts),
@@ -3738,7 +3775,7 @@ cpdef _MutableFst randgen(_Fst ifst,
                           bool weighted=False):
   """
   randgen(ifst, max_length=INT32_MAX, npath=1, remove_total_weight=False,
-          seed=time(0), select="uniform", weighted=False)
+          seed=0, select="uniform", weighted=False)
 
   Randomly generate successful paths in an FST.
 
@@ -3756,7 +3793,8 @@ cpdef _MutableFst randgen(_Fst ifst,
     npath: The number of random paths to generate.
     remove_total_weight: Should the total weight be removed (ignored when
         `weighted` is False)?
-    seed: An optional seed value for random path generation.
+    seed: An optional seed value for random path generation; if zero, the
+        current time and process ID is used.
     select: A string matching a known random arc selection type; one of:
         "uniform", "log_prob", "fast_log_prob".
     weighted: Should the output be weighted by path count?
@@ -3769,9 +3807,9 @@ cpdef _MutableFst randgen(_Fst ifst,
   cdef fst.RandArcSelection ras = _get_rand_arc_selection(tostring(select))
   cdef unique_ptr[fst.RandGenOptions[fst.RandArcSelection]] opts
   opts.reset(new fst.RandGenOptions[fst.RandArcSelection](ras, max_length))
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type())
   if seed == 0:
-    seed = time(NULL)
+    seed = time(NULL) + getpid()
   fst.RandGen(deref(ifst._fst), tfst, seed, deref(opts))
   return _init_MutableFst(tfst)
 
@@ -3824,7 +3862,7 @@ cpdef _MutableFst replace(pairs,
   it = iter(pairs)
   (root_label, ifst) = next(it)
   _pairs.push_back(fst.LabelFstClassPair(root_label, ifst._fst.get()))
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type())
   for (label, ifst) in it:
     _pairs.push_back(fst.LabelFstClassPair(label, ifst._fst.get()))
   cdef string call_arc_labeling_ = tostring(call_arc_labeling)
@@ -3858,7 +3896,7 @@ cpdef _MutableFst reverse(_Fst ifst, bool require_superinitial=True):
   Returns:
     A reversed FST.
   """
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type())
   fst.Reverse(deref(ifst._fst), tfst, require_superinitial)
   return _init_MutableFst(tfst)
 
@@ -3893,11 +3931,11 @@ cpdef _MutableFst rmepsilon(_Fst ifst,
   Returns:
     An equivalent FST with no epsilon transitions.
   """
-  cdef fst.WeightClass wc = _get_WeightClass_or_Zero(ifst.weight_type, weight)
+  cdef fst.WeightClass wc = _get_WeightClass_or_Zero(ifst.weight_type(), weight)
   cdef unique_ptr[fst.RmEpsilonOptions] opts
   opts.reset(new fst.RmEpsilonOptions(_get_queue_type(tostring(qt)), delta,
                                       connect, wc, nstate))
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type())
   fst.RmEpsilon(deref(ifst._fst), tfst, reverse, deref(opts))
   return _init_MutableFst(tfst)
 
@@ -3957,7 +3995,7 @@ def shortestdistance(_Fst ifst,
   cdef unique_ptr[vector[fst.WeightClass]] distance
   distance.reset(_shortestdistance(ifst, delta, nstate, qt, reverse))
   # Packs the distances, as strings, into a Python list.
-  cdef string weight_type = ifst.weight_type
+  cdef string weight_type = ifst.weight_type()
   result = []
   # This is just the Cython version of the normal vector iteration idiom.
   cdef vector[fst.WeightClass].iterator it = distance.get().begin()
@@ -4004,11 +4042,11 @@ cpdef _MutableFst shortestpath(_Fst ifst,
   Returns:
     An FST containing the n-shortest paths.
   """
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type())
   cdef unique_ptr[vector[fst.WeightClass]] distance
   distance.reset(new vector[fst.WeightClass]())
   # Threshold is set to semiring Zero (no pruning) if no weight is specified.
-  cdef fst.WeightClass wc = _get_WeightClass_or_Zero(ifst.weight_type, weight)
+  cdef fst.WeightClass wc = _get_WeightClass_or_Zero(ifst.weight_type(), weight)
   cdef unique_ptr[fst.ShortestPathOptions] opts
   opts.reset(new fst.ShortestPathOptions(_get_queue_type(tostring(qt)),
                                          nshortest, unique, False, delta,
@@ -4061,7 +4099,7 @@ cpdef _MutableFst synchronize(_Fst ifst):
   Returns:
     An equivalent synchronized FST.
   """
-  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type)
+  cdef VectorFstClass_ptr tfst = new fst.VectorFstClass(ifst.arc_type())
   fst.Synchronize(deref(ifst._fst), tfst)
   return _init_MutableFst(tfst)
 
@@ -4219,7 +4257,7 @@ cdef class FarReader(object):
         "Cannot construct {}".format(self.__class__.__name__))
 
   def __repr__(self):
-    return "<{} FarReader at 0x{:x}>".format(self.far_type, id(self))
+    return "<{} FarReader at 0x{:x}>".format(self.far_type(), id(self))
 
   @classmethod
   def open(cls, *filenames):
@@ -4261,12 +4299,8 @@ cdef class FarReader(object):
     self.next()
     return (k, f)
 
-  cdef string _arc_type(self):
+  cpdef string arc_type(self):
     return self._reader.get().ArcType()
-
-  @property
-  def arc_type(self):
-    return self._arc_type()
 
   cpdef bool done(self):
     """
@@ -4293,12 +4327,8 @@ cdef class FarReader(object):
     """
     return self._reader.get().Error()
 
-  cdef string _far_type(self):
+  cpdef string far_type(self):
     return fst.FarTypeToString(self._reader.get().Type())
-
-  @property
-  def far_type(self):
-    return self._far_type()
 
   cpdef bool find(self, key):
     """
@@ -4402,7 +4432,7 @@ cdef class FarWriter(object):
         "Cannot construct {}".format(self.__class__.__name__))
 
   def __repr__(self):
-    return "<{} FarWriter at 0x{:x}>".format(self.far_type, id(self))
+    return "<{} FarWriter at 0x{:x}>".format(self.far_type(), id(self))
 
   @classmethod
   def create(cls, filename, arc_type=b"standard", far_type=b"default"):
@@ -4468,12 +4498,8 @@ cdef class FarWriter(object):
     if self._writer.get().Error():
       raise FstArgError("Key out of order")
 
-  cdef string _arc_type(self):
+  cpdef string arc_type(self):
     return self._writer.get().ArcType()
-
-  @property
-  def arc_type(self):
-    return self._arc_type()
 
   cpdef bool error(self):
     """
@@ -4486,12 +4512,8 @@ cdef class FarWriter(object):
     """
     return self._writer.get().Error()
 
-  cdef string _far_type(self):
+  cpdef string far_type(self):
     return fst.FarTypeToString(self._writer.get().Type())
-
-  @property
-  def far_type(self):
-    return self._far_type()
 
   # Dictionary-like assignment.
   def __setitem__(self, key, _Fst fst):

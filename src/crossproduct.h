@@ -53,7 +53,7 @@ void CrossProduct(const Fst<Arc> &ifst1, const Fst<Arc> &ifst2,
   Concat(ofst, tfst);
   // Optimizes output, if both inputs are known to be string FSTs.
   if (ifst1.Properties(kAcceptorAndString, true) == kAcceptorAndString &&
-       ifst2.Properties(kAcceptorAndString, true) == kAcceptorAndString) {
+      ifst2.Properties(kAcceptorAndString, true) == kAcceptorAndString) {
     OptimizeStringCrossProducts(ofst);
   }
   // Assigns symbol tables.

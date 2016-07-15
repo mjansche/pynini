@@ -27,6 +27,7 @@
 #include <fst/script/arg-packs.h>
 #include <fst/script/fstscript.h>
 #include "cdrewrite.h"
+#include "sigma_star.h"
 #include "pynini_common.h"
 
 DECLARE_int32(left_boundary_index);
@@ -64,7 +65,7 @@ void MakeBoundaryInserter(const Fst<Arc> &sigma_star, MutableFst<Arc> *fst) {
   auto end = tfst.AddState();
   tfst.SetStart(start);
   tfst.AddArc(start,
-             Arc(0, FLAGS_left_boundary_index, Arc::Weight::One(), end));
+              Arc(0, FLAGS_left_boundary_index, Arc::Weight::One(), end));
   tfst.SetFinal(end, Arc::Weight::One());
   Concat(&tfst, sigma_star);
   start = fst->AddState();
@@ -106,7 +107,6 @@ bool IsUnconditionedInsertion(const Fst<Arc> &tau, const Fst<Arc> &lambda,
 // and this is called after making mutable copies.
 
 const uint64 kLambdaAndRhoProperties = kAcceptor | kUnweighted;
-const uint64 kSigmaStarProperties = kAcceptor | kUnweighted | kCyclic;
 
 template <class Arc>
 void PyniniCDRewrite(MutableFst<Arc> *tau, MutableFst<Arc> *lambda,
@@ -139,10 +139,7 @@ void PyniniCDRewrite(MutableFst<Arc> *tau, MutableFst<Arc> *lambda,
       ofst->SetProperties(kError, kError);
       return;
     }
-    if (sigma_star->Properties(kSigmaStarProperties, true) !=
-        kSigmaStarProperties) {
-      FSTERROR() << "PyniniCDRewrite: sigma_star must be a cyclic unweighted "
-                 << "acceptor";
+    if (!CheckSigmaStarProperties(*sigma_star, "PyniniCDRewrite")) {
       ofst->SetProperties(kError, kError);
       return;
     }
@@ -155,9 +152,9 @@ void PyniniCDRewrite(MutableFst<Arc> *tau, MutableFst<Arc> *lambda,
   // "complete" table than other arguments. It does not contain the boundary
   // symbols, as these are deleted as a post-processing step. After compilation,
   // the global table is assigned to the output FST's input and output table.
-  std::unique_ptr<SymbolTable> syms(sigma_star->InputSymbols() ?
-                                    sigma_star->InputSymbols()->Copy() :
-                                    nullptr);
+  std::unique_ptr<SymbolTable> syms(sigma_star->InputSymbols()
+                                        ? sigma_star->InputSymbols()->Copy()
+                                        : nullptr);
   sigma_star->SetInputSymbols(nullptr);
   syms.reset(PrepareOutputSymbols(syms.get(), sigma_star));
   // Give a consistent labeling to boundary symbols in lambda and/or rho.
@@ -220,8 +217,8 @@ void PyniniCDRewrite(PyniniCDRewriteArgs *args) {
   const Fst<Arc> &rho = *(args->arg3.GetFst<Arc>());
   const Fst<Arc> &sigma_star_star = *(args->arg4.GetFst<Arc>());
   MutableFst<Arc> *ofst = args->arg5->GetMutableFst<Arc>();
-  PyniniCDRewrite(tau, lambda, rho, sigma_star_star, ofst,
-                  args->arg6, args->arg7);
+  PyniniCDRewrite(tau, lambda, rho, sigma_star_star, ofst, args->arg6,
+                  args->arg7);
 }
 
 void PyniniCDRewrite(const FstClass &tau, const FstClass &lambda,

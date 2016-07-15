@@ -15,15 +15,16 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#include <fst/script/script-impl.h>
 #include "stringmapscript.h"
+#include <fst/script/script-impl.h>
 
 namespace fst {
 namespace script {
 
 bool StringMap(const std::vector<std::pair<string, string>> &pairs,
-               TokenType itype, TokenType otype, MutableFstClass *fst,
-               const SymbolTable *isyms, const SymbolTable *osyms) {
+               StringTokenType itype, StringTokenType otype,
+               MutableFstClass *fst, const SymbolTable *isyms,
+               const SymbolTable *osyms) {
   StringMapInnerArgs iargs(pairs, itype, otype, fst, isyms, osyms);
   StringMapArgs args(iargs);
   Apply<Operation<StringMapArgs>>("StringMap", fst->ArcType(), &args);
@@ -33,6 +34,19 @@ bool StringMap(const std::vector<std::pair<string, string>> &pairs,
 REGISTER_FST_OPERATION(StringMap, StdArc, StringMapArgs);
 REGISTER_FST_OPERATION(StringMap, LogArc, StringMapArgs);
 REGISTER_FST_OPERATION(StringMap, Log64Arc, StringMapArgs);
+
+bool StringFile(const string &fname, StringTokenType itype,
+                StringTokenType otype, MutableFstClass *fst,
+                const SymbolTable *isyms, const SymbolTable *osyms) {
+  StringFileInnerArgs iargs(fname, itype, otype, fst, isyms, osyms);
+  StringFileArgs args(iargs);
+  Apply<Operation<StringFileArgs>>("StringFile", fst->ArcType(), &args);
+  return args.retval;
+}
+
+REGISTER_FST_OPERATION(StringFile, StdArc, StringFileArgs);
+REGISTER_FST_OPERATION(StringFile, LogArc, StringFileArgs);
+REGISTER_FST_OPERATION(StringFile, Log64Arc, StringFileArgs);
 
 }  // namespace script
 }  // namespace fst

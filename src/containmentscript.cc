@@ -15,24 +15,26 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
+#include "containmentscript.h"
 #include <fst/script/script-impl.h>
-#include "stringfilescript.h"
 
 namespace fst {
 namespace script {
 
-bool StringFile(const string &fname, TokenType itype, TokenType otype,
-                MutableFstClass *fst, const SymbolTable *isyms,
-                const SymbolTable *osyms) {
-  StringFileInnerArgs iargs(fname, itype, otype, fst, isyms, osyms);
-  StringFileArgs args(iargs);
-  Apply<Operation<StringFileArgs>>("StringFile", fst->ArcType(), &args);
-  return args.retval;
+void Containment(const FstClass &ifst, const FstClass &sigma_star,
+                 MutableFstClass *ofst) {
+  if (!ArcTypesMatch(ifst, sigma_star, "Containment") ||
+      !ArcTypesMatch(sigma_star, *ofst, "Containment")) {
+    ofst->SetProperties(kError, kError);
+    return;
+  }
+  ContainmentArgs args(ifst, sigma_star, ofst);
+  Apply<Operation<ContainmentArgs>>("Containment", ifst.ArcType(), &args);
 }
 
-REGISTER_FST_OPERATION(StringFile, StdArc, StringFileArgs);
-REGISTER_FST_OPERATION(StringFile, LogArc, StringFileArgs);
-REGISTER_FST_OPERATION(StringFile, Log64Arc, StringFileArgs);
+REGISTER_FST_OPERATION(Containment, StdArc, ContainmentArgs);
+REGISTER_FST_OPERATION(Containment, LogArc, ContainmentArgs);
+REGISTER_FST_OPERATION(Containment, Log64Arc, ContainmentArgs);
 
 }  // namespace script
 }  // namespace fst

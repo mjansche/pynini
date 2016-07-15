@@ -276,6 +276,13 @@ cdef extern from "<fst/script/fstscript.h>" namespace "fst::script" nogil:
     @staticmethod
     const WeightClass &NoWeight(const string &)
 
+  cdef WeightClass Plus(const WeightClass &, const WeightClass &)
+
+  cdef WeightClass Times(const WeightClass &, const WeightClass &)
+
+  cdef WeightClass Divide(const WeightClass &, const WeightClass &)
+
+  cdef WeightClass Power(const WeightClass &, size_t)
 
   # Arcs.
   cdef cppclass ArcClass:
@@ -329,8 +336,6 @@ cdef extern from "<fst/script/fstscript.h>" namespace "fst::script" nogil:
 
   cdef cppclass MutableFstClass(FstClass):
 
-    MutableFstClass(const FstClass &)
-
     bool AddArc(int64, const ArcClass &)
 
     int64 AddState()
@@ -365,7 +370,9 @@ cdef extern from "<fst/script/fstscript.h>" namespace "fst::script" nogil:
 
   cdef cppclass VectorFstClass(MutableFstClass):
 
-    VectorFstClass(const string &)
+   VectorFstClass(const FstClass &)
+
+   VectorFstClass(const string &)
 
 
   # EncodeMapper.
@@ -553,7 +560,7 @@ cdef extern from "<fst/script/fstscript.h>" namespace "fst::script" nogil:
 
   cdef FstClass *Map(const FstClass &, MapType, float, const WeightClass &)
 
-  cdef void Minimize(MutableFstClass *, MutableFstClass *, float)
+  cdef void Minimize(MutableFstClass *, MutableFstClass *, float, bool)
 
   cdef void Project(MutableFstClass *, ProjectType)
 
@@ -643,7 +650,7 @@ cdef extern from "<fst/script/fstscript.h>" namespace "fst::script" nogil:
   cdef bool Verify(const FstClass &)
 
 
-cdef extern from "<fst/extensions/far/far.h>" namespace "fst" nogil:
+cdef extern from "<fst/extensions/far/farlib.h>" namespace "fst" nogil:
 
   enum FarType:
     FAR_DEFAULT
@@ -651,9 +658,6 @@ cdef extern from "<fst/extensions/far/far.h>" namespace "fst" nogil:
     FAR_STLIST
     FAR_FST
     FAR_SSTABLE
-
-
-cdef extern from "<fst/extensions/far/main.h>" namespace "fst" nogil:
 
   FarType FarTypeFromString(const string &)
 

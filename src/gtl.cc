@@ -17,29 +17,6 @@
 
 #include "gtl.h"
 
-namespace file {
-
-// Opens file in specified mode.
-
-Status Open(const string &filename, const string &mode, File **f,
-          const Options &options) {
-  std::ios_base::openmode m = static_cast<std::ios_base::openmode>(0);
-  if (mode.find('r') != string::npos) m |= std::ios::in;
-  if (mode.find('w') != string::npos) m |= std::ios::out;
-  if (mode.find('a') != string::npos) m |= std::ios::app;
-  std::fstream *streamptr = new std::fstream(filename.c_str(), m);
-  if (streamptr->fail()) {
-    delete streamptr;
-    return Status(false);
-  }
-  *f = new File(streamptr);
-  return Status(true);
-}
-
-Options Defaults() { return Options(); };
-
-}  // namespace file
-
 namespace strings {
 
 namespace internal {
@@ -83,6 +60,10 @@ std::vector<string> Split(const string &full, const char *delim) {
     if (size > 0) result.push_back(full.substr(prev, size));
   }
   return result;
+}
+
+std::vector<string> Split(const string &full, const string &delim) {
+  return Split(full, delim.c_str());
 }
 
 }  // namespace strings

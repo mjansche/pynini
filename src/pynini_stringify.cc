@@ -20,7 +20,7 @@
 namespace fst {
 namespace script {
 
-bool PyniniStringify(const FstClass &fst, TokenType token_type,
+bool PyniniStringify(const FstClass &fst, StringTokenType token_type,
                      const SymbolTable *symbols, string *str) {
   PyniniStringifyInnerArgs iargs(fst, token_type, symbols, str);
   PyniniStringifyArgs args(iargs);

@@ -32,7 +32,7 @@ namespace fst {
 
 namespace internal {
 
-SymbolTable *GetSymbolTable(TokenType ttype, const SymbolTable *syms) {
+SymbolTable *GetSymbolTable(StringTokenType ttype, const SymbolTable *syms) {
   switch (ttype) {
     case SYMBOL:
       return syms->Copy();
@@ -40,10 +40,8 @@ SymbolTable *GetSymbolTable(TokenType ttype, const SymbolTable *syms) {
       return internal::byte_table_factory.GetTable();
     case UTF8:
       return internal::utf8_table_factory.GetTable();
-    break;
   }
-  // Should be unreachable.
-  FSTERROR() << "GetSymbolTable: Unknown TokenType";
+  FSTERROR() << "GetSymbolTable: Unknown StringTokenType";
   return nullptr;
 }
 
@@ -61,6 +59,8 @@ void AddIntegerToSymbolTable(int64 label, SymbolTable *syms) {
 // if (u_charType(c) == U_CONTROL_CHAR ||
 //     u_hasBinaryProperty(c, UCHAR_WHITE_SPACE) ||
 //     u_hasBinaryProperty(c, UCHAR_POSIX_BLANK))
+//
+// This was extracted from nlp/grm/language/walker/util/function/symbols.cc.
 inline bool IsUnicodeSpaceOrControl(int32 label) {
   switch (label) {
     case 1:
@@ -170,10 +170,11 @@ int32 AddUnicodeCodepointToSymbolTable(int32 label, SymbolTable *syms) {
 void RemoveBracketEscapes(string *str) {
   static const RE2 left_bracket_escape(kEscapedLeftBracket);
   RE2::GlobalReplace(str, left_bracket_escape, R"([)");
-  static const re2::RE2 right_bracket_escape(kEscapedRightBracket);
+  static const RE2 right_bracket_escape(kEscapedRightBracket);
   RE2::GlobalReplace(str, right_bracket_escape, R"(])");
 }
 
 }  // namespace internal
 
 }  // namespace fst
+

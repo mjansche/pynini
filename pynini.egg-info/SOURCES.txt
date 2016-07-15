@@ -13,6 +13,9 @@ pynini.egg-info/dependency_links.txt
 pynini.egg-info/top_level.txt
 src/basictypes.pxd
 src/cdrewrite.h
+src/containment.h
+src/containmentscript.cc
+src/containmentscript.h
 src/crossproduct.h
 src/crossproductscript.cc
 src/crossproductscript.h
@@ -21,6 +24,9 @@ src/fst_util.pxd
 src/gtl.cc
 src/gtl.h
 src/ios.pxd
+src/lenientlycompose.h
+src/lenientlycomposescript.cc
+src/lenientlycomposescript.h
 src/memory.pxd
 src/merge.cc
 src/merge.h
@@ -49,14 +55,14 @@ src/pywrapfst.pyx
 src/repeat.h
 src/repeatscript.cc
 src/repeatscript.h
+src/sigma_star.h
 src/stringcompile.cc
 src/stringcompile.h
 src/stringcompilescript.cc
 src/stringcompilescript.h
+src/stringfile.cc
 src/stringfile.h
-src/stringfilescript.cc
-src/stringfilescript.h
 src/stringmap.h
 src/stringmapscript.cc
 src/stringmapscript.h
-src/tokentype.h
+testdata/cheese.map

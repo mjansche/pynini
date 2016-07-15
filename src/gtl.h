@@ -26,76 +26,6 @@
 
 using std::string;
 
-// File stuff.
-
-class File {
- public:
-  File() : stream_(nullptr) {}
-
-  explicit File(std::fstream *stream) : stream_(stream) {}
-
-  void SetStream(std::fstream *stream) { stream_.reset(stream); }
-
-  std::fstream *stream() { return stream_.get(); }
-
-  void Close() {
-    stream_->close();
-    stream_.reset();
-  }
-
- private:
-  std::unique_ptr<std::fstream> stream_;
-};
-
-// 2^14 --- should be enough for 1 line for the intended use.
-constexpr auto kMaxline = 16384;
-
-class InputBuffer {
- public:
-  explicit InputBuffer(File *fp) : fp_(fp) {}
-
-  bool ReadLine(string *line) {
-    line->clear();
-    fp_->stream()->getline(buf_, kMaxline);
-    if (!fp_->stream()->gcount()) {
-      fp_.reset();
-      return false;
-    }
-    line->append(buf_);
-    return true;
-  }
-
- private:
-  std::unique_ptr<File> fp_;
-  char buf_[kMaxline];
-};
-
-namespace file {
-
-// Neither of these classes are really good for anything. They exist solely
-// for compatibility reasons.
-
-class Options {
- public:
-  Options() { }
-};
-
-Options Defaults();
-
-struct Status {
-
-  explicit Status(bool stat) : status(stat) {}
-
-  bool ok() const { return status; }
-
-  bool status;
-};
-
-Status Open(const string &filename, const string &mode,
-            File **f, const Options &opts);
-
-}  // namespace file
-
 // Prefix tree stuff.
 
 template <class T>
@@ -122,6 +52,8 @@ namespace strings {
 string Join(const std::vector<string> &elements, const string &delim);
 
 std::vector<string> Split(const string &full, const char *delim);
+
+std::vector<string> Split(const string &full, const string &delim);
 
 }  // namespace strings
 

@@ -32,10 +32,9 @@ from fst cimport WeightClass
 
 from libcpp.string cimport string
 
-from fst_util cimport TokenType
+from fst_util cimport StringTokenType
 
 
-ctypedef pair[int64, int64] LabelPair
 ctypedef pair[string, const FstClass *] StringFstClassPair
 
 
@@ -55,14 +54,14 @@ cdef extern from "<fst/extensions/mpdt/mpdtscript.h>" \
     namespace "fst::script" nogil:
 
     void MPdtCompose(const FstClass &, const FstClass &,
-                     const vector[LabelPair] &, const vector[int64] &,
+                     const vector[pair[int64, int64]] &, const vector[int64] &,
                      MutableFstClass *, const MPdtComposeOptions &, bool)
 
-    void MPdtExpand(const FstClass &, const vector[LabelPair] &,
+    void MPdtExpand(const FstClass &, const vector[pair[int64, int64]] &,
                     const vector[int64] &, MutableFstClass *,
                     const MPdtExpandOptions &)
 
-    void MPdtReverse(const FstClass &, const vector[LabelPair] &,
+    void MPdtReverse(const FstClass &, const vector[pair[int64, int64]] &,
                      vector[int64] *, MutableFstClass *)
 
 
@@ -95,24 +94,24 @@ cdef extern from "<fst/extensions/pdt/pdtscript.h>" \
     namespace "fst::script" nogil:
 
   void PdtCompose(const FstClass &, const FstClass &,
-                  const vector[LabelPair] &, MutableFstClass *,
+                  const vector[pair[int64, int64]] &, MutableFstClass *,
                   const PdtComposeOptions &, bool)
 
   cdef cppclass PdtExpandOptions:
 
     PdtExpandOptions(bool, bool, const WeightClass &)
 
-  void PdtExpand(const FstClass &, const vector[LabelPair] &,
+  void PdtExpand(const FstClass &, const vector[pair[int64, int64]] &,
                  MutableFstClass *, const PdtExpandOptions &)
 
-  void PdtReverse(const FstClass &, const vector[LabelPair] &,
+  void PdtReverse(const FstClass &, const vector[pair[int64, int64]] &,
                   MutableFstClass *)
 
   cdef cppclass PdtShortestPathOptions:
 
     PdtShortestPathOptions(QueueType, bool, bool)
 
-  void PdtShortestPath(const FstClass &, const vector[LabelPair] &,
+  void PdtShortestPath(const FstClass &, const vector[pair[int64, int64]] &,
                        MutableFstClass *, const PdtShortestPathOptions &)
 
 
@@ -151,13 +150,13 @@ cdef extern from "pynini_replace.h" \
                      MutableFstClass *, const ReplaceOptions &)
 
   void PyniniPdtReplace(const FstClass &, const vector[StringFstClassPair] &,
-                        MutableFstClass *, const vector[LabelPair] *,
+                        MutableFstClass *, const vector[pair[int64, int64]] *,
                         PdtParserType)
 
 
 cdef extern from "pynini_stringify.h" \
     namespace "fst::script" nogil:
 
-  bool PyniniStringify(const FstClass &, TokenType,
+  bool PyniniStringify(const FstClass &, StringTokenType,
                        const SymbolTable *, string *)
 

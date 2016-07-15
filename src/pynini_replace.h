@@ -46,7 +46,6 @@ using std::string;
 #include "pynini_common.h"
 
 namespace fst {
-
 namespace internal {
 
 // This internal-only helper converts the root FST plus a vector of string/FST
@@ -54,7 +53,8 @@ namespace internal {
 // as it goes. It is used both for FST and PDT replacement.
 
 template <class Arc>
-bool PrepareReplacePairs(const Fst<Arc> &root,
+bool PrepareReplacePairs(
+    const Fst<Arc> &root,
     const std::vector<std::pair<string, const Fst<Arc> *>> &pairs,
     std::vector<std::pair<typename Arc::Label, const Fst<Arc> *>> *new_pairs) {
   using Label = typename Arc::Label;
@@ -108,7 +108,8 @@ inline void CleanUpNewPairs(
 // FST replacement.
 
 template <class Arc>
-void PyniniReplace(const Fst<Arc> &root,
+void PyniniReplace(
+    const Fst<Arc> &root,
     const std::vector<std::pair<string, const Fst<Arc> *>> &pairs,
     MutableFst<Arc> *ofst, ReplaceFstOptions<Arc> *opts) {
   auto size = pairs.size();
@@ -139,7 +140,8 @@ void PyniniReplace(const Fst<Arc> &root,
 // PDT replacement.
 
 template <class Arc>
-void PyniniReplace(const Fst<Arc> &root,
+void PyniniReplace(
+    const Fst<Arc> &root,
     const std::vector<std::pair<string, const Fst<Arc> *>> &pairs,
     MutableFst<Arc> *ofst,
     std::vector<std::pair<typename Arc::Label, typename Arc::Label>> *parens,
@@ -152,16 +154,16 @@ void PyniniReplace(const Fst<Arc> &root,
     ofst->SetProperties(kError, kError);
     return;
   }
-  std::vector<std::pair<typename Arc::Label, const Fst<Arc> *>>
-      new_pairs;
+  std::vector<std::pair<typename Arc::Label, const Fst<Arc> *>> new_pairs;
   if (!internal::PrepareReplacePairs(root, pairs, &new_pairs)) {
     ofst->SetProperties(kError, kError);
     return;
   }
   // Performs PDT replacement.
   auto start_paren_labels = static_cast<Label>(
-      new_pairs[0].second->OutputSymbols() ?
-      new_pairs[0].second->OutputSymbols()->AvailableKey() : kNoLabel);
+      new_pairs[0].second->OutputSymbols()
+          ? new_pairs[0].second->OutputSymbols()->AvailableKey()
+          : kNoLabel);
   // We use kNoLabel as the root label.
   PdtReplaceOptions<Arc> opts(kNoLabel, type, start_paren_labels);
   Replace(new_pairs, ofst, parens, opts);
@@ -175,8 +177,8 @@ namespace script {
 using StringFstClassPair = std::pair<string, const FstClass *>;
 
 typedef args::Package<const FstClass &, const std::vector<StringFstClassPair> &,
-                      MutableFstClass *,
-                      const ReplaceOptions &> PyniniReplaceArgs;
+                      MutableFstClass *, const ReplaceOptions &>
+    PyniniReplaceArgs;
 
 template <class Arc>
 void PyniniReplace(PyniniReplaceArgs *args) {
@@ -197,14 +199,15 @@ void PyniniReplace(PyniniReplaceArgs *args) {
 }
 
 void PyniniReplace(const FstClass &root,
-    const std::vector<StringFstClassPair> &pairs, MutableFstClass *ofst,
-    const ReplaceOptions &opts);
+                   const std::vector<StringFstClassPair> &pairs,
+                   MutableFstClass *ofst, const ReplaceOptions &opts);
 
 // PDT replacement.
 
 typedef args::Package<const FstClass &, const std::vector<StringFstClassPair> &,
                       MutableFstClass *, std::vector<LabelPair> *,
-                      PdtParserType> PyniniPdtReplaceArgs;
+                      PdtParserType>
+    PyniniPdtReplaceArgs;
 
 template <class Arc>
 void PyniniPdtReplace(PyniniPdtReplaceArgs *args) {

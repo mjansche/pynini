@@ -1,3 +1,16 @@
+v. 1.0
+======
+
+* Weight objects now support semiring arithmetic
+* Fixes bug whereby using an incompatible weight argument to `acceptor`/`transducer` would result in segmentation fault
+* In any binary operation with a string and an FST, the FST's arc type is used to compile the string, rather than assuming the string is a standard arc FST
+* Extensive low-level improvements to all string libraries
+* Adds traditional getter methods in place of Python properties in nearly all cases
+* Adds `containment` and `leniently_compose` methods
+* Adds `epsilon_machine` function
+* Adds `from_pywrapfst` method for downcasting pywrapfst FSTs
+* Adds `ilabels` and `olabels` methods to `StringPaths`
+
 v. 0.9 (fifth public beta)
 ==========================
 
@@ -8,7 +21,7 @@ v. 0.9 (fifth public beta)
 v. 0.8 (fourth public beta)
 ===========================
 
-* All destructive operations now return "self", too, so you can even chain destructive operations
+* All destructive operations can be chained
 * Improves `string_map` to use a prefix tree construction; as a result the output FST is deterministic
 * Adds `string_file` for creating string maps from tab-separated values files on disk; it too uses a prefix tree construction
 * Following Thrax, `difference` performs optimization on its right-hand argument as the algorithm demands that it be epsilon-free and deterministic
@@ -21,7 +34,7 @@ v. 0.7 (third public beta)
 
 * Fixes symbol table handling in `pdt_replace`
 * Optimizes symbol table merging for the most common case
-* Adds output-projection and epsilon-removal to `stringify()`, so the resulting string will not be padded with '\0' bytes
+* Adds output-projection and epsilon-removal to `stringify`, so the resulting string will not be padded with null bytes
 
 v. 0.6 (second public beta)
 ===========================

@@ -224,23 +224,23 @@ class PyniniExceptionsTest(unittest.TestCase):
 
   def testGarbageComposeFilterComposeRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
-      unused_f = compose(self.f, self.f, cf="nonexistent")
+      unused_f = compose(self.f, self.f, compose_filter="nonexistent")
 
   def testGarbageComposeFilterDifferenceRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
-      unused_f = difference(self.f, self.f, cf="nonexistent")
+      unused_f = difference(self.f, self.f, compose_filter="nonexistent")
 
   def testGarbageQueueTypeRmepsilonRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
-      unused_f = rmepsilon(self.f, qt="nonexistent")
+      unused_f = rmepsilon(self.f, queue_type="nonexistent")
 
   def testGarbageQueueTypeShortestDistanceRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
-      unused_sd = shortestdistance(self.f, qt="nonexistent")
+      unused_sd = shortestdistance(self.f, queue_type="nonexistent")
 
   def testGarbageQueueTypeShortestPathRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
-      unused_f = shortestpath(self.f, qt="nonexistent")
+      unused_f = shortestpath(self.f, queue_type="nonexistent")
 
   def testGarbageSelectTypeRandgenRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
@@ -373,7 +373,8 @@ class PyniniPdtReplaceTest(unittest.TestCase):
     (f, parens) = pdt_replace("[S]", S=s_rhs)
     for n in xrange(1, 100):
       anbn = n * "a" + n * "b"
-      self.assertEqual(pdt_compose(f, anbn, parens, cf="expand"), anbn)
+      self.assertEqual(pdt_compose(f, anbn, parens, compose_filter="expand"),
+                       anbn)
 
 
 class PyniniReplaceTest(unittest.TestCase):

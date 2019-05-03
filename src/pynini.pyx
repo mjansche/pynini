@@ -190,14 +190,14 @@ class FstSymbolTableMergeError(FstOpError, ValueError):
 # Helper functions.
 
 
-cdef StringTokenType _get_token_type(string tt) except *:
+cdef StringTokenType _get_token_type(const string &token_type) except *:
   """Matches string with the appropriate StringTokenType enum value.
 
   This function takes a string argument and returns the matching StringTokenType
   enum value used by StringMap, StringPathsClass and PrintString.
 
   Args:
-    tt: A string matching a known token type.
+    token_type: A string matching a known token type.
 
   Returns:
     A StringTokenType enum value.
@@ -207,20 +207,21 @@ cdef StringTokenType _get_token_type(string tt) except *:
 
   This function is not visible to Python users.
   """
-  cdef StringTokenType token_type
-  if not GetStringTokenType(tt, addr(token_type)):
+  cdef StringTokenType token_type_enum
+  if not GetStringTokenType(token_type, addr(token_type_enum)):
     raise FstArgError("Unknown token type: {!r}".format(token_type))
-  return token_type
+  return token_type_enum
 
 
-cdef CDRewriteDirection _get_cdrewrite_direction(string rd) except *:
+cdef CDRewriteDirection _get_cdrewrite_direction(
+    const string &rewrite_direction) except *:
   """Matches string with the appropriate CDRewriteDirection enum value.
 
   This function takes a string argument and returns the matching
   CDRewriteDirection enum value used by PyniniCDRewrite.
 
   Args:
-    rd: A string matching a known rewrite direction type.
+    rewrite_direction: A string matching a known rewrite direction type.
 
   Returns:
     A CDRewriteDirection enum value.
@@ -230,21 +231,22 @@ cdef CDRewriteDirection _get_cdrewrite_direction(string rd) except *:
 
   This function is not visible to Python users.
   """
-  cdef CDRewriteDirection rewrite_direction
-  if not GetCDRewriteDirection(rd, addr(rewrite_direction)):
+  cdef CDRewriteDirection rewrite_direction_enum
+  if not GetCDRewriteDirection(rewrite_direction, addr(rewrite_direction_enum)):
     raise FstArgError(
-        "Unknown context-dependent rewrite direction: {!r}".format(rd))
-  return rewrite_direction
+        "Unknown context-dependent rewrite direction: {!r}".format(
+            rewrite_direction))
+  return rewrite_direction_enum
 
 
-cdef CDRewriteMode _get_cdrewrite_mode(string rm) except *:
+cdef CDRewriteMode _get_cdrewrite_mode(const string &rewrite_mode) except *:
   """Matches string with the appropriate CDRewriteMode enum value.
 
   This function takes a string argument and returns the matching
   CDRewriteMode enum value used by PyniniCDRewrite.
 
   Args:
-    rd: A string matching a known rewrite mode type.
+    rewrite_mode: A string matching a known rewrite mode type.
 
   Returns:
     A CDRewriteMode enum value.
@@ -254,35 +256,43 @@ cdef CDRewriteMode _get_cdrewrite_mode(string rm) except *:
 
   This function is not visible to Python users.
   """
-  cdef CDRewriteMode rewrite_mode
-  if not GetCDRewriteMode(rm, addr(rewrite_mode)):
+  cdef CDRewriteMode rewrite_mode_enum
+  if not GetCDRewriteMode(rewrite_mode, addr(rewrite_mode_enum)):
     raise FstArgError(
-        "Unknown context-dependent rewrite mode: {!r}".format(rm))
-  return rewrite_mode
+        "Unknown context-dependent rewrite mode: {!r}".format(rewrite_mode))
+  return rewrite_mode_enum
 
 
-cdef PdtComposeFilter _get_pdt_compose_filter(string cf) except *:
+cdef PdtComposeFilter _get_pdt_compose_filter(
+    const string &compose_filter) except *:
   """Matches string with the appropriate PdtComposeFilter enum value.
+
+  Args:
+    compose_filter: A string matching a known PdtComposeFilter type.
+
+  Returns:
+    A PdtComposeFilter enum value.
 
   Raises:
     FstArgError: Unknown PDT compose filter type.
 
   This function is not visible to Python users.
   """
-  cdef PdtComposeFilter compose_filter
-  if not GetPdtComposeFilter(cf, addr(compose_filter)):
-    raise FstArgError("Unknown PDT compose filter type: {!r}".format(cf))
-  return compose_filter
+  cdef PdtComposeFilter compose_filter_enum
+  if not GetPdtComposeFilter(compose_filter, addr(compose_filter_enum)):
+    raise FstArgError("Unknown PDT compose filter type: {!r}".format(
+        compose_filter))
+  return compose_filter_enum
 
 
-cdef PdtParserType _get_pdt_parser_type(string pt) except *:
+cdef PdtParserType _get_pdt_parser_type(const string &parser_type) except *:
   """Matches string with the appropriate PdtParserType enum value.
 
   This function takes a string argument and returns the matching PdtParserType
   enum value used by PyniniPdtReplace.
 
   Args:
-    pt: A string matching a known parser type.
+    parser_type: A string matching a known parser type.
 
   Returns:
     A PdtParserType enum value.
@@ -292,10 +302,10 @@ cdef PdtParserType _get_pdt_parser_type(string pt) except *:
 
   This function is not visible to Python users.
   """
-  cdef PdtParserType parser_type
-  if not GetPdtParserType(pt, addr(parser_type)):
+  cdef PdtParserType parser_type_enum
+  if not GetPdtParserType(parser_type, addr(parser_type_enum)):
     raise FstArgError("Unknown PDT parser type: {!r}".format(parser_type))
-  return parser_type
+  return parser_type_enum
 
 
 cdef void _add_parentheses_symbols(MutableFstClass *fst,
@@ -349,6 +359,23 @@ cdef void _add_parentheses_symbols(MutableFstClass *fst,
     if label != sink_syms.AddSymbol(symbol, label):
       raise FstSymbolTableMergeError(
           "Unable to resolve parentheses symbol table conflict")
+
+
+cdef void _maybe_arcsort(MutableFstClass *ifst1, MutableFstClass *ifst2):
+  """Arc-sorts two FST arguments for composition, if necessary.
+
+  Args:
+    ifst1: A pointer to the left-hand MutableFstClass.
+    ifst2: A pointer to the right-hand MutableFstClass.
+
+  This function is not visible to Python users.
+  """
+  # It is probably much quicker to force recomputation of the property (if
+  # necessary) to call the underlying sort on a vector of arcs.
+  if ifst1.Properties(O_LABEL_SORTED, True) != O_LABEL_SORTED:
+    ArcSort(ifst1, OLABEL_SORT)
+  if ifst2.Properties(I_LABEL_SORTED, True) != I_LABEL_SORTED:
+    ArcSort(ifst2, ILABEL_SORT)
 
 
 # Class for FSTs created from within Pynini. It overrides instance methods of
@@ -1071,10 +1098,10 @@ cpdef Fst epsilon_machine(arc_type=b"standard", weight=None):
   return result
 
 
-cpdef Fst leniently_compose(ifst1, ifst2, sigma_star, cf=b"auto",
+cpdef Fst leniently_compose(ifst1, ifst2, sigma_star, compose_filter=b"auto",
                             bool connect=True):
   """
-  leniently_compose(ifst1, ifst2, cf="auto", connect=True)
+  leniently_compose(ifst1, ifst2, compose_filter="auto", connect=True)
 
   Constructively leniently-composes two FSTs.
 
@@ -1088,8 +1115,8 @@ cpdef Fst leniently_compose(ifst1, ifst2, sigma_star, cf=b"auto",
     ifst: The input FST.
     sigma_star: A cyclic, unweighted acceptor representing the closure over the
         alphabet.
-    cf: A string matching a known composition filter; one of: "alt_sequence",
-        "auto", "match", "null", "sequence", "trivial".
+    compose_filter: A string matching a known composition filter; one of:
+        "alt_sequence", "auto", "match", "null", "sequence", "trivial".
     connect: Should output be trimmed?
 
   Returns:
@@ -1106,7 +1133,8 @@ cpdef Fst leniently_compose(ifst1, ifst2, sigma_star, cf=b"auto",
   cdef string arc_type = ifst1_compiled.arc_type()
   sigma_star_compiled = _compile_or_copy_Fst(sigma_star, arc_type)
   cdef unique_ptr[ComposeOptions] opts
-  opts.reset(new ComposeOptions(connect, _get_compose_filter(tostring(cf))))
+  opts.reset(new ComposeOptions(connect,
+      _get_compose_filter(tostring(compose_filter))))
   cdef Fst result = Fst(arc_type)
   LenientlyCompose(deref(ifst1_compiled._fst), deref(ifst2_compiled._fst),
                    deref(sigma_star_compiled._fst), result._mfst.get(),
@@ -1295,8 +1323,7 @@ def _compose_patch(fnc):
            "Unable to resolve symbol table conflict without relabeling")
      else:
        raise FstOpError("Operation failed")
-    ArcSort(lhs._mfst.get(), OLABEL_SORT)
-    ArcSort(rhs._mfst.get(), ILABEL_SORT)
+    _maybe_arcsort(lhs._mfst.get(), rhs._mfst.get())
     lhs = _init_Fst_from_MutableFst(fnc(lhs, rhs, *args, **kwargs))
     if not lhs.num_states():
       logging.warning("Composed FST has no connected states")
@@ -1603,10 +1630,10 @@ cdef class PdtParentheses(object):
 def pdt_compose(ifst1,
                 ifst2,
                 PdtParentheses parens,
-                cf=b"paren",
+                compose_filter=b"paren",
                 bool left_pdt=True):
   """
-  pdt_compose(ifst1, ifst2, parens, cf="paren", left_pdt=True)
+  pdt_compose(ifst1, ifst2, parens, compose_filter="paren", left_pdt=True)
 
   Composes a PDT with an FST.
 
@@ -1619,9 +1646,9 @@ def pdt_compose(ifst1,
     ifst1: The left-hand-side input FST or PDT.
     ifst2: The right-hand-side input FST or PDT.
     parens: A PdtParentheses object specifying the input PDT's stack symbols.
-    cf: A string indicating the desired PDT composition filter; one of: "paren"
-        (keeps parentheses), "expand" (expands and removes parentheses),
-        "expand_paren" (expands and keeps parentheses).
+    compose_filter: A string indicating the desired PDT composition filter; one
+        of: "paren" (keeps parentheses), "expand" (expands and removes
+        parentheses), "expand_paren" (expands and keeps parentheses).
     left_pdt: If true, the first argument is interpreted as a PDT and the
         second argument is interpreted as an FST; if false, the second
         argument is interpreted as a PDT and the first argument is interpreted
@@ -1638,8 +1665,7 @@ def pdt_compose(ifst1,
   cdef Fst lhs
   cdef Fst rhs
   (lhs, rhs) = _compile_or_copy_two_Fsts(ifst1, ifst2)
-  lhs.arcsort(st=b"olabel")
-  rhs.arcsort(st=b"ilabel")
+  _maybe_arcsort(lhs._mfst.get(), rhs._mfst.get())
   if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
                       MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
     if not FLAGS_fst_relabel_symbol_conflicts:
@@ -1648,9 +1674,10 @@ def pdt_compose(ifst1,
     else:
       raise FstOpError("Operation failed")
   cdef Fst result = Fst(lhs.arc_type())
-  cdef PdtComposeFilter typed_cf = _get_pdt_compose_filter(tostring(cf))
+  cdef PdtComposeFilter compose_filter_enum = _get_pdt_compose_filter(
+      tostring(compose_filter))
   cdef unique_ptr[PdtComposeOptions] opts
-  opts.reset(new PdtComposeOptions(True, typed_cf))
+  opts.reset(new PdtComposeOptions(True, compose_filter_enum))
   PdtCompose(deref(lhs._fst), deref(rhs._fst), parens._parens,
              result._mfst.get(), deref(opts), left_pdt)
   if not result.num_states():
@@ -1658,7 +1685,7 @@ def pdt_compose(ifst1,
   result._check_mutating_imethod()
   # If the "expand" filter is selected, all parentheses have been mapped to
   # epsilon. This conveniently removes the arcs that result.
-  if typed_cf == EXPAND_FILTER:
+  if compose_filter_enum == EXPAND_FILTER:
     result.rmepsilon()
   # Otherwise, we need to add the parentheses to the result.
   else:
@@ -1793,11 +1820,11 @@ def pdt_reverse(ipdt, PdtParentheses parens):
 
 def pdt_shortestpath(ipdt,
                      PdtParentheses parens,
-                     qt=b"fifo",
+                     queue_type=b"fifo",
                      bool keep_parentheses=False,
                      bool path_gc=True):
   """
-  pdt_shortestpath(ipdt, parens, qt="fifo", keep_parentheses=False,
+  pdt_shortestpath(ipdt, parens, queue_type="fifo", keep_parentheses=False,
                    path_gc=True)
 
   Computes the shortest path through a bounded-stack PDT.
@@ -1809,8 +1836,8 @@ def pdt_shortestpath(ipdt,
   Args:
     ipdt: The FST component of an input PDT.
     parens: A PdtParentheses object specifying the input PDT's stack symbols.
-    qt: A string matching a known queue type; one of: "fifo" (default), "lifo",
-        "state".
+    queue_type: A string matching a known queue type; one of: "fifo" (default),
+        "lifo", "state".
     keep_parentheses: Should the output FST preserve parentheses arcs?
     path_gc: Should shortest path data be garbage-collected?
 
@@ -1824,7 +1851,7 @@ def pdt_shortestpath(ipdt,
   cdef Fst result = Fst(pdt.arc_type())
   cdef unique_ptr[PdtShortestPathOptions] opts
   opts.reset(new PdtShortestPathOptions(
-        _get_queue_type(tostring(qt)), keep_parentheses, path_gc))
+        _get_queue_type(tostring(queue_type)), keep_parentheses, path_gc))
   PdtShortestPath(deref(pdt._fst), parens._parens, result._mfst.get(),
                   deref(opts))
   result._check_mutating_imethod()
@@ -1940,10 +1967,10 @@ cdef class MPdtParentheses(object):
       raise FstIOError("Write failed: {!r}".format(filename))
 
 
-cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens, cf=b"paren",
-                       bool left_mpdt=True):
+cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens,
+                       compose_filter=b"paren", bool left_mpdt=True):
   """
-  mpdt_compose(ifst1, ifst2, parens, cf="paren", left_mpdt=True)
+  mpdt_compose(ifst1, ifst2, parens, compose_filter="paren", left_mpdt=True)
 
   Composes a MPDT with an FST.
 
@@ -1957,9 +1984,9 @@ cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens, cf=b"paren",
     ifst2: The right-hand-side input FST or MPDT.
     parens: A MPdtParentheses object specifying the input MPDT's stack
         operations and assignments.
-    cf: A string indicating the desired MPDT composition filter; one of: "paren"
-        (keeps parentheses), "expand" (expands and removes parentheses),
-        "expand_paren" (expands and keeps parentheses).
+    compose_filter: A string indicating the desired MPDT composition filter; one
+        of: "paren" (keeps parentheses), "expand" (expands and removes
+        parentheses), "expand_paren" (expands and keeps parentheses).
     left_mpdt: If true, the first argument is interpreted as a MPDT and the
         second argument is interpreted as an FST; if false, the second
         argument is interpreted as a MPDT and the first argument is interpreted
@@ -1978,8 +2005,7 @@ cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens, cf=b"paren",
   cdef Fst lhs
   cdef Fst rhs
   (lhs, rhs) = _compile_or_copy_two_Fsts(ifst1, ifst2)
-  lhs.arcsort(st=b"olabel")
-  rhs.arcsort(st=b"ilabel")
+  _maybe_arcsort(lhs._mfst.get(), rhs._mfst.get())
   if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
                       MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
     if not FLAGS_fst_relabel_symbol_conflicts:
@@ -1988,9 +2014,10 @@ cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens, cf=b"paren",
     else:
       raise FstOpError("Operation failed")
   cdef Fst result = Fst(lhs.arc_type())
-  cdef PdtComposeFilter typed_cf = _get_pdt_compose_filter(tostring(cf))
+  cdef PdtComposeFilter compose_filter_enum = _get_pdt_compose_filter(
+      tostring(compose_filter))
   cdef unique_ptr[MPdtComposeOptions] opts
-  opts.reset(new MPdtComposeOptions(True, typed_cf))
+  opts.reset(new MPdtComposeOptions(True, compose_filter_enum))
   MPdtCompose(deref(lhs._fst), deref(rhs._fst), parens._parens,
               parens._assign, result._mfst.get(), deref(opts), left_mpdt)
   if not result.num_states():
@@ -1999,7 +2026,7 @@ cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens, cf=b"paren",
     raise FstOpError("Operation failed")
   # If the "expand" filter is selected, all parentheses have been mapped to
   # epsilon. This conveniently removes the arcs that result.
-  if typed_cf == EXPAND_FILTER:
+  if compose_filter_enum == EXPAND_FILTER:
     result.rmepsilon()
   # Otherwise, we need to add the parentheses to the result.
   else:

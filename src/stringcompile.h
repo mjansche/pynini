@@ -29,7 +29,6 @@ using std::string;
 #include <fst/string.h>
 #include "gtl.h"
 #include <re2/stringpiece.h>
-using re2::StringPiece;
 #include <re2/re2.h>
 
 // The user-facing functions in this class behave similar to the StringCompiler
@@ -234,13 +233,14 @@ bool ProcessBracketedSpan(string *str, std::vector<Label> *labels,
 // Creates a vector of labels from a bracketed bytestring, updating the symbol
 // table as it goes.
 template <class Label>
-bool BracketedByteStringToLabels(const string &str, std::vector<Label> *labels,
+bool BracketedByteStringToLabels(const string &str,
+                                 std::vector<Label> *labels,
                                  SymbolTable *syms) {
   static const RE2 pieces(kPieces);
   string unbracketed;
   string bracketed;
   string error;
-  StringPiece strp(str);
+  re2::StringPiece strp(str);
   while (RE2::Consume(&strp, pieces, &unbracketed, &bracketed, &error)) {
     if (!error.empty()) {
       LOG(ERROR) << "BracketedByteStringToLabels: Unbalanced brackets";
@@ -261,13 +261,14 @@ bool BracketedByteStringToLabels(const string &str, std::vector<Label> *labels,
 // Creates a vector of labels from a bracketed UTF-8 string, updating the
 // symbol table as it goes.
 template <class Label>
-bool BracketedUTF8StringToLabels(const string &str, std::vector<Label> *labels,
+bool BracketedUTF8StringToLabels(const string &str,
+                                 std::vector<Label> *labels,
                                  SymbolTable *syms) {
   static const RE2 pieces(kPieces);
   string unbracketed;
   string bracketed;
   string error;
-  StringPiece strp(str);
+  re2::StringPiece strp(str);
   while (RE2::Consume(&strp, pieces, &unbracketed, &bracketed, &error)) {
     if (!error.empty()) {
       LOG(ERROR) << "BracketedUTF8StringToLabels: Unbalanced brackets";
@@ -328,7 +329,8 @@ inline void FinalizeBracketedString(std::vector<typename Arc::Label> *labels,
 
 // Compiles bytestring into string FST.
 template <class Arc>
-bool CompileByteString(const string &str, const typename Arc::Weight &weight,
+bool CompileByteString(const string &str,
+                       const typename Arc::Weight &weight,
                        MutableFst<Arc> *fst) {
   using Label = typename Arc::Label;
   std::vector<Label> labels;
@@ -341,7 +343,8 @@ bool CompileByteString(const string &str, const typename Arc::Weight &weight,
 
 // Compiles UTF-8 string into string FST.
 template <class Arc>
-bool CompileUTF8String(const string &str, const typename Arc::Weight &weight,
+bool CompileUTF8String(const string &str,
+                       const typename Arc::Weight &weight,
                        MutableFst<Arc> *fst) {
   using Label = typename Arc::Label;
   std::vector<Label> labels;
@@ -356,7 +359,8 @@ bool CompileUTF8String(const string &str, const typename Arc::Weight &weight,
 
 // Compiles string into string FST using SymbolTable.
 template <class Arc>
-bool CompileSymbolString(const string &str, const typename Arc::Weight &weight,
+bool CompileSymbolString(const string &str,
+                         const typename Arc::Weight &weight,
                          const SymbolTable &syms, MutableFst<Arc> *fst) {
   using Label = typename Arc::Label;
   std::vector<Label> labels;

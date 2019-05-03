@@ -30,32 +30,28 @@ namespace internal {
 // superset of another.
 SymbolTable *MergeSymbols(const SymbolTable *syms1, const SymbolTable *syms2,
                           bool *relabel) {
-  if (!FLAGS_fst_compat_symbols) {  // Overrides any work here.
-    return nullptr;
-  } else if (!syms1) {  // If both are null, return nullptr.
-    return syms2 ? syms2->Copy() : nullptr;
-  } else if (!syms2) {
-    return syms1->Copy();
-  }
-  // If their checksums match, returns the null pointer.
-  if (syms1->LabeledCheckSum() == syms2->LabeledCheckSum()) {
-    *relabel = false;
-    return nullptr;
-  }
-  SymbolTable *merged = syms1->Copy();
   *relabel = false;
+  // The flag overrides any work.
+  if (!FLAGS_fst_compat_symbols) return nullptr;
+  // If either symbol table is null, there's no reason to merge or reassign.
+  if (!syms1 || !syms2) return nullptr;
+  // If their checksums match, there's no reason to merge or reassign.
+  if (syms1->LabeledCheckSum() == syms2->LabeledCheckSum()) return nullptr;
+  auto *merged = syms1->Copy();
   for (SymbolTableIterator siter(*syms2); !siter.Done(); siter.Next()) {
-    int64 s1_key = merged->Find(siter.Symbol());
-    if (s1_key != -1 && s1_key != siter.Value()) {
+    const auto s2_key = siter.Value();
+    const auto &s2_sym = siter.Symbol();
+    const auto s1_key = merged->Find(s2_sym);
+    if (s1_key != SymbolTable::kNoSymbol && s1_key != s2_key) {
       *relabel = true;
       continue;
     }
-    const string &s1_sym = merged->Find(siter.Value());
-    if (s1_sym != "" && s1_sym != siter.Symbol()) {
-      merged->AddSymbol(siter.Symbol());
+    const auto &s1_sym = merged->Find(s2_key);
+    if (s1_sym != "" && s1_sym != s2_sym) {
+      merged->AddSymbol(s2_sym);
       *relabel = true;
     } else {
-      merged->AddSymbol(siter.Symbol(), siter.Value());
+      merged->AddSymbol(s2_sym, s2_key);
     }
   }
   return merged;

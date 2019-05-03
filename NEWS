@@ -1,5 +1,12 @@
-v. 1.4 (compatible with OpenFst 1.6.1
-=====================================
+v. 1.5 (compatible with OpenFst 1.6.2)
+======================================
+
+* Avoids unnecessary arc-sorting before composition
+* Avoids unnecessary symbol table copies before binary operations
+* Standardizes method names for compatibility with OpenFst binaries
+
+v. 1.4 (compatible with OpenFst 1.6.1)
+======================================
 
 * Compatibility fixes for OpenFst 1.6.1
 

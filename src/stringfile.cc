@@ -21,7 +21,6 @@
 
 #include "gtl.h"
 #include <re2/stringpiece.h>
-using re2::StringPiece;
 
 namespace fst {
 namespace internal {

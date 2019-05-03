@@ -26,7 +26,6 @@ using std::string;
 #include <fst/fstlib.h>
 #include "stringcompile.h"
 #include <re2/stringpiece.h>
-using re2::StringPiece;
 
 namespace fst {
 

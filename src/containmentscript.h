@@ -25,8 +25,8 @@
 namespace fst {
 namespace script {
 
-typedef args::Package<const FstClass &, const FstClass &, MutableFstClass *>
-    ContainmentArgs;
+using ContainmentArgs =
+    args::Package<const FstClass &, const FstClass &, MutableFstClass *>;
 
 template <class Arc>
 void Containment(ContainmentArgs *args) {

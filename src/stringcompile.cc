@@ -151,7 +151,8 @@ inline bool IsUnicodeSpaceOrControl(int32 label) {
 // that the input cannot be parsed as a Unicode codepoint.
 int32 AddUnicodeCodepointToSymbolTable(int32 label, SymbolTable *syms) {
   string label_string;
-  vector<int32> labels = {label};  // Creates a vector with just this label.
+  std::vector<int32> labels = {
+      label};  // Creates a vector with just this label.
   if (LabelsToUTF8String(labels, &label_string)) {
     return static_cast<int32>(syms->AddSymbol(label_string, label));
   } else {

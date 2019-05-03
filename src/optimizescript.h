@@ -25,7 +25,7 @@
 namespace fst {
 namespace script {
 
-typedef args::Package<MutableFstClass *, bool> OptimizeArgs;
+using OptimizeArgs = args::Package<MutableFstClass *, bool>;
 
 template <class Arc>
 void Optimize(OptimizeArgs *args) {
@@ -42,7 +42,7 @@ void OptimizeStringCrossProducts(OptimizeArgs *args) {
 }
 
 void OptimizeStringCrossProducts(MutableFstClass *fst,
-                                bool compute_props = false);
+                                 bool compute_props = false);
 
 template <class Arc>
 void OptimizeDifferenceRhs(OptimizeArgs *args) {

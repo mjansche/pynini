@@ -25,9 +25,9 @@
 namespace fst {
 namespace script {
 
-typedef args::Package<const FstClass &, const FstClass &, const FstClass &,
-                      MutableFstClass *, const ComposeOptions &>
-    LenientlyComposeArgs;
+using LenientlyComposeArgs =
+    args::Package<const FstClass &, const FstClass &, const FstClass &,
+                  MutableFstClass *, const ComposeOptions &>;
 
 template <class Arc>
 void LenientlyCompose(LenientlyComposeArgs *args) {

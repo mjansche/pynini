@@ -1,2 +1,2 @@
-pynini
 pywrapfst
+pynini

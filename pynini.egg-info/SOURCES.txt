@@ -50,7 +50,6 @@ src/pynini_common.h
 src/pynini_includes.pxd
 src/pynini_replace.cc
 src/pynini_replace.h
-src/pynini_stringify.h
 src/pywrapfst.cc
 src/pywrapfst.pxd
 src/pywrapfst.pyx

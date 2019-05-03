@@ -83,7 +83,8 @@ class PathIterator {
  private:
   // If initialization failed.
   bool error_;
-  const Fst<Arc> &fst_;
+  // Copy of FST being iterated over.
+  std::unique_ptr<const Fst<Arc>> fst_;
   // Vector of states visited on this path.
   std::vector<StateId> path_states_;
   // Vector of input labels.
@@ -104,7 +105,7 @@ class PathIterator {
 
 template <class Arc>
 PathIterator<Arc>::PathIterator(const Fst<Arc> &fst, bool check_acyclic)
-    : error_(false), fst_(fst), pop_labels_(false) {
+    : error_(false), fst_(fst.Copy()), pop_labels_(false) {
   if (check_acyclic && !fst.Properties(kAcyclic, true)) {
     error_ = true;
     FSTERROR() << "PathIterator: Cyclic FSTs have an infinite number of paths";
@@ -116,11 +117,11 @@ PathIterator<Arc>::PathIterator(const Fst<Arc> &fst, bool check_acyclic)
 template <class Arc>
 void PathIterator<Arc>::Reset() {
   pop_labels_ = false;
-  StateId start = fst_.Start();
+  StateId start = fst_->Start();
   if (start == kNoStateId) return;
   // Seed the search with the start state.
   path_states_.push_back(start);
-  ArcWeight weight = fst_.Final(start);
+  ArcWeight weight = fst_->Final(start);
   path_weights_.push_back(weight);
   // If the initial state is also a final state, then Next() has immediate work
   // to do, so we indicate that with kInitialStateIsFinal. Otherwise we set it
@@ -147,7 +148,7 @@ void PathIterator<Arc>::Next() {
     int32 offset = arc_iterator_offsets_.back() + 1;
     arc_iterator_offsets_.pop_back();
     arc_iterator_offsets_.push_back(offset);
-    ArcIterator<Fst<Arc>> aiter(fst_, path_states_.back());
+    ArcIterator<Fst<Arc>> aiter(*fst_, path_states_.back());
     aiter.Seek(offset);
     // If the arc iterator is done, then we are done at this state, and we move
     // back.
@@ -181,9 +182,9 @@ void PathIterator<Arc>::Next() {
   // Now we proceed forward until we hit a final state.
   while (nextstate != kNoStateId) {
     path_states_.push_back(nextstate);
-    ArcWeight weight = fst_.Final(nextstate);
+    ArcWeight weight = fst_->Final(nextstate);
     if (weight == ArcWeight::Zero()) {
-      ArcIterator<Fst<Arc>> aiter(fst_, nextstate);
+      ArcIterator<Fst<Arc>> aiter(*fst_, nextstate);
       if (aiter.Done()) {
         // We reached a non-final state with no exiting arcs. Pop it. This
         // shouldn't happen unless someone passes an unconnected machine.
@@ -261,7 +262,19 @@ class StringPaths {
 
   void IString(string *str) { String(false, str); }
 
+  string IString() {
+    string result;
+    IString(&result);
+    return result;
+  }
+
   void OString(string *str) { String(true, str); }
+
+  string OString() {
+    string result;
+    OString(&result);
+    return result;
+  }
 
   ArcWeight Weight() const { return iter_->Weight(); }
 
@@ -269,7 +282,19 @@ class StringPaths {
 
   void ILabels(std::vector<Label> *labels) const { Labels(false, labels); }
 
+  std::vector<Label> ILabels() const {
+    std::vector<Label> result;
+    ILabels(&result);
+    return result;
+  }
+
   void OLabels(std::vector<Label> *labels) const { Labels(true, labels); }
+
+  std::vector<Label> OLabels() const {
+    std::vector<Label> result;
+    OLabels(&result);
+    return result;
+  }
 
   void Reset() { iter_->Reset(); }
 

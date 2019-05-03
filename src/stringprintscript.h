@@ -26,11 +26,10 @@
 namespace fst {
 namespace script {
 
-typedef args::Package<const FstClass &, StringTokenType, string *,
-                      const SymbolTable *, bool>
-    PrintStringInnerArgs;
+using PrintStringInnerArgs = args::Package<const FstClass &, StringTokenType,
+                                           string *, const SymbolTable *, bool>;
 
-typedef args::WithReturnValue<bool, PrintStringInnerArgs> PrintStringArgs;
+using PrintStringArgs = args::WithReturnValue<bool, PrintStringInnerArgs>;
 
 template <class Arc>
 void PrintString(PrintStringArgs *args) {

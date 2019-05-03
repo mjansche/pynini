@@ -31,12 +31,11 @@ using std::string;
 namespace fst {
 namespace script {
 
-typedef args::Package<const string &, StringTokenType, StringTokenType,
-                      MutableFstClass *, const SymbolTable *,
-                      const SymbolTable *>
-    StringFileInnerArgs;
+using StringFileInnerArgs =
+    args::Package<const string &, StringTokenType, StringTokenType,
+                  MutableFstClass *, const SymbolTable *, const SymbolTable *>;
 
-typedef args::WithReturnValue<bool, StringFileInnerArgs> StringFileArgs;
+using StringFileArgs = args::WithReturnValue<bool, StringFileInnerArgs>;
 
 template <class Arc>
 void StringFile(StringFileArgs *args) {
@@ -51,12 +50,12 @@ bool StringFile(const string &fname, StringTokenType itype,
                 const SymbolTable *isyms = nullptr,
                 const SymbolTable *osyms = nullptr);
 
-typedef args::Package<const std::vector<std::pair<string, string>> &,
-                      StringTokenType, StringTokenType, MutableFstClass *,
-                      const SymbolTable *, const SymbolTable *>
-    StringMapInnerArgs;
+using StringMapInnerArgs =
+    args::Package<const std::vector<std::pair<string, string>> &,
+                  StringTokenType, StringTokenType, MutableFstClass *,
+                  const SymbolTable *, const SymbolTable *>;
 
-typedef args::WithReturnValue<bool, StringMapInnerArgs> StringMapArgs;
+using StringMapArgs = args::WithReturnValue<bool, StringMapInnerArgs>;
 
 template <class Arc>
 void StringMap(StringMapArgs *args) {

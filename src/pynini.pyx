@@ -113,9 +113,7 @@ from fst_util cimport MERGE_INPUT_AND_OUTPUT_SYMBOLS
 from fst_util cimport MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS
 
 from fst_util cimport StringTokenType
-from fst_util cimport BYTE
 from fst_util cimport SYMBOL
-from fst_util cimport UTF8
 
 # C++ code for Pynini not from fst_util.
 
@@ -482,7 +480,7 @@ cdef class Fst(_MutableFst):
 
     See also: `StringPaths`. `StringPaths`. `StringPaths`. `StringPaths`.
     """
-    return StringPaths(self, input_token_type, output_token_type)
+    return StringPaths(self, input_token_type, output_token_type, rm_epsilon)
 
   cpdef string stringify(self, token_type=b"byte",
                          bool rm_epsilon=True) except *:
@@ -517,7 +515,7 @@ cdef class Fst(_MutableFst):
       FstArgError: FST is not a string.
       FstArgError: Unknown token type.
     """
-    cdef StringTokenType ttype = BYTE
+    cdef StringTokenType ttype
     cdef SymbolTable_ptr syms = NULL
     if isinstance(token_type, pywrapfst._SymbolTable):
       ttype = SYMBOL
@@ -810,12 +808,13 @@ cdef Fst _compile_or_copy_Fst(arg, arc_type=b"standard"):
 # Makes copies or compiles, using the arc type of the first if specified,
 # then the arc type of the second, then using the default.
 
+
 cdef object _compile_or_copy_two_Fsts(arg1, arg2):
   cdef Fst lhs
   cdef Fst rhs
   if isinstance(arg1, Fst):
     lhs = arg1.copy()
-    rhs = _compile_or_copy_Fst(arg2, arg1.arc_type())
+    rhs = _compile_or_copy_Fst(arg2, arc_type=arg1.arc_type())
   elif isinstance(arg2, Fst):
     rhs = arg2.copy()
     lhs = acceptor(arg1, arc_type=arg2.arc_type())
@@ -874,7 +873,7 @@ cpdef Fst acceptor(astring,
   """
   cdef Fst result = Fst(tostring(arc_type))
   cdef WeightClass wc = _get_WeightClass_or_One(result.weight_type(), weight)
-  cdef StringTokenType ttype = BYTE
+  cdef StringTokenType ttype
   cdef SymbolTable_ptr syms = NULL
   if isinstance(token_type, pywrapfst._SymbolTable):
     ttype = SYMBOL
@@ -1041,7 +1040,8 @@ cpdef Fst containment(ifst, sigma_star):
     FstSymbolTableMergeError: Unable to resolve symbol table conflict without
         relabeling.
   """
-  cdef Fst ifst_compiled, sigma_star_compiled
+  cdef Fst ifst_compiled
+  cdef Fst sigma_star_compiled
   (ifst_compiled, sigma_star_compiled) = _compile_or_copy_two_Fsts(ifst,
       sigma_star)
   if not MergeSymbols(ifst_compiled._mfst.get(),
@@ -1116,7 +1116,8 @@ cpdef Fst leniently_compose(ifst1, ifst2, sigma_star, cf=b"auto",
     FstSymbolTableMergeError: Unable to resolve symbol table conflict without
         relabeling.
   """
-  cdef Fst ifst1_compiled, ifst2_compiled
+  cdef Fst ifst1_compiled
+  cdef Fst ifst2_compiled
   (ifst1_compiled, ifst2_compiled) = _compile_or_copy_two_Fsts(ifst1, ifst2)
   cdef string arc_type = ifst1_compiled.arc_type()
   sigma_star_compiled = _compile_or_copy_Fst(sigma_star, arc_type)
@@ -1163,14 +1164,14 @@ cpdef Fst string_file(filename,
   Raises:
     FstIOError: Read failed.
   """
-  cdef StringTokenType itype = BYTE
+  cdef StringTokenType itype
   cdef SymbolTable_ptr isyms = NULL
   if isinstance(input_token_type, pywrapfst._SymbolTable):
     itype = SYMBOL
     isyms = (<SymbolTable_ptr> (<_SymbolTable> input_token_type)._table)
   else:
     itype = _get_token_type(tostring(input_token_type))
-  cdef StringTokenType otype = BYTE
+  cdef StringTokenType otype
   cdef SymbolTable_ptr osyms = NULL
   if isinstance(output_token_type, pywrapfst._SymbolTable):
     osyms = (<SymbolTable_ptr> (<_SymbolTable> output_token_type)._table)
@@ -1216,14 +1217,14 @@ cpdef Fst string_map(pairs,
     FstArgError: Mappings must be of length 1 or 2.
     FstArgError: String map compilation failed.
   """
-  cdef StringTokenType itype = BYTE
+  cdef StringTokenType itype
   cdef SymbolTable_ptr isyms = NULL
   if isinstance(input_token_type, pywrapfst._SymbolTable):
     itype = SYMBOL
     isyms = (<SymbolTable_ptr> (<_SymbolTable> input_token_type)._table)
   else:
     itype = _get_token_type(tostring(input_token_type))
-  cdef StringTokenType otype = BYTE
+  cdef StringTokenType otype
   cdef SymbolTable_ptr osyms = NULL
   if isinstance(output_token_type, pywrapfst._SymbolTable):
     otype = SYMBOL
@@ -1399,7 +1400,6 @@ def _comp_merge_patch(fnc):
   def patch(arg1, arg2, *args, **kwargs):
     cdef Fst lhs
     cdef Fst rhs
-    (lhs, rhs) = _compile_or_copy_two_Fsts(arg1, arg2)
     (lhs, rhs) = _compile_or_copy_two_Fsts(arg1, arg2)
     if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
                         MERGE_INPUT_AND_OUTPUT_SYMBOLS):
@@ -1730,7 +1730,7 @@ def pdt_replace(root, *,
   """
   pdt_replace(root, pdt_parser_type="left", **replacements)
 
-  Constructive replaces arcs in an FST with other FST(s), producing a PDT.
+  Constructively replaces arcs in an FST with other FST(s), producing a PDT.
 
   This operation performs the dynamic replacement of arcs in one FST with
   another FST, allowing the definition of a PDT analogues to RTNs. The output
@@ -2107,8 +2107,7 @@ cdef class StringPaths(object):
   created by invoking the `paths` method of `Fst`.
 
   Note that this class is an iterator over all paths at the time of creation and
-  the iterator will not be affected by any mutations to the argument FST or
-  input symbol tables.
+  the iterator will not be affected by any mutations to the argument FST.
 
   Args:
     input_token_type: A string indicating how the input strings are to be
@@ -2126,33 +2125,31 @@ cdef class StringPaths(object):
     FstArgError: FST is not acyclic.
   """
 
-  cdef shared_ptr[FstClass] _fst
   cdef unique_ptr[StringPathsClass] _paths
 
   def __repr__(self):
     return "<StringPaths at 0x{:x}>".format(id(self))
 
-  def __init__(self, _Fst ifst, input_token_type=b"byte",
+  def __init__(self, ifst, input_token_type=b"byte",
                output_token_type=b"byte", bool rm_epsilon=True):
     # Sorts out the token type arguments.
-    cdef StringTokenType itype = BYTE
+    cdef StringTokenType itype
     cdef SymbolTable_ptr isyms = NULL
     if isinstance(input_token_type, pywrapfst._SymbolTable):
       itype = SYMBOL
       isyms = (<SymbolTable_ptr> (<_SymbolTable> input_token_type)._table)
     else:
       itype = _get_token_type(tostring(input_token_type))
-    cdef StringTokenType otype = BYTE
+    cdef StringTokenType otype
     cdef SymbolTable_ptr osyms = NULL
     if isinstance(output_token_type, pywrapfst._SymbolTable):
       otype = SYMBOL
       osyms = (<SymbolTable_ptr> (<_SymbolTable> output_token_type)._table)
     else:
       otype = _get_token_type(tostring(output_token_type))
-    # Makes copy of the shared_ptr, potentially extending the FST's lifetime.
-    self._fst = ifst._fst
-    self._paths.reset(new StringPathsClass(deref(self._fst), itype, otype,
-                                           isyms, osyms, rm_epsilon))
+    cdef Fst ifst_compiled = _compile_or_copy_Fst(ifst)
+    self._paths.reset(new StringPathsClass(deref(ifst_compiled._fst), itype,
+                                           otype, isyms, osyms, rm_epsilon))
     if self._paths.get().Error():
       raise FstArgError("FST is not acyclic")
 
@@ -2179,9 +2176,23 @@ cdef class StringPaths(object):
     Returns:
       The path's input string.
     """
-    cdef string result
-    self._paths.get().IString(addr(result))
-    return result
+    return self._paths.get().IString()
+
+  def iter_istrings(self):
+    """
+    iter_istrings(self)
+
+    Generates all input strings in the FST.
+
+    This method returns a generator over all input strings in the path. The
+    caller is responsible for resetting the iterator if desired.
+
+    Yields:
+      All input strings.
+    """
+    while not self._paths.get().Done():
+      yield self.istring()
+      self._paths.get().Next()
 
   cpdef string ostring(self):
     """
@@ -2195,9 +2206,23 @@ cdef class StringPaths(object):
     Returns:
       The path's output string.
     """
-    cdef string result
-    self._paths.get().OString(addr(result))
-    return result
+    return self._paths.get().OString()
+
+  def iter_ostrings(self):
+    """
+    iter_ostrings(self)
+
+    Generates all output strings in the FST.
+
+    This method returns a generator over all output strings in the path. The
+    caller is responsible for resetting the iterator if desired.
+
+    Yields:
+      All output strings.
+    """
+    while not self._paths.get().Done():
+      yield self.ostring()
+      self._paths.get().Next()
 
   cpdef _Weight weight(self):
     """
@@ -2215,6 +2240,22 @@ cdef class StringPaths(object):
     weight._weight.reset(new WeightClass(self._paths.get().Weight()))
     return weight
 
+  def iter_weights(self):
+    """
+    iter_weights(self)
+
+    Generates all path weights in the FST.
+
+    This method returns a generator over all path weights. The caller is
+    responsible for resetting the iterator if desired.
+
+    Yields:
+      All weights.
+    """
+    while not self._paths.get().Done():
+      yield self.weight()
+      self._paths.get().Next()
+
   def ilabels(self):
     """
     ilabels(self)
@@ -2224,9 +2265,7 @@ cdef class StringPaths(object):
     Returns:
       A list of input labels for the current path.
     """
-    cdef vector[int64] result
-    self._paths.get().ILabels(addr(result))
-    return list(result)
+    return list(self._paths.get().ILabels())
 
   def olabels(self):
     """
@@ -2237,9 +2276,7 @@ cdef class StringPaths(object):
     Returns:
       A list of output labels for the current path.
     """
-    cdef vector[int64] result
-    self._paths.get().OLabels(addr(result))
-    return list(result)
+    return list(self._paths.get().OLabels())
 
   cpdef bool done(self):
     """"
@@ -2285,11 +2322,9 @@ cdef class StringPaths(object):
   def __next__(self):
     if self.done():
       raise StopIteration
-    cdef string istring = self.istring()
-    cdef string ostring = self.ostring()
-    cdef _Weight weight = self.weight()
+    result = (self.istring(), self.ostring(), self.weight())
     self.next()
-    return (istring, ostring, weight)
+    return result
 
 
 # Class for FAR reading and/or writing.
@@ -2499,11 +2534,11 @@ cdef class Far(object):
 
   # FarWriter API.
 
-  cpdef void add(self, key, Fst fst) except *:
+  cpdef void add(self, key, Fst fst):
     """
     add(self, key, fst)
 
-    Adds an FST to the FAR (when open for writing)
+    Adds an FST to the FAR (when open for writing).
 
     This methods adds an FST to the FAR which can be retrieved with the
     specified string key.
@@ -2526,7 +2561,7 @@ cdef class Far(object):
     self._check_mode(b"w")
     self._writer[key] = fst
 
-  cpdef void close(self) except *:
+  cpdef void close(self):
     """
     close(sel)
 

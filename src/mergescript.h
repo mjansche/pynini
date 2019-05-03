@@ -28,9 +28,10 @@ namespace script {
 // These operations merge FST-attached symbol tables so that they are
 // compatible for other FST operations.
 
-typedef args::Package<MutableFstClass *, MutableFstClass *, MergeSymbolsType>
-    MergeSymbolsInnerArgs;
-typedef args::WithReturnValue<bool, MergeSymbolsInnerArgs> MergeSymbolsArgs;
+using MergeSymbolsInnerArgs =
+    args::Package<MutableFstClass *, MutableFstClass *, MergeSymbolsType>;
+
+using MergeSymbolsArgs = args::WithReturnValue<bool, MergeSymbolsInnerArgs>;
 
 template <class Arc>
 void MergeSymbols(MergeSymbolsArgs *args) {

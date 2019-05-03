@@ -70,8 +70,17 @@ namespace internal {
 constexpr char kTokenSeparator[] = " ";
 constexpr char kDummySymbol[] = "PiningForTheFjords";
 
+// Symbol table names.
+
 constexpr char kByteSymbolTableName[] = "**Byte symbols";
 constexpr char kUTF8SymbolTableName[] = "**UTF8 symbols";
+
+// Properties bits for a newly-compiled string FST.
+
+constexpr uint64 kCompiledStringProps = kAcceptor | kIDeterministic |
+    kODeterministic | kILabelSorted | kOLabelSorted | kUnweighted | kAcyclic |
+    kInitialAcyclic | kTopSorted | kAccessible | kCoAccessible | kString |
+    kUnweightedCycles;
 
 constexpr char kPieces[] = R"(((?:(?:\\[\[\]])|(?:[^\[\]]))+)|)"
                            R"((?:\[((?:(?:\\[\[\]])|(?:[^\[\]]))+)\])|)"
@@ -179,6 +188,7 @@ void CompileStringFromLabels(const std::vector<typename Arc::Label> &labels,
     fst->AddArc(i, Arc(labels[i], labels[i], Weight::One(), i + 1));
   fst->SetStart(0);
   fst->SetFinal(static_cast<StateId>(size), weight);
+  fst->SetProperties(kCompiledStringProps, kCompiledStringProps);
 }
 
 // Removes backslashes acting as bracket escape characters (e.g. "\[").

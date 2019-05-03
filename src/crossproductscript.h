@@ -25,8 +25,8 @@
 namespace fst {
 namespace script {
 
-typedef args::Package<const FstClass &, const FstClass &, MutableFstClass *,
-                      const WeightClass &> CrossProductArgs;
+using CrossProductArgs = args::Package<const FstClass &, const FstClass &,
+                                       MutableFstClass *, const WeightClass &>;
 
 template <class Arc>
 void CrossProduct(CrossProductArgs *args) {

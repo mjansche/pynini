@@ -41,10 +41,14 @@ class StringPathsImplBase {
  public:
   virtual bool Error() const = 0;
   virtual void IString(string *result) const = 0;
+  virtual string IString() const = 0;
   virtual void OString(string *result) const = 0;
+  virtual string OString() const = 0;
   virtual WeightClass Weight() const = 0;
   virtual void ILabels(std::vector<int64> *labels) const = 0;
+  virtual std::vector<int64> ILabels() const = 0;
   virtual void OLabels(std::vector<int64> *labels) const = 0;
+  virtual std::vector<int64> OLabels() const = 0;
   virtual bool Done() const = 0;
   virtual void Reset() = 0;
   virtual void Next() = 0;
@@ -67,7 +71,11 @@ class StringPathsImpl : public StringPathsImplBase {
 
   void IString(string *result) const override { impl_->IString(result); }
 
+  string IString() const override { return impl_->IString(); }
+
   void OString(string *result) const override { impl_->OString(result); }
+
+  string OString() const override { return impl_->OString(); }
 
   WeightClass Weight() const override { return WeightClass(impl_->Weight()); }
 
@@ -78,11 +86,23 @@ class StringPathsImpl : public StringPathsImplBase {
     std::copy(typed_labels.begin(), typed_labels.end(), labels->begin());
   }
 
+  std::vector<int64> ILabels() const override {
+    std::vector<int64> labels;
+    ILabels(&labels);
+    return labels;
+  }
+
   void OLabels(std::vector<int64> *labels) const override {
     std::vector<Label> typed_labels;
     impl_->OLabels(&typed_labels);
     labels->resize(typed_labels.size());
     std::copy(typed_labels.begin(), typed_labels.end(), labels->begin());
+  }
+
+  std::vector<int64> OLabels() const override {
+    std::vector<int64> labels;
+    OLabels(&labels);
+    return labels;
   }
 
   void Reset() override { impl_->Reset(); }
@@ -97,10 +117,10 @@ class StringPathsImpl : public StringPathsImplBase {
 
 class StringPathsClass;
 
-typedef args::Package<const FstClass &, StringTokenType, StringTokenType,
-                      const SymbolTable *, const SymbolTable *, bool,
-                      StringPathsClass *>
-    InitStringPathsClassArgs;
+using InitStringPathsClassArgs =
+    args::Package<const FstClass &, StringTokenType, StringTokenType,
+                  const SymbolTable *, const SymbolTable *, bool,
+                  StringPathsClass *>;
 
 // Untemplated user-facing class holding templated pimpl.
 class StringPathsClass {
@@ -119,13 +139,21 @@ class StringPathsClass {
 
   void IString(string *result) const { impl_->IString(result); }
 
+  string IString() const { return impl_->IString(); }
+
   void OString(string *result) const { impl_->OString(result); }
+
+  string OString() const { return impl_->OString(); }
 
   WeightClass Weight() const { return WeightClass(impl_->Weight()); }
 
   void ILabels(std::vector<int64> *labels) const { impl_->ILabels(labels); }
 
+  std::vector<int64> ILabels() const { return impl_->ILabels(); }
+
   void OLabels(std::vector<int64> *labels) const { impl_->OLabels(labels); }
+
+  std::vector<int64> OLabels() const { return impl_->OLabels(); }
 
   void Reset() { impl_->Reset(); }
 

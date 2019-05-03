@@ -30,7 +30,10 @@ from setuptools import setup
 #   Python 3.5 with minimal modifications).
 
 
-COMPILE_ARGS = ["-std=c++11", "-Wno-unused-function", "-funsigned-char"]
+COMPILE_ARGS = ["-std=c++11",
+                "-Wno-unused-function",
+                "-Wno-unused-local-typedef",
+                "-funsigned-char"]
 
 pywrapfst = Extension(name="pywrapfst", language="c++",
                       extra_compile_args=COMPILE_ARGS,
@@ -70,7 +73,7 @@ pynini = Extension(name="pynini", language="c++",
                             "src/containmentscript.cc"])
 
 setup(
-    name="pynini", version="1.2",
+    name="pynini", version="1.3",
     description="Finite-state grammar compilation library",
     author="Kyle Gorman", author_email="kbg@google.com",
     url="http://pynini.opengrm.org/",

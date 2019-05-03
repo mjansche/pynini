@@ -33,39 +33,39 @@ namespace fst {
 template <class Arc>
 class PrefixTree {
  public:
-  typedef typename Arc::Label Label;
-  typedef typename Arc::StateId StateId;
-  typedef typename Arc::Weight Weight;
+  using Label = typename Arc::Label;
+  using StateId = typename Arc::StateId;
+  using Weight = typename Arc::Weight;
 
   struct INode;
   struct ONode;
 
-  using ichild_map = map<Label, INode *>;
-  using ochild_map = map<Label, ONode *>;
+  using ichild_map = std::map<Label, INode *>;
+  using ochild_map = std::map<Label, ONode *>;
 
   // Prefix tree node for the input labels of the FST.
   struct INode {
-    INode() : output(nullptr), state(kNoStateId) {}
-
     ichild_map children;
     ONode *output;
     StateId state;
+
+    INode() : output(nullptr), state(kNoStateId) {}
   };
 
   // Prefix tree node for the output labels of the FST.
   struct ONode {
-    ONode() : weight(Weight::Zero()), state(kNoStateId) {}
-
     ochild_map children;
     Weight weight;
     StateId state;
+
+    ONode() : weight(Weight::Zero()), state(kNoStateId) {}
   };
 
   PrefixTree() : num_states_(0), root_(nullptr) {}
 
-  // Disallows copy and assignment construction.
   PrefixTree(const PrefixTree &) = delete;
-  PrefixTree& operator=(const PrefixTree &) = delete;
+
+  PrefixTree &operator=(const PrefixTree &) = delete;
 
   ~PrefixTree() { Clear(); }
 
@@ -84,11 +84,9 @@ class PrefixTree {
     }
     INode *n = root_;
     for (/* empty */; iter1 != end1; ++iter1) {
-      if (!*iter1)  // Skips over epsilons.
-        continue;
+      if (!*iter1) continue;  // Skips over epsilons.
       n = LookupOrInsertNew(&n->children, *iter1);
-      if (kNoStateId == n->state)
-        n->state = num_states_++;
+      if (kNoStateId == n->state) n->state = num_states_++;
     }
     if (!n->output) {
       n->output = new ONode();
@@ -96,8 +94,7 @@ class PrefixTree {
     }
     ONode *o = n->output;
     for (/* empty */; iter2 != end2; ++iter2) {
-      if (!*iter2)  // Skips over epsilons.
-        continue;
+      if (!*iter2) continue;  // Skips over epsilons.
       o = LookupOrInsertNew(&o->children, *iter2);
       if (kNoStateId == o->state)
         o->state = num_states_++;
@@ -111,10 +108,10 @@ class PrefixTree {
       CHECK_EQ(0, num_states_);
       return;
     }
-    stack<INode *> iq;
-    stack<ONode *> oq;
-    // First, perform a simple depth-first traversal over the input trie,
-    // starting at the root node.  Node coloring is not needed, since we're
+    std::stack<INode *> iq;
+    std::stack<ONode *> oq;
+    // First, performs a simple depth-first traversal over the input trie,
+    // starting at the root node. Node coloring is not needed, since we're
     // dealing with a tree.
     iq.push(root_);
     while (!iq.empty()) {
@@ -141,26 +138,25 @@ class PrefixTree {
     root_ = nullptr;
   }
 
-  // Write the current prefix tree transducer to 'fst'.
+  // Write the current prefix tree transducer to a mutable FST.
   void ToFst(MutableFst<Arc> *fst) {
     fst->DeleteStates();
     if (num_states_ == 0) {
       CHECK(!root_);
       return;
     }
-    // For the creation of the FST to be efficient, we must reserve enough space
-    // for the states and arcs, to avoid reallocation and internal copying.
+    // For the creation of the FST to be efficient, we reserve enough space
+    // for the states and arcs to avoid reallocation and internal copying.
     fst->ReserveStates(num_states_);
-    for (auto i = 0; i < num_states_; ++i)
-      fst->AddState();
+    for (StateId i = 0; i < num_states_; ++i) fst->AddState();
     fst->SetStart(root_->state);
-    stack<INode *> iq;
-    stack<ONode *> oq;
+    std::stack<INode *> iq;
+    std::stack<ONode *> oq;
     iq.push(root_);
     while (!iq.empty()) {
       INode *n = iq.top();
       iq.pop();
-      StateId q = n->state;
+      const auto q = n->state;
       CHECK_NE(kNoStateId, q);
       ONode *o = n->output;
       fst->ReserveArcs(q, (o ? 1 : 0) + n->children.size());

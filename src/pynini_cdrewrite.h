@@ -45,7 +45,7 @@ template <class Arc>
 void AddBoundarySymbolArcsToSigmaStar(MutableFst<Arc> *sigma_star) {
   for (StateIterator<MutableFst<Arc>> siter(*sigma_star); !siter.Done();
        siter.Next()) {
-    auto state = siter.Value();
+    const auto state = siter.Value();
     if (sigma_star->Final(state) != Arc::Weight::Zero()) {
       sigma_star->AddArc(
           state, Arc(FLAGS_left_boundary_index, FLAGS_left_boundary_index,
@@ -83,8 +83,9 @@ template <class Arc>
 bool AllInputEpsilons(const Fst<Arc> &fst) {
   for (StateIterator<Fst<Arc>> siter(fst); !siter.Done(); siter.Next()) {
     for (ArcIterator<Fst<Arc>> aiter(fst, siter.Value()); !aiter.Done();
-         aiter.Next())
+         aiter.Next()) {
       if (aiter.Value().ilabel) return false;
+    }
   }
   return true;
 }
@@ -106,43 +107,18 @@ bool IsUnconditionedInsertion(const Fst<Arc> &tau, const Fst<Arc> &lambda,
 // namespace, the four input arguments are all immutable const references,
 // and this is called after making mutable copies.
 
-const uint64 kLambdaAndRhoProperties = kAcceptor | kUnweighted;
-
 template <class Arc>
 void PyniniCDRewrite(MutableFst<Arc> *tau, MutableFst<Arc> *lambda,
                      MutableFst<Arc> *rho, MutableFst<Arc> *sigma_star,
                      MutableFst<Arc> *ofst, CDRewriteDirection cd,
                      CDRewriteMode cm) {
-  if (FLAGS_cdrewrite_verify) {
-    // Unconditioned insertion is not obviously well-defined, and breaks the
-    // boundary symbol logic, so we forbid it explicitly here.
-    if (IsUnconditionedInsertion(*tau, *lambda, *rho)) {
-      FSTERROR() << "PyniniCDRewrite: Unconditioned insertion is undefined; "
-                 << "specify a non-null lambda or rho for any insertion rule";
-      ofst->SetProperties(kError, kError);
-      return;
-    }
-    if (tau->Properties(kAcceptor, true) == kAcceptor) {
-      FSTERROR() << "PyniniCDRewrite: tau must be a transducer";
-      ofst->SetProperties(kError, kError);
-      return;
-    }
-    if (lambda->Properties(kLambdaAndRhoProperties, true) !=
-        kLambdaAndRhoProperties) {
-      FSTERROR() << "PyniniCDRewrite: lambda must be an unweighted acceptor";
-      ofst->SetProperties(kError, kError);
-      return;
-    }
-    if (rho->Properties(kLambdaAndRhoProperties, true) !=
-        kLambdaAndRhoProperties) {
-      FSTERROR() << "PyniniCDRewrite: rho must be an unweighted acceptor";
-      ofst->SetProperties(kError, kError);
-      return;
-    }
-    if (!CheckSigmaStarProperties(*sigma_star, "PyniniCDRewrite")) {
-      ofst->SetProperties(kError, kError);
-      return;
-    }
+  // Unconditioned insertion is not obviously well-defined, and breaks the
+  // boundary symbol logic, so we forbid it explicitly here.
+  if (IsUnconditionedInsertion(*tau, *lambda, *rho)) {
+    FSTERROR() << "PyniniCDRewrite: Unconditioned insertion is undefined; "
+               << "specify a non-null lambda or rho for any insertion rule";
+    ofst->SetProperties(kError, kError);
+    return;
   }
   VectorFst<Arc> inserter;
   MakeBoundaryInserter(*sigma_star, &inserter);
@@ -157,12 +133,12 @@ void PyniniCDRewrite(MutableFst<Arc> *tau, MutableFst<Arc> *lambda,
                                         : nullptr);
   sigma_star->SetInputSymbols(nullptr);
   syms.reset(PrepareOutputSymbols(syms.get(), sigma_star));
-  // Give a consistent labeling to boundary symbols in lambda and/or rho.
+  // Gives a consistent labeling to boundary symbols in lambda and/or rho.
   if (syms) {
     syms->AddSymbol(FLAGS_left_boundary_symbol, FLAGS_left_boundary_index);
     syms->AddSymbol(FLAGS_right_boundary_symbol, FLAGS_right_boundary_index);
   }
-  // Preparing remaining output.
+  // Prepares remaining output.
   syms.reset(PrepareInputSymbols(syms.get(), tau));
   syms.reset(PrepareOutputSymbols(syms.get(), tau));
   syms.reset(PrepareInputSymbols(syms.get(), lambda));
@@ -205,10 +181,10 @@ void PyniniCDRewrite(const Fst<Arc> &tau, const Fst<Arc> &lambda,
 
 namespace script {
 
-typedef args::Package<const FstClass &, const FstClass &, const FstClass &,
-                      const FstClass &, MutableFstClass *, CDRewriteDirection,
-                      CDRewriteMode>
-    PyniniCDRewriteArgs;
+using PyniniCDRewriteArgs =
+    args::Package<const FstClass &, const FstClass &, const FstClass &,
+                  const FstClass &, MutableFstClass *, CDRewriteDirection,
+                  CDRewriteMode>;
 
 template <class Arc>
 void PyniniCDRewrite(PyniniCDRewriteArgs *args) {

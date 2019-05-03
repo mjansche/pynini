@@ -191,16 +191,16 @@ void OptimizeStringCrossProducts(MutableFst<Arc> *fst,
   }
 }
 
-// This function optimizes the right-hand side of an FST difference in
+// This function optimizes the right-hand side of an FST difference in an
 // attempt to satisfy the constraint that it must be epsilon-free and
 // deterministic. The input is assumed to be an unweighted acceptor.
 template <class Arc>
 void OptimizeDifferenceRhs(MutableFst<Arc> *fst, bool compute_props = false) {
-  // If the FST is not (known to be) epsilon-free, perform epsilon-removal.
+  // If the FST is not (known to be) epsilon-free, performs epsilon-removal.
   if (fst->Properties(kNoEpsilons, compute_props) != kNoEpsilons) {
     RmEpsilon(fst);
   }
-  // If the FST is not (known to be) deterministic, determinize it; note that
+  // If the FST is not (known to be) deterministic, determinizes it; note that
   // this operation will not introduce epsilons as the input is an acceptor.
   if (fst->Properties(kIDeterministic, compute_props) != kIDeterministic) {
     std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());

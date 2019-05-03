@@ -1,5 +1,11 @@
-v. 1.2
-======
+v. 1.3 (compatible with OpenFst 1.6.0)
+======================================
+
+* Fix to `StringPaths`
+* Compatibility fixes for OpenFst 1.6.0
+
+v. 1.2 (compatible with OpenFst 1.5.4)
+======================================
 
 * Correctly optimizes RHS argument of a `difference` operation: epsilon-removal and determinization (but not minimization or arc-sum mapping)
 * Removes platform-dependent `HugeBracketedNumber` test units

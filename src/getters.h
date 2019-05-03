@@ -18,6 +18,9 @@
 #ifndef PYNINI_GETTERS_H_
 #define PYNINI_GETTERS_H_
 
+#include <string>
+using std::string;
+
 #include "cdrewrite.h"
 
 namespace fst {

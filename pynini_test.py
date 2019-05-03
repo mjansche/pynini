@@ -13,8 +13,6 @@ import unittest
 
 
 # This module is designed to be import-safe.
-# pylint: disable=wildcard-import
-# pylint: disable=undefined-variable
 from pynini import *
 
 
@@ -84,10 +82,6 @@ class PyniniCDRewriteTest(unittest.TestCase):
     self.assertEqual(optimize(project("FIST" * td_deletion, True)),
                      optimize(union("FIS", "FIST")))
 
-  def testTauAcceptorRaisesFstOpError(self):
-    with self.assertRaises(FstOpError):
-      unused_f = cdrewrite(acceptor("[tau]"), "[lambda]", "[rho]", self.sigstar)
-
   def testLambdaTransducerRaisesFstOpError(self):
     with self.assertRaises(FstOpError):
       unused_f = cdrewrite(transducer("[phi]", "[psi]"),
@@ -118,28 +112,53 @@ class PyniniClosureTest(unittest.TestCase):
     m = 3
     n = 7
     cheese = "Red Windsor"
-    a = acceptor(cheese)
-    a.closure(m, n)
+    ac = acceptor(cheese)
+    ac.closure(m, n)
     # Doesn't accept <3 copies.
     for i in xrange(m):
-      self.assertEqual(compose(a, cheese * i).num_states(), 0)
+      self.assertEqual(compose(ac, cheese * i).num_states(), 0)
     # Accepts between 3-7 copies.
     for i in xrange(m, n + 1):
-      self.assertNotEqual(compose(a, cheese * i).num_states(), 0)
+      self.assertNotEqual(compose(ac, cheese * i).num_states(), 0)
     # Doesn't accept more than 7 copies.
-    self.assertEqual(compose(a, cheese * (n + 1)).num_states(), 0)
+    self.assertEqual(compose(ac, cheese * (n + 1)).num_states(), 0)
+
+
+class PyniniContainmentTest(unittest.TestCase):
+
+  def testContainment(self):
+    ifst = a("Limburger")
+    sigma_star = u(*string.ascii_letters + ".?! ").closure().optimize()
+    cont = containment(ifst, sigma_star)
+    istring = ("Have you got...SHUT THAT BLOODY BOUZOUKI UP?!..."
+               "have you got any Limburger?")
+    ostring = (istring * cont).stringify()
+    self.assertEqual(istring, ostring)
+
+
+class PyniniDifferenceTest(unittest.TestCase):
+
+  def testDifferenceWithUnion(self):
+    ab = u("a", "b")
+    abc = u(ab, "c")
+    self.assertEqual(difference(abc, ab).optimize(), "c")
 
 
 class PyniniEpsilonMachineTest(unittest.TestCase):
 
+  @classmethod
+  def setUpClass(cls):
+    cls.final_weight = 1.5
+    cls.f = epsilon_machine("log64", cls.final_weight)
+
   def testLog64EpsilonMachineHasRightTopology(self):
-    arc_type = "log64"
-    f = epsilon_machine(arc_type)
-    self.assertEqual(f.arc_type(), arc_type)
-    self.assertEqual(f.num_states(), 1)
-    self.assertEqual(f.start(), 0)
-    self.assertEqual(f.num_arcs(f.start()), 0)
-    self.assertEqual(f.final(f.start()), Weight.One(arc_type))
+    self.assertEqual(self.f.num_states(), 1)
+    self.assertEqual(self.f.start(), 0)
+    self.assertEqual(self.f.num_arcs(self.f.start()), 0)
+
+  def testEpsilonMachineHasFinalWeight(self):
+    self.assertEqual(self.f.final(self.f.start()),
+                     Weight(self.f.weight_type(), self.final_weight))
 
 
 class PyniniEqualTest(unittest.TestCase):
@@ -158,6 +177,7 @@ class PyniniEqualTest(unittest.TestCase):
     self.assertFalse(self.f != self.f.copy())
 
 
+
 class PyniniExceptionsTest(unittest.TestCase):
 
   @classmethod
@@ -165,6 +185,7 @@ class PyniniExceptionsTest(unittest.TestCase):
     cls.exchange = transducer("Liptauer", "No")
     cls.f = Fst()
     cls.s = SymbolTable()
+    cls.map_file = "testdata/cheese.map"
 
   def testBadDestinationIndexAddArcDoesNotRaiseFstIndexError(self):
     f = self.f.copy()
@@ -233,7 +254,31 @@ class PyniniExceptionsTest(unittest.TestCase):
     with self.assertRaises(FstArgError):
       unused_f = replace(self.f, f=self.f, return_arc_labeling="nonexistent")
 
-  def testTransducerDifferenceRaisesFstOpError(self):
+  def testGarbageInputTokenTypeStringFileRaisesFstArgError(self):
+    with self.assertRaises(FstArgError):
+      unused_f = string_file(self.map_file, input_token_type="nonexistent")
+
+  def testGarbageOutputTokenTypeStringFileRaisesFstArgError(self):
+    with self.assertRaises(FstArgError):
+      unused_f = string_file(self.map_file, output_token_type="nonexistent")
+
+  def testGarbageInputTokenTypeStringMapRaisesFstArgError(self):
+    with self.assertRaises(FstArgError):
+      unused_f = string_map([], input_token_type="nonexistent")
+
+  def testGarbageOutputTokenTypeStringMapRaisesFstArgError(self):
+    with self.assertRaises(FstArgError):
+      unused_f = string_map([], output_token_type="nonexistent")
+
+  def testGarbageInputTokenTypeStringPathsRaisesFstArgError(self):
+    with self.assertRaises(FstArgError):
+      unused_sp = StringPaths(self.f, input_token_type="nonexistent")
+
+  def testGarbageOutputTokenTypeStringPathsRaisesFstArgError(self):
+    with self.assertRaises(FstArgError):
+      unused_sp = StringPaths(self.f, output_token_type="nonexistent")
+
+  def testTransducerDifferenceRaisesFstArgError(self):
     with self.assertRaises(FstOpError):
       unused_f = difference(self.exchange, self.exchange)
 
@@ -283,13 +328,6 @@ class PyniniExceptionsTest(unittest.TestCase):
   def testNonexistentIndexFindSymbolTableRaisesKeyError(self):
     with self.assertRaises(KeyError):
       self.s.find(1024)
-
-
-class PyniniIOTest(unittest.TestCase):
-
-  def testGarbageReadRaisesFstIOError(self):
-    with self.assertRaises(FstIOError):
-      unused_f = Fst.read("nonexistent")
 
 
 class PyniniLenientlyComposeTest(unittest.TestCase):
@@ -363,61 +401,10 @@ class PyniniReplaceTest(unittest.TestCase):
                      call_arc_labeling="neither", return_arc_labeling="neither")
     self.assertEqual(optimize(project("2 m" * plural, True)), "two meters")
 
-
-class PyniniReprTest(unittest.TestCase):
-
-  def testArcRepr(self):
-    a = Arc(97, 97, Weight.One("tropical"), 1)
-    self.assertTrue(repr(a).startswith("<Arc at"))
-
-  def testArcIteratorRepr(self):
-    f = epsilon_machine()
-    i = ArcIterator(f, f.start())
-    self.assertTrue(repr(i).startswith("<ArcIterator at"))
-
-  def testEncodeMapperRepr(self):
-    e = EncodeMapper()
-    self.assertTrue(repr(e).startswith("<EncodeMapper at"))
-
-  def testFstRepr(self):
-    f = epsilon_machine()
-    self.assertTrue(repr(f).startswith("<vector Fst at"))
-
-  def testMPdtParentheses(self):
-    m = MPdtParentheses()
-    self.assertTrue(repr(m).startswith("<MPdtParentheses at"))
-
-  def testMutableArcIterator(self):
-    f = epsilon_machine()
-    i = MutableArcIterator(f, f.start())
-    self.assertTrue(repr(i).startswith("<MutableArcIterator at"))
-
-  def testPdtParentheses(self):
-    p = PdtParentheses()
-    self.assertTrue(repr(p).startswith("<PdtParentheses at"))
-
-  def testStateIterator(self):
-    f = epsilon_machine()
-    i = StateIterator(f)
-    self.assertTrue(repr(i).startswith("<StateIterator at"))
-
-  def testStringPaths(self):
-    f = epsilon_machine()
-    s = StringPaths(f)
-    self.assertTrue(repr(s).startswith("<StringPaths at"))
-
-  def testSymbolTable(self):
-    s = SymbolTable("Gouda")
-    self.assertTrue(repr(s).startswith("<SymbolTable 'Gouda' at"))
-
-  def testSymbolTableIterator(self):
-    s = SymbolTable()
-    i = SymbolTableIterator(s)
-    self.assertTrue(repr(i).startswith("<SymbolTableIterator at"))
-
-  def testWeight(self):
-    w = Weight("tropical", 0)
-    self.assertTrue(repr(w).startswith("<tropical Weight 0 at"))
+  def testReplaceWithCyclicDependenciesRaisesFstOpError(self):
+    s_rhs = union("a[S]b", "ab")  # a^n b^n.
+    with self.assertRaises(FstOpError):
+      unused_f = replace("[S]", S=s_rhs)
 
 
 class PyniniStringTest(unittest.TestCase):
@@ -430,10 +417,16 @@ class PyniniStringTest(unittest.TestCase):
     cls.reply = b"I'm afraid we're fresh out of Red Leicester sir"
     cls.imported_cheese = u"Pont l'Evêque"
     cls.imported_cheese_encoded = cls.imported_cheese.encode("utf8")
+    cls.acceptor_props = (ACCEPTOR | I_DETERMINISTIC | O_DETERMINISTIC |
+                          I_LABEL_SORTED | O_LABEL_SORTED | UNWEIGHTED |
+                          ACYCLIC | INITIAL_ACYCLIC | TOP_SORTED | ACCESSIBLE |
+                          COACCESSIBLE | STRING | UNWEIGHTED_CYCLES)
 
   def testUnbracketedBytestringUnweightedAcceptorCompilation(self):
     cheese = acceptor(self.cheese)
     self.assertEqual(cheese, self.cheese)
+    self.assertEqual(cheese.properties(self.acceptor_props, True),
+                     self.acceptor_props)
 
   def testUnbracketedBytestringUnweightedTransducerCompilation(self):
     exchange = transducer(self.cheese, self.reply)
@@ -444,6 +437,8 @@ class PyniniStringTest(unittest.TestCase):
   def testUnbracketedBytestringWeightedAcceptorCompilation(self):
     cheese = acceptor(self.cheese, weight=Weight.One("tropical"))
     self.assertEqual(cheese, self.cheese)
+    self.assertEqual(cheese.properties(self.acceptor_props, True),
+                     self.acceptor_props)
 
   def testUnbracketedBytestringWeightedTransducerCompilation(self):
     exchange = transducer(self.cheese, self.reply,
@@ -455,6 +450,8 @@ class PyniniStringTest(unittest.TestCase):
   def testUnbracketedBytestringCastingWeightedAcceptorCompilation(self):
     cheese = acceptor(self.cheese, weight=0)
     self.assertEqual(cheese, self.cheese)
+    self.assertEqual(cheese.properties(self.acceptor_props, True),
+                     self.acceptor_props)
 
   def testBracketedTokenizationAcceptorCompilation(self):
     cheese_tokens = self.cheese.split()
@@ -465,14 +462,20 @@ class PyniniStringTest(unittest.TestCase):
   def testBracketedCharsBytestringAcceptorCompilation(self):
     cheese = acceptor("".join("[{:d}]".format(ord(ch)) for ch in self.cheese))
     self.assertEqual(cheese, self.cheese)
+    self.assertEqual(cheese.properties(self.acceptor_props, True),
+                     self.acceptor_props)
 
   def testUnicodeBytestringAcceptorCompilation(self):
     cheese = acceptor(self.imported_cheese)
     self.assertEqual(cheese, self.imported_cheese.encode("utf8"))
+    self.assertEqual(cheese.properties(self.acceptor_props, True),
+                     self.acceptor_props)
 
   def testAsciiUtf8AcceptorCompilation(self):
     cheese = acceptor(self.cheese, token_type="utf8")
     self.assertEqual(cheese, self.cheese)
+    self.assertEqual(cheese.properties(self.acceptor_props, True),
+                     self.acceptor_props)
 
   def testUnicodeUtf8AcceptorCompilation(self):
     cheese = acceptor(self.imported_cheese, token_type="utf8")
@@ -606,7 +609,7 @@ class PyniniStringFileTest(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    cls.map_file = "testdata/cheese.map"
+    cls.map_file =  "testdata/cheese.map"
 
   def testByteToByteStringFile(self):
     mapper = string_file(self.map_file)
@@ -737,6 +740,18 @@ class PyniniStringPathsTest(unittest.TestCase):
   def testStringPaths(self):
     for (triple, triple_res) in itertools.izip(self.f.paths(), self.triples):
       self.assertEqual(triple_res, triple)
+
+  def testStringPathsIterIStrings(self):
+    self.assertItemsEqual(self.f.paths().iter_istrings(),
+                          (t[0] for t in self.triples))
+
+  def testStringPathsIterOStrings(self):
+    self.assertItemsEqual(self.f.paths().iter_ostrings(),
+                          (t[1] for t in self.triples))
+
+  def testStringPathsIterWeights(self):
+    self.assertItemsEqual((str(w) for w in self.f.paths().iter_weights()),
+                          (str(t[2]) for t in self.triples))
 
   def testStringPathsAfterFstDeletion(self):
     f = u("Pipo Crem'", "Fynbo")
@@ -1043,9 +1058,9 @@ class PyniniWorkedExampleTest(unittest.TestCase):
     self.assertEqual(cascade.stringify(), cheese)
 
 
-def main(unused_argv):
+def main():
   unittest.main()
 
 
 if __name__ == "__main__":
-  app.run()
+  main()

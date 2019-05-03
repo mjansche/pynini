@@ -25,11 +25,11 @@
 namespace fst {
 namespace script {
 
-typedef args::Package<const string &, const WeightClass &, StringTokenType,
-                      MutableFstClass *, const SymbolTable *>
-    CompileStringInnerArgs;
+using CompileStringInnerArgs =
+    args::Package<const string &, const WeightClass &, StringTokenType,
+                  MutableFstClass *, const SymbolTable *>;
 
-typedef args::WithReturnValue<bool, CompileStringInnerArgs> CompileStringArgs;
+using CompileStringArgs = args::WithReturnValue<bool, CompileStringInnerArgs>;
 
 template <class Arc>
 void CompileString(CompileStringArgs *args) {

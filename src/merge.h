@@ -112,7 +112,8 @@ bool MergeLeftOutputAndRightInputSymbols(MutableFst<Arc> *fst1,
 
 // These are encoded so that they be ORed together.
 enum MergeSymbolsType {
-  // 0 not defined, but would mean "do nothing".
+  // "Do nothing".
+  MERGE_NOOP = 0,
   MERGE_INPUT_SYMBOLS = 1 << 0,
   MERGE_OUTPUT_SYMBOLS = 1 << 1,
   // = MERGE_INPUT_SYMBOLS | MERGE_OUTPUT_SYMBOLS; used for concat and union.

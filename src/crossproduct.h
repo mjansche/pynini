@@ -18,28 +18,24 @@
 #ifndef PYNINI_CROSSPRODUCT_H_
 #define PYNINI_CROSSPRODUCT_H_
 
-#include <memory>
-
 #include <fst/fstlib.h>
 #include "optimize.h"
 
 namespace fst {
 
-constexpr uint64 kAcceptorAndString = kAcceptor | kString;
-
 // This function combines two acceptors into a cross-product transducer; that
-// if U accepts V_U and L accepts V_L, then their cross-product U x L
-// accepts \forall v_u \in V_U, v_l \in V_L: v_u \rightarrow v_r. If called
-// with a transducer for the first argument (the upper language), it will
-// act as if it had already been projected onto its input, and if called with
-// a transducer for the second argument (the lower language), it will act as if
-// it had already been projected onto its output.
+// if U accepts V_U and L accepts V_L, then their cross-product U x L accepts
+// \forall v_u \in V_U, v_l \in V_L: v_u \rightarrow v_r. If called with a
+// transducer for the first argument (the upper language), it will act as if it
+// had already been projected onto its input, and if called with a transducer
+// for the second argument (the lower language), it will act as if it had
+// already been projected onto its output.
 template <class Arc>
 void CrossProduct(
     const Fst<Arc> &ifst1, const Fst<Arc> &ifst2, MutableFst<Arc> *ofst,
     const typename Arc::Weight &final_weight = Arc::Weight::One()) {
   using Weight = typename Arc::Weight;
-  // Initialize output FST using upper language.
+  // Initializes output FST using upper language.
   *ofst = ifst1;
   // Replaces output arcs on the upper language with epsilon, using the output
   // FST for temporary storage.
@@ -63,12 +59,13 @@ void CrossProduct(
     superfinal.SetFinal(state, final_weight);
     Concat(ofst, superfinal);
   }
-  // Optimizes output, if both inputs are known to be string FSTs.
-  if (ifst1.Properties(kAcceptorAndString, true) == kAcceptorAndString &&
-      ifst2.Properties(kAcceptorAndString, true) == kAcceptorAndString) {
+  static constexpr auto props = kAcceptor | kString;
+  // Optimizes output, if both inputs are known to be string FSAs.
+  if (ifst1.Properties(props, true) == props &&
+      ifst2.Properties(props, true) == props) {
     OptimizeStringCrossProducts(ofst);
   }
-  // Assigns symbol tables.
+  // Copies symbol tables.
   ofst->SetInputSymbols(ifst1.InputSymbols());
   ofst->SetOutputSymbols(ifst2.OutputSymbols());
 }

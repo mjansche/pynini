@@ -176,9 +176,9 @@ namespace script {
 
 using StringFstClassPair = std::pair<string, const FstClass *>;
 
-typedef args::Package<const FstClass &, const std::vector<StringFstClassPair> &,
-                      MutableFstClass *, const ReplaceOptions &>
-    PyniniReplaceArgs;
+using PyniniReplaceArgs =
+    args::Package<const FstClass &, const std::vector<StringFstClassPair> &,
+                  MutableFstClass *, const ReplaceOptions &>;
 
 template <class Arc>
 void PyniniReplace(PyniniReplaceArgs *args) {
@@ -204,10 +204,9 @@ void PyniniReplace(const FstClass &root,
 
 // PDT replacement.
 
-typedef args::Package<const FstClass &, const std::vector<StringFstClassPair> &,
-                      MutableFstClass *, std::vector<LabelPair> *,
-                      PdtParserType>
-    PyniniPdtReplaceArgs;
+using PyniniPdtReplaceArgs =
+    args::Package<const FstClass &, const std::vector<StringFstClassPair> &,
+                  MutableFstClass *, std::vector<LabelPair> *, PdtParserType>;
 
 template <class Arc>
 void PyniniPdtReplace(PyniniPdtReplaceArgs *args) {

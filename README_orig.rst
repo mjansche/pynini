@@ -11,10 +11,10 @@ Pynini depends on:
 
 -  A standards-compliant C++ 11 compiler (GCC >= 4.8 or Clang >= 700)
 -  The most recent version of `OpenFst <http://openfst.org>`__ (at the time of
-   writing, 1.5.4) built with the ``far``, ``pdt``, and ``mpdt`` extensions
-   (i.e., ``./configure --enable-far --enable-pdt --enable-mpdt``) and headers
+   writing, 1.6.0) built with the ``far``, ``pdt``, ``mpdt``, and ``script``
+   extensions (i.e., built with ``./configure --enable-grm``) and headers
 -  A recent version of `re2 <http:://github.com/google/re2>`__ (at the time of
-   writing, ce902a667c1eb80d7339c0ddddb8474b7340abd7) and headers
+   writing, 09fc9ce11a634150a22d2a477ff7ba8866398a7a) and headers
 -  `Python 2.7 <https://www.python.org>`__ and headers
 
 It is regularly tested in two environments:

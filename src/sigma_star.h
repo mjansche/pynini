@@ -25,14 +25,12 @@
 namespace fst {
 namespace internal {
 
-constexpr uint64 kSigmaStarProperties = kAcceptor | kUnweighted | kCyclic;
-
 template <class Arc>
 bool CheckSigmaStarProperties(const Fst<Arc> &sigma_star,
                               const string &op_name) {
-  if (sigma_star.Properties(kSigmaStarProperties, true) !=
-      kSigmaStarProperties) {
-    FSTERROR() << op_name << ": sigma_star must be a cyclic unweighted "
+  static constexpr auto props = kAcceptor | kUnweighted;
+  if (sigma_star.Properties(props, true) != props) {
+    LOG(ERROR) << op_name << ": sigma_star must be a unweighted "
                << "acceptor";
     return false;
   }

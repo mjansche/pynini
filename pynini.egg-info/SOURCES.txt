@@ -5,6 +5,7 @@ LICENSE
 MANIFEST.in
 NEWS
 README.rst
+pynini.pdf
 pynini_test.py
 setup.py
 pynini.egg-info/PKG-INFO
@@ -21,6 +22,8 @@ src/crossproductscript.cc
 src/crossproductscript.h
 src/fst.pxd
 src/fst_util.pxd
+src/getters.cc
+src/getters.h
 src/gtl.cc
 src/gtl.h
 src/ios.pxd
@@ -47,7 +50,6 @@ src/pynini_common.h
 src/pynini_includes.pxd
 src/pynini_replace.cc
 src/pynini_replace.h
-src/pynini_stringify.cc
 src/pynini_stringify.h
 src/pywrapfst.cc
 src/pywrapfst.pxd
@@ -65,4 +67,9 @@ src/stringfile.h
 src/stringmap.h
 src/stringmapscript.cc
 src/stringmapscript.h
+src/stringprint.h
+src/stringprintscript.cc
+src/stringprintscript.h
+src/stringtokentype.cc
+src/stringtokentype.h
 testdata/cheese.map

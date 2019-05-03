@@ -47,7 +47,9 @@ cdef extern from "optimizescript.h" \
 
   void OptimizeTransducer(MutableFstClass *, bool)
 
-  void OptimizeStringCrossProducts(MutableFstClass *)
+  void OptimizeStringCrossProducts(MutableFstClass *, bool)
+
+  void OptimizeDifferenceRhs(MutableFstClass *, bool)
 
 
 cdef extern from "<fst/string.h>" \
@@ -64,20 +66,20 @@ cdef extern from "pathsscript.h" \
 
   cdef cppclass StringPathsClass:
 
-    StringPathsClass(const FstClass &, StringTokenType, const SymbolTable *,
-                     const SymbolTable *)
+    StringPathsClass(const FstClass &, StringTokenType, StringTokenType,
+                     const SymbolTable *, const SymbolTable *, bool)
 
     bool Error()
 
-    string IString()
+    void IString(string *)
 
-    string OString()
+    void OString(string *)
 
     WeightClass Weight()
 
-    vector[int64] ILabels(bool)
+    void ILabels(vector[int64] *)
 
-    vector[int64] OLabels(bool)
+    void OLabels(vector[int64] *)
 
     void Reset()
 
@@ -109,20 +111,9 @@ cdef extern from "repeatscript.h" \
 cdef extern from "stringcompilescript.h" \
     namespace "fst::script" nogil:
 
-  bool CompileByteString(const string &, const WeightClass &,
-                         MutableFstClass *)
-
-  bool CompileUTF8String(const string &, const WeightClass &,
-                         MutableFstClass *)
-
-  bool CompileSymbolString(const string &, const WeightClass &,
-                           const SymbolTable &, MutableFstClass *)
-
-  bool CompileBracketedByteString(const string &, const WeightClass &,
-                                  MutableFstClass *)
-
-  bool CompileBracketedUTF8String(const string &, const WeightClass &,
-                                  MutableFstClass *)
+  bool CompileString(const string &, const WeightClass &,
+                     StringTokenType, MutableFstClass *,
+                     const SymbolTable *)
 
 
 ctypedef pair[string, string] StringPair
@@ -136,6 +127,19 @@ cdef extern from "stringmapscript.h" \
 
   bool StringMap(const vector[StringPair] &, StringTokenType, StringTokenType,
                  MutableFstClass *, const SymbolTable *, const SymbolTable *)
+
+
+cdef extern from "stringprintscript.h" \
+    namespace "fst::script" nogil:
+
+  bool PrintString(const FstClass &, StringTokenType, string *,
+                   const SymbolTable *, bool)
+
+
+cdef extern from "stringtokentype.h" \
+    namespace "fst::script" nogil:
+
+  bool GetStringTokenType(const string &, StringTokenType *)
 
 
 cdef extern from "merge.h":

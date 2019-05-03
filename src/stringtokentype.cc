@@ -15,28 +15,23 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#include "stringcompilescript.h"
-#include <fst/script/script-impl.h>
+#include "stringtokentype.h"
 
 namespace fst {
 namespace script {
 
-bool CompileString(const string &str, const WeightClass &wc,
-                   StringTokenType ttype, MutableFstClass *fst,
-                   const SymbolTable *syms) {
-  if (!fst->WeightTypesMatch(wc, "CompileSymbolString")) {
-    fst->SetProperties(kError, kError);
+bool GetStringTokenType(const string &str, StringTokenType *ttype) {
+  if (str == "byte") {
+    *ttype = BYTE;
+  } else if (str == "utf8") {
+    *ttype = UTF8;
+  } else if (str == "symbol") {
+    *ttype = SYMBOL;
+  } else {
     return false;
   }
-  CompileStringInnerArgs iargs(str, wc, ttype, fst, syms);
-  CompileStringArgs args(iargs);
-  Apply<Operation<CompileStringArgs>>("CompileString", fst->ArcType(), &args);
-  return args.retval;
+  return true;
 }
-
-REGISTER_FST_OPERATION(CompileString, StdArc, CompileStringArgs);
-REGISTER_FST_OPERATION(CompileString, LogArc, CompileStringArgs);
-REGISTER_FST_OPERATION(CompileString, Log64Arc, CompileStringArgs);
 
 }  // namespace script
 }  // namespace fst

@@ -20,16 +20,10 @@
 // This file contains implementations of untemplated internal functions for
 // string compilation. Not all are declared in the corresponding header.
 
-DEFINE_string(
-    token_separator, " ",
-    "Character used to tokenize "
-    "generated symbols within square brackets; must be one byte wide.");
 DEFINE_int32(generated_label_index_start, 0x100000,
-             "The lowest index a "
-             " generated label is assigned to.");
+             "The lowest index a generated label is assigned to.");
 
 namespace fst {
-
 namespace internal {
 
 SymbolTable *GetSymbolTable(StringTokenType ttype, const SymbolTable *syms) {
@@ -41,7 +35,7 @@ SymbolTable *GetSymbolTable(StringTokenType ttype, const SymbolTable *syms) {
     case UTF8:
       return internal::utf8_table_factory.GetTable();
   }
-  FSTERROR() << "GetSymbolTable: Unknown StringTokenType";
+  FSTERROR() << "GetSymbolTable: Unknown StringTokenType: " << ttype;
   return nullptr;
 }
 
@@ -175,6 +169,5 @@ void RemoveBracketEscapes(string *str) {
 }
 
 }  // namespace internal
-
 }  // namespace fst
 

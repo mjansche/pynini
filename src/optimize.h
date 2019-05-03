@@ -26,10 +26,10 @@
 namespace fst {
 namespace internal {
 
-// We don't need to encode weights if the FST has no weighted cycles. This is
-// true if the kUnweightedCycles bit is true, and implied by kAcyclic and
-// kUnweighted.
-const uint64 kDoNotEncodeWeights = kAcyclic | kUnweighted | kUnweightedCycles;
+constexpr uint64 kDoNotEncodeWeights = (kAcyclic | kUnweighted |
+                                        kUnweightedCycles);
+
+constexpr uint64 kDifferenceRhsProperties = kUnweighted | kAcceptor;
 
 // Generic FST optimization function to be used when the FST is known to be an
 // acceptor.
@@ -178,14 +178,38 @@ void Optimize(MutableFst<Arc> *fst, bool compute_props = false) {
 // and states by the length of the shorter of the two strings in the
 // cross-product; label-pushing may also speed up downstream composition.
 template <class Arc>
-void OptimizeStringCrossProducts(MutableFst<Arc> *fst) {
+void OptimizeStringCrossProducts(MutableFst<Arc> *fst,
+                                 bool compute_props = false) {
+  // Pushes labels towards the initial state.
   {
     std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-    // Pushes labels towards the initial state.
     Push<Arc, REWEIGHT_TO_INITIAL>(*tfst, fst, kPushLabels);
   }
   // Removes any trailing epsilon-to-epsilon arcs this produces.
-  RmEpsilon(fst);
+  if (fst->Properties(kNoEpsilons, compute_props) != kNoEpsilons) {
+    RmEpsilon(fst);
+  }
+}
+
+// This function optimizes the right-hand side of an FST difference in
+// attempt to satisfy the constraint that it must be epsilon-free and
+// deterministic. The input is assumed to be an unweighted acceptor.
+template <class Arc>
+void OptimizeDifferenceRhs(MutableFst<Arc> *fst, bool compute_props = false) {
+  // If the FST is not (known to be) epsilon-free, perform epsilon-removal.
+  if (fst->Properties(kNoEpsilons, compute_props) != kNoEpsilons) {
+    RmEpsilon(fst);
+  }
+  // If the FST is not (known to be) deterministic, determinize it; note that
+  // this operation will not introduce epsilons as the input is an acceptor.
+  if (fst->Properties(kIDeterministic, compute_props) != kIDeterministic) {
+    std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
+    Determinize(*tfst, fst);
+  }
+  // Minimally, RHS must be input label-sorted; the LHS does not need
+  // arc-sorting when the RHS is deterministic (as it now should be).
+  ILabelCompare<Arc> icomp;
+  ArcSort(fst, icomp);
 }
 
 }  // namespace fst

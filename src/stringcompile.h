@@ -25,7 +25,8 @@ using std::string;
 
 #include <fst/types.h>
 #include <cstdlib>
-#include <fst/fstlib.h>
+#include <fst/fst-decl.h>
+#include <fst/string.h>
 #include "gtl.h"
 #include <re2/stringpiece.h>
 using re2::StringPiece;
@@ -44,11 +45,10 @@ using re2::StringPiece;
 // as generated symbols with labels beyond the range of the Unicode Basic
 // Multilingual Plane.
 //
-// If a bracketed string contains multiple instances of the
-// FLAGS_token_separator (by default, space), the bracketed span is assumed to
-// contain multiple generated symbols.
+// If a bracketed string contains multiple instances of the space character,
+// the bracketed span is assumed to contain multiple generated symbols.
 //
-// Each such symbol is first input is passed to the C library function strol,
+// Each such symbol is first input is passed to the C library function strtoll,
 // which attempts to parse it as a signed long integer---it can handle octal,
 // decimal, and hexadecimal strings, and will ignore any leading whitespace---
 // it is treated as a raw integer (usually a byte). If this fails, however,
@@ -60,7 +60,6 @@ using re2::StringPiece;
 // To pass a bracket literal when using the CompileBracket* functions, simply
 // escape it with a preceding backslash.
 
-DECLARE_string(token_separator);
 DECLARE_int32(generated_label_index_start);
 
 namespace fst {
@@ -68,6 +67,7 @@ namespace internal {
 
 // "Special" byte-range symbols.
 
+constexpr char kTokenSeparator[] = " ";
 constexpr char kDummySymbol[] = "PiningForTheFjords";
 
 constexpr char kByteSymbolTableName[] = "**Byte symbols";
@@ -185,29 +185,29 @@ void CompileStringFromLabels(const std::vector<typename Arc::Label> &labels,
 void RemoveBracketEscapes(string *str);
 
 // Processes the labels within a bracketed span.
-template <class Arc>
-bool ProcessBracketedSpan(string *str, std::vector<typename Arc::Label> *labels,
+template <class Label>
+bool ProcessBracketedSpan(string *str, std::vector<Label> *labels,
                           SymbolTable *syms) {
-  using Label = typename Arc::Label;
   RemoveBracketEscapes(str);
   // Splits string on the token separator.
-  std::vector<string> tokens = strings::Split(*str, FLAGS_token_separator);
+  std::vector<string> tokens = strings::Split(*str, kTokenSeparator);
   // The span may not be empty, so that is not considered here.
   if (tokens.size() == 1) {
-    const auto &token = tokens[0];
+    const string cpptoken = tokens[0];
+    // Has the same lifetime as cpptoken, so long as we don't mutate cpptoken.
+    const char *ctoken = cpptoken.c_str();
     // A bracketed span that does not contain the token-separator is processed
     // either as a numeric label (e.g., [32]), or if that fails, as a single
     // generated label.
-    char *remainder = nullptr;
-    int64 label = strtol(token.c_str(), &remainder, 0);
-    if (label == 0 && *remainder != '\0') {
-      // If remainder doesn't point to a null byte, strtol halted before
-      // consuming the whole string, so the string is to be treated as a
-      //  generated label.
-      label = AddGeneratedToSymbolTable(token, syms);
-    } else if (label <= 0 || label == std::numeric_limits<int64>::max()) {
-      LOG(ERROR) << "ProcessBracketedSpan: Numeric label \"" << token
-                 << "\" exceeds the range for this arc type";
+    char *p;
+    int64 label = strtol(ctoken, &p, 0);
+    if (p < ctoken + strlen(ctoken)) {
+      // Could not parse the entire string as a number, so it is treated as a
+      // generated label.
+      label = AddGeneratedToSymbolTable(cpptoken, syms);
+    } else if (label < 0 || label == std::numeric_limits<int64>::max()) {
+      LOG(ERROR) << "ProcessBracketedSpan: Numeric label " << label
+                 << " for token " << cpptoken << " out of range";
       return false;
     } else {
       AddIntegerToSymbolTable(label, syms);
@@ -226,11 +226,9 @@ bool ProcessBracketedSpan(string *str, std::vector<typename Arc::Label> *labels,
 
 // Creates a vector of labels from a bracketed bytestring, updating the symbol
 // table as it goes.
-template <class Arc>
-bool BracketedByteStringToLabels(const string &str,
-                                 std::vector<typename Arc::Label> *labels,
+template <class Label>
+bool BracketedByteStringToLabels(const string &str, std::vector<Label> *labels,
                                  SymbolTable *syms) {
-  using Label = typename Arc::Label;
   static const RE2 pieces(kPieces);
   string unbracketed;
   string bracketed;
@@ -245,7 +243,7 @@ bool BracketedByteStringToLabels(const string &str,
       for (auto label : unbracketed)
         labels->push_back(static_cast<Label>(label));
     } else {  // A non-empty bracketed span.
-      if (!ProcessBracketedSpan<Arc>(&bracketed, labels, syms)) {
+      if (!ProcessBracketedSpan<Label>(&bracketed, labels, syms)) {
         return false;
       }
     }
@@ -255,11 +253,9 @@ bool BracketedByteStringToLabels(const string &str,
 
 // Creates a vector of labels from a bracketed UTF-8 string, updating the
 // symbol table as it goes.
-template <class Arc>
-bool BracketedUTF8StringToLabels(const string &str,
-                                 std::vector<typename Arc::Label> *labels,
+template <class Label>
+bool BracketedUTF8StringToLabels(const string &str, std::vector<Label> *labels,
                                  SymbolTable *syms) {
-  using Label = typename Arc::Label;
   static const RE2 pieces(kPieces);
   string unbracketed;
   string bracketed;
@@ -279,18 +275,17 @@ bool BracketedUTF8StringToLabels(const string &str,
                                          syms);
       }
     } else {  // A non-empty bracketed span.
-      if (!ProcessBracketedSpan<Arc>(&bracketed, labels, syms)) return false;
+      if (!ProcessBracketedSpan<Label>(&bracketed, labels, syms)) return false;
     }
   }
   return true;
 }
 
 // Creates a vector of labels from a bracketed string using a symbol table.
-template <class Arc>
+template <class Label>
 bool SymbolStringToLabels(const string &str, const SymbolTable &syms,
-                          std::vector<typename Arc::Label> *labels) {
-  using Label = typename Arc::Label;
-  std::vector<string> tokens = strings::Split(str, FLAGS_token_separator);
+                          std::vector<Label> *labels) {
+  std::vector<string> tokens = strings::Split(str, kTokenSeparator);
   labels->reserve(tokens.size());
   for (const auto token : tokens) {
     Label label = static_cast<Label>(syms.Find(token));
@@ -358,7 +353,7 @@ bool CompileSymbolString(const string &str, const typename Arc::Weight &weight,
                          const SymbolTable &syms, MutableFst<Arc> *fst) {
   using Label = typename Arc::Label;
   std::vector<Label> labels;
-  if (!internal::SymbolStringToLabels<Arc>(str, syms, &labels)) return false;
+  if (!internal::SymbolStringToLabels<Label>(str, syms, &labels)) return false;
   internal::CompileStringFromLabels<Arc>(labels, weight, fst);
   internal::AssignSymbolsToFst(syms, fst);
   return true;
@@ -372,7 +367,7 @@ bool CompileBracketedByteString(const string &str,
   using Label = typename Arc::Label;
   std::vector<Label> labels;
   std::unique_ptr<SymbolTable> syms(internal::byte_table_factory.GetTable());
-  if (!internal::BracketedByteStringToLabels<Arc>(str, &labels, syms.get()))
+  if (!internal::BracketedByteStringToLabels<Label>(str, &labels, syms.get()))
     return false;
   internal::FinalizeBracketedString<Arc>(&labels, weight, *syms, fst);
   return true;
@@ -386,25 +381,24 @@ bool CompileBracketedUTF8String(const string &str,
   using Label = typename Arc::Label;
   std::vector<Label> labels;
   std::unique_ptr<SymbolTable> syms(internal::utf8_table_factory.GetTable());
-  if (!internal::BracketedUTF8StringToLabels<Arc>(str, &labels, syms.get()))
+  if (!internal::BracketedUTF8StringToLabels<Label>(str, &labels, syms.get()))
     return false;
   internal::FinalizeBracketedString<Arc>(&labels, weight, *syms, fst);
   return true;
 }
 
-template <class Arc>
+template <class Label>
 bool StringToLabels(const string &str, StringTokenType ttype,
-                    std::vector<typename Arc::Label> *labels,
-                    SymbolTable *syms) {
+                    std::vector<Label> *labels, SymbolTable *syms) {
   switch (ttype) {
     case BYTE:
-      return internal::BracketedByteStringToLabels<Arc>(str, labels, syms);
+      return internal::BracketedByteStringToLabels<Label>(str, labels, syms);
     case UTF8:
-      return internal::BracketedUTF8StringToLabels<Arc>(str, labels, syms);
+      return internal::BracketedUTF8StringToLabels<Label>(str, labels, syms);
     case SYMBOL:
-      return internal::SymbolStringToLabels<Arc>(str, *syms, labels);
+      return internal::SymbolStringToLabels<Label>(str, *syms, labels);
     default:
-      LOG(ERROR) << "StringToLabels: Unknown StringTokenType";
+      LOG(ERROR) << "StringToLabels: Unknown StringTokenType: " << ttype;
       return false;
   }
   return true;
@@ -422,7 +416,7 @@ bool CompileString(const string &str, const typename Arc::Weight &weight,
     case SYMBOL:
       return CompileSymbolString(str, weight, *syms, fst);
     default:
-      LOG(ERROR) << "CompileString: Unknown StringTokenType";
+      LOG(ERROR) << "CompileString: Unknown StringTokenType: " << ttype;
       return false;
   }
   return true;

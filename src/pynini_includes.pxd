@@ -90,6 +90,13 @@ cdef extern from "<fst/extensions/pdt/pdtlib.h>" namespace "fst" nogil:
     PDT_LEFT_PARSER
     PDT_LEFT_SR_PARSER
 
+
+cdef extern from "<fst/extensions/pdt/getters.h>" \
+    namespace "fst::script" nogil:
+
+  cdef bool GetPdtComposeFilter(const string &, PdtComposeFilter *)
+
+
 cdef extern from "<fst/extensions/pdt/pdtscript.h>" \
     namespace "fst::script" nogil:
 
@@ -103,6 +110,8 @@ cdef extern from "<fst/extensions/pdt/pdtscript.h>" \
 
   void PdtExpand(const FstClass &, const vector[pair[int64, int64]] &,
                  MutableFstClass *, const PdtExpandOptions &)
+
+  cdef bool GetPdtParserType(const string &, PdtParserType *)
 
   void PdtReverse(const FstClass &, const vector[pair[int64, int64]] &,
                   MutableFstClass *)
@@ -135,6 +144,14 @@ cdef extern from "cdrewrite.h" \
     OPTIONAL
 
 
+cdef extern from "getters.h" \
+    namespace "fst::script" nogil:
+
+  cdef bool GetCDRewriteDirection(const string &, CDRewriteDirection *)
+
+  cdef bool GetCDRewriteMode(const string &, CDRewriteMode *)
+
+
 cdef extern from "pynini_cdrewrite.h" \
     namespace "fst::script" nogil:
 
@@ -152,11 +169,4 @@ cdef extern from "pynini_replace.h" \
   void PyniniPdtReplace(const FstClass &, const vector[StringFstClassPair] &,
                         MutableFstClass *, const vector[pair[int64, int64]] *,
                         PdtParserType)
-
-
-cdef extern from "pynini_stringify.h" \
-    namespace "fst::script" nogil:
-
-  bool PyniniStringify(const FstClass &, StringTokenType,
-                       const SymbolTable *, string *)
 

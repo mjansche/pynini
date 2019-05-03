@@ -31,26 +31,6 @@ using std::string;
 namespace fst {
 namespace script {
 
-typedef args::Package<const std::vector<std::pair<string, string>> &,
-                      StringTokenType, StringTokenType, MutableFstClass *,
-                      const SymbolTable *, const SymbolTable *>
-    StringMapInnerArgs;
-
-typedef args::WithReturnValue<bool, StringMapInnerArgs> StringMapArgs;
-
-template <class Arc>
-void StringMap(StringMapArgs *args) {
-  MutableFst<Arc> *fst = args->args.arg4->GetMutableFst<Arc>();
-  args->retval =
-      CompileStringMap(args->args.arg1, args->args.arg2, args->args.arg3, fst,
-                       args->args.arg5, args->args.arg6);
-}
-
-bool StringMap(const std::vector<std::pair<string, string>> &pairs,
-               StringTokenType itype, StringTokenType otype,
-               MutableFstClass *fst, const SymbolTable *isyms = nullptr,
-               const SymbolTable *osyms = nullptr);
-
 typedef args::Package<const string &, StringTokenType, StringTokenType,
                       MutableFstClass *, const SymbolTable *,
                       const SymbolTable *>
@@ -70,6 +50,26 @@ bool StringFile(const string &fname, StringTokenType itype,
                 StringTokenType otype, MutableFstClass *fst,
                 const SymbolTable *isyms = nullptr,
                 const SymbolTable *osyms = nullptr);
+
+typedef args::Package<const std::vector<std::pair<string, string>> &,
+                      StringTokenType, StringTokenType, MutableFstClass *,
+                      const SymbolTable *, const SymbolTable *>
+    StringMapInnerArgs;
+
+typedef args::WithReturnValue<bool, StringMapInnerArgs> StringMapArgs;
+
+template <class Arc>
+void StringMap(StringMapArgs *args) {
+  MutableFst<Arc> *fst = args->args.arg4->GetMutableFst<Arc>();
+  args->retval =
+      CompileStringMap(args->args.arg1, args->args.arg2, args->args.arg3, fst,
+                       args->args.arg5, args->args.arg6);
+}
+
+bool StringMap(const std::vector<std::pair<string, string>> &pairs,
+               StringTokenType itype, StringTokenType otype,
+               MutableFstClass *fst, const SymbolTable *isyms = nullptr,
+               const SymbolTable *osyms = nullptr);
 
 }  // namespace script
 }  // namespace fst

@@ -22,12 +22,13 @@
 namespace fst {
 namespace script {
 
-StringPathsClass::StringPathsClass(const FstClass &fst,
-                                   StringTokenType token_type,
+StringPathsClass::StringPathsClass(const FstClass &fst, StringTokenType itype,
+                                   StringTokenType otype,
                                    const SymbolTable *isyms,
-                                   const SymbolTable *osyms)
+                                   const SymbolTable *osyms, bool rm_epsilon)
     : impl_(nullptr) {
-  InitStringPathsClassArgs args(fst, token_type, isyms, osyms, this);
+  InitStringPathsClassArgs args(fst, itype, otype, isyms, osyms, rm_epsilon,
+                                this);
   Apply<Operation<InitStringPathsClassArgs>>("InitStringPathsClass",
                                              fst.ArcType(), &args);
 }

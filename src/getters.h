@@ -15,29 +15,20 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#include "stringcompilescript.h"
-#include <fst/script/script-impl.h>
+#ifndef PYNINI_GETTERS_H_
+#define PYNINI_GETTERS_H_
+
+#include "cdrewrite.h"
 
 namespace fst {
 namespace script {
 
-bool CompileString(const string &str, const WeightClass &wc,
-                   StringTokenType ttype, MutableFstClass *fst,
-                   const SymbolTable *syms) {
-  if (!fst->WeightTypesMatch(wc, "CompileSymbolString")) {
-    fst->SetProperties(kError, kError);
-    return false;
-  }
-  CompileStringInnerArgs iargs(str, wc, ttype, fst, syms);
-  CompileStringArgs args(iargs);
-  Apply<Operation<CompileStringArgs>>("CompileString", fst->ArcType(), &args);
-  return args.retval;
-}
+bool GetCDRewriteDirection(const string &str, CDRewriteDirection *rd);
 
-REGISTER_FST_OPERATION(CompileString, StdArc, CompileStringArgs);
-REGISTER_FST_OPERATION(CompileString, LogArc, CompileStringArgs);
-REGISTER_FST_OPERATION(CompileString, Log64Arc, CompileStringArgs);
+bool GetCDRewriteMode(const string &str, CDRewriteMode *rm);
 
 }  // namespace script
 }  // namespace fst
+
+#endif  // PYNINI_GETTERS_H_
 

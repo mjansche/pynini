@@ -36,11 +36,21 @@ void Optimize(OptimizeArgs *args) {
 void Optimize(MutableFstClass *fst, bool compute_props = false);
 
 template <class Arc>
-void OptimizeStringCrossProducts(MutableFstClass *fst) {
-  OptimizeStringCrossProducts(fst->GetMutableFst<Arc>());
+void OptimizeStringCrossProducts(OptimizeArgs *args) {
+  MutableFst<Arc> *fst = args->arg1->GetMutableFst<Arc>();
+  OptimizeStringCrossProducts(fst, args->arg2);
 }
 
-void OptimizeStringCrossProducts(MutableFstClass *fst);
+void OptimizeStringCrossProducts(MutableFstClass *fst,
+                                bool compute_props = false);
+
+template <class Arc>
+void OptimizeDifferenceRhs(OptimizeArgs *args) {
+  MutableFst<Arc> *fst = args->arg1->GetMutableFst<Arc>();
+  OptimizeDifferenceRhs(fst, args->arg2);
+}
+
+void OptimizeDifferenceRhs(MutableFstClass *fst, bool compute_props = false);
 
 }  // namespace script
 }  // namespace fst

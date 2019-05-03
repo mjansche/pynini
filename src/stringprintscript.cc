@@ -15,28 +15,22 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#include "stringcompilescript.h"
-#include <fst/script/script-impl.h>
+#include "stringprintscript.h"
 
 namespace fst {
 namespace script {
 
-bool CompileString(const string &str, const WeightClass &wc,
-                   StringTokenType ttype, MutableFstClass *fst,
-                   const SymbolTable *syms) {
-  if (!fst->WeightTypesMatch(wc, "CompileSymbolString")) {
-    fst->SetProperties(kError, kError);
-    return false;
-  }
-  CompileStringInnerArgs iargs(str, wc, ttype, fst, syms);
-  CompileStringArgs args(iargs);
-  Apply<Operation<CompileStringArgs>>("CompileString", fst->ArcType(), &args);
+bool PrintString(const FstClass &fst, StringTokenType ttype, string *str,
+                 const SymbolTable *syms, bool rm_epsilon) {
+  PrintStringInnerArgs iargs(fst, ttype, str, syms, rm_epsilon);
+  PrintStringArgs args(iargs);
+  Apply<Operation<PrintStringArgs>>("PrintString", fst.ArcType(), &args);
   return args.retval;
 }
 
-REGISTER_FST_OPERATION(CompileString, StdArc, CompileStringArgs);
-REGISTER_FST_OPERATION(CompileString, LogArc, CompileStringArgs);
-REGISTER_FST_OPERATION(CompileString, Log64Arc, CompileStringArgs);
+REGISTER_FST_OPERATION(PrintString, StdArc, PrintStringArgs);
+REGISTER_FST_OPERATION(PrintString, LogArc, PrintStringArgs);
+REGISTER_FST_OPERATION(PrintString, Log64Arc, PrintStringArgs);
 
 }  // namespace script
 }  // namespace fst

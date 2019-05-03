@@ -15,23 +15,34 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#include "pynini_stringify.h"
+#include "getters.h"
 
 namespace fst {
 namespace script {
 
-bool PyniniStringify(const FstClass &fst, StringTokenType token_type,
-                     const SymbolTable *symbols, string *str) {
-  PyniniStringifyInnerArgs iargs(fst, token_type, symbols, str);
-  PyniniStringifyArgs args(iargs);
-  Apply<Operation<PyniniStringifyArgs>>("PyniniStringify", fst.ArcType(),
-                                        &args);
-  return args.retval;
+bool GetCDRewriteDirection(const string &str, CDRewriteDirection *rd) {
+  if (str == "ltr") {
+    *rd = LEFT_TO_RIGHT;
+  } else if (str == "rtl") {
+    *rd = RIGHT_TO_LEFT;
+  } else if (str == "sim") {
+    *rd = SIMULTANEOUS;
+  } else {
+    return false;
+  }
+  return true;
 }
 
-REGISTER_FST_OPERATION(PyniniStringify, StdArc, PyniniStringifyArgs);
-REGISTER_FST_OPERATION(PyniniStringify, LogArc, PyniniStringifyArgs);
-REGISTER_FST_OPERATION(PyniniStringify, Log64Arc, PyniniStringifyArgs);
+bool GetCDRewriteMode(const string &str, CDRewriteMode *rm) {
+  if (str == "obl")  {
+    *rm = OBLIGATORY;
+  } else if (str == "opt") {
+    *rm = OPTIONAL;
+  } else {
+    return false;
+  }
+  return true;
+}
 
 }  // namespace script
 }  // namespace fst

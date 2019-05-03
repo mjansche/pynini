@@ -32,20 +32,19 @@ namespace script {
 // Helpers.
 
 template <class Arc>
-inline typename StringPrinter<Arc>::TokenType GetStringPrinterTokenType(
-    StringTokenType type) {
-  return static_cast<typename StringPrinter<Arc>::TokenType>(type);
+inline StringTokenType GetStringPrinterTokenType(StringTokenType type) {
+  return static_cast<StringTokenType>(type);
 }
 
 // Virtual interface implemented by each concrete StatesImpl<F>.
 class StringPathsImplBase {
  public:
   virtual bool Error() const = 0;
-  virtual string IString() const = 0;
-  virtual string OString() const = 0;
+  virtual void IString(string *result) const = 0;
+  virtual void OString(string *result) const = 0;
   virtual WeightClass Weight() const = 0;
-  virtual std::vector<int64> ILabels(bool rm_epsilon = true) const = 0;
-  virtual std::vector<int64> OLabels(bool rm_epsilon = true) const = 0;
+  virtual void ILabels(std::vector<int64> *labels) const = 0;
+  virtual void OLabels(std::vector<int64> *labels) const = 0;
   virtual bool Done() const = 0;
   virtual void Reset() = 0;
   virtual void Next() = 0;
@@ -56,30 +55,34 @@ class StringPathsImplBase {
 template <class Arc>
 class StringPathsImpl : public StringPathsImplBase {
  public:
-  StringPathsImpl(const Fst<Arc> &fst,
-                  typename StringPrinter<Arc>::TokenType token_type,
-                  const SymbolTable *isyms, const SymbolTable *osyms)
-      : impl_(new StringPaths<Arc>(fst, token_type, isyms, osyms)) {}
+  using Label = typename Arc::Label;
+
+  StringPathsImpl(const Fst<Arc> &fst, StringTokenType itype,
+                  StringTokenType otype, const SymbolTable *isyms = nullptr,
+                  const SymbolTable *osyms = nullptr, bool rm_epsilon = true)
+      : impl_(new StringPaths<Arc>(fst, itype, otype, isyms, osyms,
+                                   rm_epsilon)) {}
 
   bool Error() const override { return impl_->Error(); }
 
-  string IString() const override { return impl_->IString(); }
+  void IString(string *result) const override { impl_->IString(result); }
 
-  string OString() const override { return impl_->OString(); }
+  void OString(string *result) const override { impl_->OString(result); }
 
   WeightClass Weight() const override { return WeightClass(impl_->Weight()); }
 
-  std::vector<int64> ILabels(bool rm_epsilon = true) const override {
-    auto labels = impl_->ILabels(rm_epsilon);
-    std::vector<int64> untyped_labels(labels.size());
-    std::copy(labels.begin(), labels.end(), untyped_labels.begin());
-    return untyped_labels;
+  void ILabels(std::vector<int64> *labels) const override {
+    std::vector<Label> typed_labels;
+    impl_->ILabels(&typed_labels);
+    labels->resize(typed_labels.size());
+    std::copy(typed_labels.begin(), typed_labels.end(), labels->begin());
   }
 
-  std::vector<int64> OLabels(bool rm_epsilon = true) const override {
-    auto labels = impl_->OLabels(rm_epsilon);
-    std::vector<int64> untyped_labels(labels.begin(), labels.end());
-    return untyped_labels;
+  void OLabels(std::vector<int64> *labels) const override {
+    std::vector<Label> typed_labels;
+    impl_->OLabels(&typed_labels);
+    labels->resize(typed_labels.size());
+    std::copy(typed_labels.begin(), typed_labels.end(), labels->begin());
   }
 
   void Reset() override { impl_->Reset(); }
@@ -94,31 +97,35 @@ class StringPathsImpl : public StringPathsImplBase {
 
 class StringPathsClass;
 
-typedef args::Package<const FstClass &, StringTokenType, const SymbolTable *,
-                      const SymbolTable *, StringPathsClass *>
+typedef args::Package<const FstClass &, StringTokenType, StringTokenType,
+                      const SymbolTable *, const SymbolTable *, bool,
+                      StringPathsClass *>
     InitStringPathsClassArgs;
 
 // Untemplated user-facing class holding templated pimpl.
 class StringPathsClass {
  public:
-  StringPathsClass(const FstClass &fst, StringTokenType token_type,
-                   const SymbolTable *isyms, const SymbolTable *osyms);
+  StringPathsClass(const FstClass &fst, StringTokenType itype,
+                   StringTokenType otype, const SymbolTable *isyms = nullptr,
+                   const SymbolTable *osyms = nullptr, bool rm_epsilon = true);
+
+  // Same as above, but applies the same string token type and symbol table
+  // to both tapes.
+  StringPathsClass(const FstClass &fst, StringTokenType type,
+                   const SymbolTable *syms = nullptr, bool rm_epsilon = true)
+      : StringPathsClass(fst, type, type, syms, syms, rm_epsilon) {}
 
   bool Error() const { return impl_->Error(); }
 
-  string IString() const { return impl_->IString(); }
+  void IString(string *result) const { impl_->IString(result); }
 
-  string OString() const { return impl_->OString(); }
+  void OString(string *result) const { impl_->OString(result); }
 
   WeightClass Weight() const { return WeightClass(impl_->Weight()); }
 
-  std::vector<int64> ILabels(bool rm_epsilon = true) const {
-    return impl_->ILabels(rm_epsilon);
-  }
+  void ILabels(std::vector<int64> *labels) const { impl_->ILabels(labels); }
 
-  std::vector<int64> OLabels(bool rm_epsilon = true) const {
-    return impl_->OLabels(rm_epsilon);
-  }
+  void OLabels(std::vector<int64> *labels) const { impl_->OLabels(labels); }
 
   void Reset() { impl_->Reset(); }
 
@@ -136,8 +143,8 @@ class StringPathsClass {
 template <class Arc>
 void InitStringPathsClass(InitStringPathsClassArgs *args) {
   const Fst<Arc> &fst = *(args->arg1.GetFst<Arc>());
-  args->arg5->impl_.reset(new StringPathsImpl<Arc>(
-      fst, GetStringPrinterTokenType<Arc>(args->arg2), args->arg3, args->arg4));
+  args->arg7->impl_.reset(new StringPathsImpl<Arc>(
+      fst, args->arg2, args->arg3, args->arg4, args->arg5, args->arg6));
 }
 
 }  // namespace script

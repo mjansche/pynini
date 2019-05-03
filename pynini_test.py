@@ -481,43 +481,43 @@ class PyniniStringTest(unittest.TestCase):
         self.assertEqual(unichr(arc.olabel), self.imported_cheese[i])
 
   def testEscapedBracketsBytestringAcceptorCompilation(self):
-    a = acceptor("[\[Camembert\] is a]\[cheese\]")
-    self.assertEqual(a.num_states(), 12)
+    ac = acceptor("[\[Camembert\] is a]\[cheese\]")
+    self.assertEqual(ac.num_states(), 12)
     # Should have 3 states accepting generated symbols, 8 accepting a byte,
     # and 1 final state.
 
   def testGarbageWeightAcceptorRaisesFstBadWeightError(self):
     with self.assertRaises(FstBadWeightError):
-      unused_a = acceptor(self.cheese, weight="nonexistent")
+      unused_ac = acceptor(self.cheese, weight="nonexistent")
 
   def testGarbageWeightTransducerRaisesFstBadWeightError(self):
     with self.assertRaises(FstBadWeightError):
-      unused_t = transducer(self.cheese, self.reply, weight="nonexistent")
+      unused_tr = transducer(self.cheese, self.reply, weight="nonexistent")
 
   def testGarbageArcTypeAcceptorRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
-      unused_a = acceptor(self.cheese, arc_type="nonexistent")
+      unused_ac = acceptor(self.cheese, arc_type="nonexistent")
 
   def testGarbageArcTypeTransducerRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
-      unused_t = transducer(self.cheese, self.reply, arc_type="nonexistent")
+      unused_tr = transducer(self.cheese, self.reply, arc_type="nonexistent")
 
   def testHugeBracketedNumberAcceptorRaisesFstStringCompilationError(self):
     with self.assertRaises(FstStringCompilationError):
-      unused_a = acceptor(self.cheese + "[0xfffffffffffffffffffff]")
+      unused_ac = acceptor(self.cheese + "[0xfffffffffffffffffffff]")
 
   def testHugeBracketedNumberTransducerRaisesFstStringCompilationError(self):
     with self.assertRaises(FstStringCompilationError):
-      unused_t = transducer(self.cheese,
-                            self.reply + "[0xfffffffffffffffffffff]")
+      unused_tr = transducer(self.cheese,
+                             self.reply + "[0xfffffffffffffffffffff]")
 
   def testUnbalancedBracketsAcceptorRaisesFstStringCompilationError(self):
     with self.assertRaises(FstStringCompilationError):
-      unused_a = acceptor(self.cheese + "]")
+      unused_ac = acceptor(self.cheese + "]")
 
   def testUnbalancedBracketsTransducerRaisesFstStringCompilationError(self):
     with self.assertRaises(FstStringCompilationError):
-      unused_t = transducer(self.cheese, "[" + self.reply)
+      unused_tr = transducer(self.cheese, "[" + self.reply)
 
   def testCrossProductTransducerCompilation(self):
     cheese = acceptor(self.cheese)
@@ -538,10 +538,10 @@ class PyniniStringTest(unittest.TestCase):
     self.assertEqual(acceptor(self.imported_cheese_encoded).stringify(),
                      self.imported_cheese_encoded)
 
-  def testByteStringifyAfterSymbolTableDeletion(self):
-    a = acceptor(self.cheese)
-    a.set_output_symbols(None)
-    self.assertEqual(a.stringify("utf8"), self.cheese.encode("utf8"))
+  def testAsciiByteStringifyAfterSymbolTableDeletion(self):
+    ac = acceptor(self.cheese)
+    ac.set_output_symbols(None)
+    self.assertEqual(ac.stringify(), self.cheese)
 
   def testUtf8Utf8Stringify(self):
     self.assertEqual(acceptor(self.imported_cheese_encoded,
@@ -558,24 +558,18 @@ class PyniniStringTest(unittest.TestCase):
                      self.imported_cheese_encoded)
 
   def testUtf8StringifyAfterSymbolTableDeletion(self):
-    a = acceptor(self.imported_cheese, token_type="utf8")
-    a.set_output_symbols(None)
-    self.assertEqual(a.stringify("utf8"), self.imported_cheese_encoded)
+    ac = acceptor(self.imported_cheese, token_type="utf8")
+    ac.set_output_symbols(None)
+    self.assertEqual(ac.stringify("utf8"), self.imported_cheese_encoded)
 
   def testUnicodeSymbolStringify(self):
-    a = acceptor(self.imported_cheese, token_type="utf8")
-    self.assertEqual(a.stringify("symbol"),
+    ac = acceptor(self.imported_cheese, token_type="utf8")
+    self.assertEqual(ac.stringify(ac.output_symbols()),
                      b"P o n t <SPACE> l ' E v <0xea> q u e")
-
-  def testUnicodeSymbolStringifyWithNoSymbolTable(self):
-    a = acceptor(self.imported_cheese, token_type="utf8")
-    a.set_output_symbols(None)
-    codepoints = [int(cp) for cp in a.stringify("symbol").split()]
-    self.assertEqual(codepoints, [ord(cp) for cp in self.imported_cheese])
 
   def testStringifyOnNonkStringFstRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
-      unused_a = union(self.cheese, self.imported_cheese).stringify()
+      unused_ac = union(self.cheese, self.imported_cheese).stringify()
 
   def testCompositionOfStringAndLogArcWorks(self):
     cheese = "Greek Feta"
@@ -595,17 +589,17 @@ class PyniniStringTest(unittest.TestCase):
 
   def testLogWeightToStandardAcceptorRaisesFstStringCompilationError(self):
     with self.assertRaises(FstOpError):
-      unused_a = acceptor("Sage Derby", weight=Weight.One("log"))
+      unused_ac = acceptor("Sage Derby", weight=Weight.One("log"))
 
   def testLog64WeightToLogAcceptorRaisesFstStringCompilationError(self):
     with self.assertRaises(FstOpError):
-      unused_a = acceptor("Wensleydale", arc_type="log",
-                          weight=Weight.One("log64"))
+      unused_ac = acceptor("Wensleydale", arc_type="log",
+                           weight=Weight.One("log64"))
 
   def testTropicalWeightToLog64TransducerRaisesFstOpError(self):
     with self.assertRaises(FstOpError):
-      unused_t = transducer("Venezuelan Beaver Cheese", "Not today sir, no",
-                            arc_type="log64", weight=Weight.One("tropical"))
+      unused_tr = transducer("Venezuelan Beaver Cheese", "Not today sir, no",
+                             arc_type="log64", weight=Weight.One("tropical"))
 
 
 class PyniniStringFileTest(unittest.TestCase):
@@ -741,8 +735,7 @@ class PyniniStringPathsTest(unittest.TestCase):
     cls.f = union(*(transducer(*triple) for triple in cls.triples))
 
   def testStringPaths(self):
-    for (triple, triple_res) in itertools.izip(self.f.paths(token_type="byte"),
-                                               self.triples):
+    for (triple, triple_res) in itertools.izip(self.f.paths(), self.triples):
       self.assertEqual(triple_res, triple)
 
   def testStringPathsAfterFstDeletion(self):
@@ -756,12 +749,12 @@ class PyniniStringPathsTest(unittest.TestCase):
     f = a(cheese)
     chars = [ord(i) for i in cheese]
     sp = StringPaths(f)
-    eps_free_ilabels = sp.ilabels(False)
+    eps_free_ilabels = sp.ilabels()
     self.assertEqual(eps_free_ilabels, chars)
-    self.assertEqual(sp.ilabels(True), eps_free_ilabels)
-    eps_free_olabels = sp.olabels(False)
+    self.assertEqual(sp.ilabels(), eps_free_ilabels)
+    eps_free_olabels = sp.olabels()
     self.assertEqual(eps_free_olabels, eps_free_ilabels)
-    self.assertEqual(sp.olabels(True), eps_free_olabels)
+    self.assertEqual(sp.olabels(), eps_free_olabels)
     sp.next()
     self.assertTrue(sp.done())
 
@@ -771,9 +764,9 @@ class PyniniStringPathsTest(unittest.TestCase):
     # epsilon-arc, a fact we take advantage of here.
     f = u("Ilchester", "Limburger")
     sp = StringPaths(f)
-    self.assertEqual(sp.ilabels(False), sp.ilabels(True))
+    self.assertEqual(sp.ilabels(), sp.ilabels())
     sp.next()
-    self.assertEqual(sp.ilabels(False), [0] + sp.ilabels(True))
+    self.assertEqual(sp.ilabels(), sp.ilabels())
     sp.next()
     self.assertTrue(sp.done())
 

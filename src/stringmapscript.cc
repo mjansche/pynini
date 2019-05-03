@@ -21,6 +21,19 @@
 namespace fst {
 namespace script {
 
+bool StringFile(const string &fname, StringTokenType itype,
+                StringTokenType otype, MutableFstClass *fst,
+                const SymbolTable *isyms, const SymbolTable *osyms) {
+  StringFileInnerArgs iargs(fname, itype, otype, fst, isyms, osyms);
+  StringFileArgs args(iargs);
+  Apply<Operation<StringFileArgs>>("StringFile", fst->ArcType(), &args);
+  return args.retval;
+}
+
+REGISTER_FST_OPERATION(StringFile, StdArc, StringFileArgs);
+REGISTER_FST_OPERATION(StringFile, LogArc, StringFileArgs);
+REGISTER_FST_OPERATION(StringFile, Log64Arc, StringFileArgs);
+
 bool StringMap(const std::vector<std::pair<string, string>> &pairs,
                StringTokenType itype, StringTokenType otype,
                MutableFstClass *fst, const SymbolTable *isyms,
@@ -34,19 +47,6 @@ bool StringMap(const std::vector<std::pair<string, string>> &pairs,
 REGISTER_FST_OPERATION(StringMap, StdArc, StringMapArgs);
 REGISTER_FST_OPERATION(StringMap, LogArc, StringMapArgs);
 REGISTER_FST_OPERATION(StringMap, Log64Arc, StringMapArgs);
-
-bool StringFile(const string &fname, StringTokenType itype,
-                StringTokenType otype, MutableFstClass *fst,
-                const SymbolTable *isyms, const SymbolTable *osyms) {
-  StringFileInnerArgs iargs(fname, itype, otype, fst, isyms, osyms);
-  StringFileArgs args(iargs);
-  Apply<Operation<StringFileArgs>>("StringFile", fst->ArcType(), &args);
-  return args.retval;
-}
-
-REGISTER_FST_OPERATION(StringFile, StdArc, StringFileArgs);
-REGISTER_FST_OPERATION(StringFile, LogArc, StringFileArgs);
-REGISTER_FST_OPERATION(StringFile, Log64Arc, StringFileArgs);
 
 }  // namespace script
 }  // namespace fst

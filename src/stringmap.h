@@ -74,13 +74,13 @@ bool CompileStringMap(Data *data, StringTokenType itype, StringTokenType otype,
   // Converts the string pairs to vectors of arc labels.
   for (; !data->Done(); data->Next()) {
     std::vector<Label> ilabels;
-    if (!StringToLabels<Arc>(data->GetLeftString(), itype, &ilabels,
-                             new_isyms.get())) {
+    if (!StringToLabels<Label>(data->GetLeftString(), itype, &ilabels,
+                               new_isyms.get())) {
       return false;
     }
     std::vector<Label> olabels;
-    if (!StringToLabels<Arc>(data->GetRightString(), otype, &olabels,
-                             new_osyms.get())) {
+    if (!StringToLabels<Label>(data->GetRightString(), otype, &olabels,
+                               new_osyms.get())) {
       return false;
     }
     ptree.Add(ilabels.begin(), ilabels.end(), olabels.begin(), olabels.end(),

@@ -1,6 +1,8 @@
-Pynini is a Python extension module which allows the user to compile, optimize, and apply grammar rules. Rules can be compiled into weighted finite state transducers (FSTs), pushdown transducers, or multi-pushdown transducers. For general information and a detailed tutorial, see `pynini.opengrm.org <http://pynini.opengrm.org>`__.
+Pynini is a Python extension module which allows the user to compile, optimize, and apply grammar rules. Rules can be compiled into weighted finite state transducers, pushdown transducers, or multi-pushdown transducers. For general information and a detailed tutorial, see `pynini.opengrm.org <http://pynini.opengrm.org>`__.
 
-Pynini is developed by Kyle Gorman (kbg@google.com).
+Pynini is developed by `Kyle Gorman <mailto:kbg@google.com>`__. If you use Pynini in your research, we would appreciate if you cite the following paper:
+
+    K. Gorman. 2016. `Pynini: A Python library for weighted finite-state grammar compilation <http://openfst.cs.nyu.edu/twiki/pub/GRM/Pynini/pynini-paper.pdf >`__. In *Proc. ACL Workshop on Statistical NLP and Weighted Automata*, 75-80.
 
 Dependencies
 ------------
@@ -8,11 +10,12 @@ Dependencies
 Pynini depends on:
 
 -  A standards-compliant C++ 11 compiler (GCC >= 4.8 or Clang >= 700)
--  [OpenFst 1.5.1](http://openfst.org) built with the ``far``, ``pdt``,
-   and ``mpdt`` extensions (i.e.,
-   ``./configure --enable-far --enable-pdt --enable-mpdt``)
--  `re2 <http:://github.com/google/re2>`__
--  `Python 2.7 <https://www.python.org>`__
+-  The most recent version of `OpenFst <http://openfst.org>`__ (at the time of
+   writing, 1.5.4) built with the ``far``, ``pdt``, and ``mpdt`` extensions
+   (i.e., ``./configure --enable-far --enable-pdt --enable-mpdt``) and headers
+-  A recent version of `re2 <http:://github.com/google/re2>`__ (at the time of
+   writing, ce902a667c1eb80d7339c0ddddb8474b7340abd7) and headers
+-  `Python 2.7 <https://www.python.org>`__ and headers
 
 It is regularly tested in two environments:
 

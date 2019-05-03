@@ -1,12 +1,16 @@
-v 1.1
-=====
+v. 1.2
+======
+
+* Correctly optimizes RHS argument of a `difference` operation: epsilon-removal and determinization (but not minimization or arc-sum mapping)
+* Removes platform-dependent `HugeBracketedNumber` test units
+* Adds optional path-weight argument to `epsilon_machine`
+
+v. 1.1
+======
 
 * Correctly handles final weights in `transducer`
-* Fixes inconsistency whereby the use of incorrect arc or weight types raised
-  `FstOpError` unless the error occurred during string compilation, in which
-  case it'd raise `FstStringCompilationError`; now all arc/weight errors raise
-  `FstOpError` and `FstStringCompilationError` is reserved for problems parsing
-  strings
+* Fixes inconsistency whereby the use of incorrect arc or weight types raised `FstOpError` unless the error occurred during string compilation, in which case it'd raise `FstStringCompilationError`; now all arc/weight errors raise `FstOpError` and `FstStringCompilationError` is reserved for problems parsing strings
+* Adds publication information and `pynini.pdf` (the Pynini paper)
 
 v. 1.0
 ======

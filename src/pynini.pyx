@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Copyright 2016 and onwards Google, Inc.
+# Copyright 2017 and onwards Google, Inc.
 #
 # For general information on the Pynini grammar compilation library, see
 # pynini.opengrm.org.
@@ -365,15 +365,6 @@ cdef class Fst(_MutableFst):
   Pynini finite-state transducer class.
 
   This class wraps a mutable FST and exposes all destructive methods.
-
-  Attributes:
-    arc_type: A string indicating the arc type.
-    fst_type: A string indicating the FST (container) type.
-    input_symbols: The input symbol table, or None if none is set.
-    num_states: The number of states.
-    output_symbols: The output symbol table, or None if none is set.
-    start: The integer state ID for the start state.
-    weight_type: A string indicating the weight type.
   """
 
   cdef void _from_MutableFstClass(self, MutableFstClass *tfst):
@@ -382,7 +373,7 @@ cdef class Fst(_MutableFst):
 
     Constructs a Pynini Fst by taking ownership of a MutableFstClass pointer.
 
-    This method is not not visible to Python users.
+    This method is not visible to Python users.
     """
     self._fst.reset(tfst)
     self._mfst = static_pointer_cast[MutableFstClass, FstClass](self._fst)
@@ -438,13 +429,6 @@ cdef class Fst(_MutableFst):
     """
     return _init_Fst_from_MutableFst(_read_Fst(filename, fst_type=b"vector"))
 
-  # This hidden method is called immediately after FST operations to check for
-  # the error bit.
-
-  cdef void _check_pynini_op_error(self) except *:
-    if self._fst.get().Properties(kError, True) == kError:
-      raise FstOpError("Operation failed")
-
   cpdef StringPaths paths(self, input_token_type=b"byte",
                           output_token_type=b"byte", bool rm_epsilon=True):
     """
@@ -478,7 +462,7 @@ cdef class Fst(_MutableFst):
       FstArgError: Unknown token type.
       FstArgError: FST is not acyclic.
 
-    See also: `StringPaths`. `StringPaths`. `StringPaths`. `StringPaths`.
+    See also: `StringPaths`.
     """
     return StringPaths(self, input_token_type, output_token_type, rm_epsilon)
 
@@ -588,7 +572,7 @@ cdef class Fst(_MutableFst):
     See also `ques`, `star`, `plus`.
     """
     Repeat(self._mfst.get(), lower, upper)
-    self._check_pynini_op_error()
+    self._check_mutating_imethod()
     return self
 
   @property
@@ -605,7 +589,7 @@ cdef class Fst(_MutableFst):
     """
     cdef Fst result = self.copy()
     Closure(result._mfst.get(), CLOSURE_PLUS)
-    result._check_pynini_op_error()
+    result._check_mutating_imethod()
     return result
 
   @property
@@ -622,7 +606,7 @@ cdef class Fst(_MutableFst):
     """
     cdef Fst result = self.copy()
     Repeat(result._mfst.get(), 0, 1)
-    result._check_pynini_op_error()
+    result._check_mutating_imethod()
     return result
 
   @property
@@ -639,7 +623,7 @@ cdef class Fst(_MutableFst):
     """
     cdef Fst result = self.copy()
     Closure(result._mfst.get(), CLOSURE_STAR)
-    result._check_pynini_op_error()
+    result._check_mutating_imethod()
     return result
 
   def concat(self, ifst):
@@ -677,7 +661,7 @@ cdef class Fst(_MutableFst):
 
   cdef void _optimize(self, bool compute_props=False) except *:
     Optimize(self._mfst.get(), compute_props)
-    self._check_pynini_op_error()
+    self._check_mutating_imethod()
 
   def optimize(self, bool compute_props=False):
     """
@@ -884,7 +868,7 @@ cpdef Fst acceptor(astring,
                                     result._mfst.get(), syms)
   # First we check whether there were problems with arc or weight type, then
   # for string compilation issues.
-  result._check_pynini_op_error()
+  result._check_mutating_imethod()
   if not success:
     raise FstStringCompilationError("String compilation failed")
   return result
@@ -958,7 +942,7 @@ cpdef Fst transducer(istring,
   # Actually computes cross-product.
   CrossProduct(deref(upper._fst), deref(lower._fst), result._mfst.get(),
                _get_WeightClass_or_One(result.weight_type(), weight))
-  result._check_pynini_op_error()
+  result._check_mutating_imethod()
   return result
 
 
@@ -1012,7 +996,7 @@ cpdef Fst cdrewrite(tau,
   PyniniCDRewrite(deref(tau_compiled._fst), deref(lambda_compiled._fst),
                   deref(rho_compiled._fst), deref(sigma_star_compiled._fst),
                   result._mfst.get(), cd, cm)
-  result._check_pynini_op_error()
+  result._check_mutating_imethod()
   if not result.num_states():
     logging.warning("Compiled rewrite rule has no connected states")
   return result
@@ -1055,7 +1039,7 @@ cpdef Fst containment(ifst, sigma_star):
   cdef Fst result = Fst(ifst_compiled.arc_type())
   Containment(deref(ifst_compiled._fst), deref(sigma_star_compiled._fst),
               result._mfst.get())
-  result._check_pynini_op_error()
+  result._check_mutating_imethod()
   return result
 
 
@@ -1127,7 +1111,7 @@ cpdef Fst leniently_compose(ifst1, ifst2, sigma_star, cf=b"auto",
   LenientlyCompose(deref(ifst1_compiled._fst), deref(ifst2_compiled._fst),
                    deref(sigma_star_compiled._fst), result._mfst.get(),
                    deref(opts))
-  result._check_pynini_op_error()
+  result._check_mutating_imethod()
   if not result.num_states():
     logging.warning("Composed FST has no connected states")
   return result
@@ -1486,7 +1470,7 @@ def replace(root, *,
   opts.reset(new ReplaceOptions(-1, cal, ral, return_label))
   cdef Fst result = Fst(arc_type)
   PyniniReplace(deref(root_fst._fst), pairs, result._mfst.get(), deref(opts))
-  result._check_pynini_op_error()
+  result._check_mutating_imethod()
   return result
 
 
@@ -1671,7 +1655,7 @@ def pdt_compose(ifst1,
              result._mfst.get(), deref(opts), left_pdt)
   if not result.num_states():
     logging.warning("Composed PDT has no connected states")
-  result._check_pynini_op_error()
+  result._check_mutating_imethod()
   # If the "expand" filter is selected, all parentheses have been mapped to
   # epsilon. This conveniently removes the arcs that result.
   if typed_cf == EXPAND_FILTER:
@@ -1720,7 +1704,7 @@ def pdt_expand(ipdt,
   cdef unique_ptr[PdtExpandOptions] opts
   opts.reset(new PdtExpandOptions(connect, keep_parentheses, wc))
   PdtExpand(deref(pdt._fst), parens._parens, result._mfst.get(), deref(opts))
-  result._check_pynini_op_error()
+  result._check_mutating_imethod()
   return result
 
 
@@ -1780,7 +1764,7 @@ def pdt_replace(root, *,
   PyniniPdtReplace(deref(root_fst._fst), pairs, result._mfst.get(),
                    addr(parens._parens),
                    _get_pdt_parser_type(tostring(pdt_parser_type)))
-  result._check_pynini_op_error()
+  result._check_mutating_imethod()
   return (result, parens)
 
 
@@ -1803,7 +1787,7 @@ def pdt_reverse(ipdt, PdtParentheses parens):
   cdef Fst pdt = _compile_or_copy_Fst(ipdt)
   cdef Fst result = Fst(pdt.arc_type())
   PdtReverse(deref(pdt._fst), parens._parens, result._mfst.get())
-  result._check_pynini_op_error()
+  result._check_mutating_imethod()
   return result
 
 
@@ -1843,7 +1827,7 @@ def pdt_shortestpath(ipdt,
         _get_queue_type(tostring(qt)), keep_parentheses, path_gc))
   PdtShortestPath(deref(pdt._fst), parens._parens, result._mfst.get(),
                   deref(opts))
-  result._check_pynini_op_error()
+  result._check_mutating_imethod()
   return result
 
 
@@ -2056,7 +2040,7 @@ def mpdt_expand(impdt, MPdtParentheses parens, bool connect=True,
   opts.reset(new MPdtExpandOptions(connect, keep_parentheses))
   MPdtExpand(deref(mpdt._fst), parens._parens, parens._assign,
              result._mfst.get(), deref(opts))
-  result._check_pynini_op_error()
+  result._check_mutating_imethod()
   return result
 
 
@@ -2084,7 +2068,7 @@ def mpdt_reverse(impdt, MPdtParentheses parens):
   cdef MPdtParentheses result_parens = parens.copy()
   MPdtReverse(deref(mpdt._fst), result_parens._parens,
               addr(result_parens._assign), result_fst._mfst.get())
-  result_fst._check_pynini_op_error()
+  result_fst._check_mutating_imethod()
   return (result_fst, result_parens)
 
 

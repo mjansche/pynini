@@ -11,7 +11,7 @@ Pynini depends on:
 
 -  A standards-compliant C++ 11 compiler (GCC >= 4.8 or Clang >= 700)
 -  The most recent version of `OpenFst <http://openfst.org>`__ (at the time of
-   writing, 1.6.0) built with the ``far``, ``pdt``, ``mpdt``, and ``script``
+   writing, 1.6.1) built with the ``far``, ``pdt``, ``mpdt``, and ``script``
    extensions (i.e., built with ``./configure --enable-grm``) and headers
 -  A recent version of `re2 <http:://github.com/google/re2>`__ (at the time of
    writing, 09fc9ce11a634150a22d2a477ff7ba8866398a7a) and headers

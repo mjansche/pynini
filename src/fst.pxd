@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Copyright 2016 and onwards Google, Inc.
+# Copyright 2017 and onwards Google, Inc.
 #
 # See www.openfst.org for extensive documentation on this weighted
 # finite-state transducer library.
@@ -541,7 +541,7 @@ cdef extern from "<fst/script/fstscript.h>" namespace "fst::script" nogil:
   cdef void DrawFst(const FstClass &fst, const SymbolTable *,
                     const SymbolTable *, const SymbolTable *, bool,
                     const string &, float, float, bool, bool, float, float, int,
-                    int, bool, ostream *, const string &)
+                    int, const string &, bool, ostream *, const string &)
 
   cdef void Encode(MutableFstClass *, EncodeMapperClass *)
 
@@ -610,13 +610,11 @@ cdef extern from "<fst/script/fstscript.h>" namespace "fst::script" nogil:
                     const RandGenOptions[RandArcSelection] &)
 
   cdef void Relabel(MutableFstClass *,
-      const SymbolTable *, const SymbolTable *, bool,
-      const SymbolTable *, const SymbolTable *, bool)
+      const SymbolTable *, const SymbolTable *, const string &, bool,
+      const SymbolTable *, const SymbolTable *, const string &, bool)
 
   cdef void Relabel(MutableFstClass *, const vector[LabelPair] &,
                     const vector[LabelPair] &)
-
-  cdef void Relabel(MutableFstClass *, const SymbolTable *, const SymbolTable *)
 
   cdef cppclass ReplaceOptions:
 

@@ -20,16 +20,6 @@ from setuptools import Extension
 from setuptools import setup
 
 
-# These extensions are expected to work anywhere with a:
-#
-# * Standards-compliant C++ 11 compiler (GCC >= 4.8 or Clang >= 700).
-# * OpenFst 1.5.1 (http://openfst.org) built with the "far", "pdt", and "mpdt"
-#   extensions.
-# * re2 (http:://github.com/google/ee2).
-# * Python 2.7 or better with "development" headers (though it should work with
-#   Python 3.5 with minimal modifications).
-
-
 COMPILE_ARGS = ["-std=c++11",
                 "-Wno-unused-function",
                 "-Wno-unused-local-typedef",
@@ -73,14 +63,14 @@ pynini = Extension(name="pynini", language="c++",
                             "src/containmentscript.cc"])
 
 setup(
-    name="pynini", version="1.3",
+    name="pynini", version="1.4",
     description="Finite-state grammar compilation library",
     author="Kyle Gorman", author_email="kbg@google.com",
     url="http://pynini.opengrm.org/",
     keywords=["natural language processing", "speech recognition",
               "machine learning"],
     classifiers=["Programming Language :: Python :: 2.7",
-                 "Development Status :: 4 - Beta",
+                 "Development Status :: 5 - Production/Stable",
                  "Environment :: Other Environment",
                  "Environment :: Console",
                  "Intended Audience :: Developers",

@@ -10,7 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright 2016 and onwards Google, Inc.
+// Copyright 2017 and onwards Google, Inc.
 //
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
@@ -43,8 +43,8 @@ namespace internal {
 // cyclic, unweighted acceptor representing the universal language. Then
 // priority union is simply:
 //
-// func PriorityUnion[R, C, sigma_star] {
-//   return R | ((sigma_star - RmEpsilon[Project[R, 'input']]) @ C);
+// func PriorityUnion[C, D, sigma_star] {
+//   return C | ((sigma_star - RmEpsilon[Project[C, 'input']]) @ R);
 // }
 
 template <class Arc>
@@ -58,7 +58,10 @@ void PriorityUnion(MutableFst<Arc> *fst1, const Fst<Arc> &fst2,
   RmEpsilonFst<Arc> rmepsilon(projection);
   DifferenceFst<Arc> difference(sigma_star, rmepsilon);
   // We bail out if the contract for Difference was not satisfied.
-  if (difference.Properties(kError, true) == kError) return;
+  if (difference.Properties(kError, true) == kError) {
+    fst1->SetProperties(kError, kError);
+    return;
+  }
   ComposeFst<Arc> compose(difference, fst2);
   Union(fst1, compose);
 }
@@ -70,8 +73,8 @@ void PriorityUnion(MutableFst<Arc> *fst1, const Fst<Arc> &fst2,
 // Thus it is a composition which gives priority to X @ Y, falling back upon X.
 // Then lenient composition is simply:
 //
-// func LenientlyComposition[R, C, sigma_star] {
-//   return PriorityUnion[R @ C, R, sigma_star];
+// func LenientlyCompose[A, B, sigma_star] {
+//   return PriorityUnion[A @ B, A, sigma_star];
 // }
 
 template <class Arc>

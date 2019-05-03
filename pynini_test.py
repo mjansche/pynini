@@ -505,15 +505,6 @@ class PyniniStringTest(unittest.TestCase):
     with self.assertRaises(FstArgError):
       unused_tr = transducer(self.cheese, self.reply, arc_type="nonexistent")
 
-  def testHugeBracketedNumberAcceptorRaisesFstStringCompilationError(self):
-    with self.assertRaises(FstStringCompilationError):
-      unused_ac = acceptor(self.cheese + "[0xfffffffffffffffffffff]")
-
-  def testHugeBracketedNumberTransducerRaisesFstStringCompilationError(self):
-    with self.assertRaises(FstStringCompilationError):
-      unused_tr = transducer(self.cheese,
-                             self.reply + "[0xfffffffffffffffffffff]")
-
   def testUnbalancedBracketsAcceptorRaisesFstStringCompilationError(self):
     with self.assertRaises(FstStringCompilationError):
       unused_ac = acceptor(self.cheese + "]")

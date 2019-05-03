@@ -10,7 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright 2016 and onwards Google, Inc.
+// Copyright 2017 and onwards Google, Inc.
 //
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
@@ -157,8 +157,9 @@ class SymbolTableFactory {
   SymbolTableFactory &operator=(const SymbolTableFactory &) = delete;
 };
 
-const SymbolTableFactory byte_table_factory(kByteSymbolTableName);
-const SymbolTableFactory utf8_table_factory(kUTF8SymbolTableName);
+static const SymbolTableFactory byte_table_factory(kByteSymbolTableName);
+
+static const SymbolTableFactory utf8_table_factory(kUTF8SymbolTableName);
 
 SymbolTable *GetSymbolTable(StringTokenType ttype, const SymbolTable *syms);
 
@@ -203,9 +204,9 @@ bool ProcessBracketedSpan(string *str, std::vector<Label> *labels,
   std::vector<string> tokens = strings::Split(*str, kTokenSeparator);
   // The span may not be empty, so that is not considered here.
   if (tokens.size() == 1) {
-    const string cpptoken = tokens[0];
+    const auto cpptoken = tokens[0];
     // Has the same lifetime as cpptoken, so long as we don't mutate cpptoken.
-    const char *ctoken = cpptoken.c_str();
+    const auto *ctoken = cpptoken.c_str();
     // A bracketed span that does not contain the token-separator is processed
     // either as a numeric label (e.g., [32]), or if that fails, as a single
     // generated label.
@@ -215,10 +216,6 @@ bool ProcessBracketedSpan(string *str, std::vector<Label> *labels,
       // Could not parse the entire string as a number, so it is treated as a
       // generated label.
       label = AddGeneratedToSymbolTable(cpptoken, syms);
-    } else if (label < 0 || label == std::numeric_limits<int64>::max()) {
-      LOG(ERROR) << "ProcessBracketedSpan: Numeric label " << label
-                 << " for token " << cpptoken << " out of range";
-      return false;
     } else {
       AddIntegerToSymbolTable(label, syms);
     }
@@ -227,8 +224,8 @@ bool ProcessBracketedSpan(string *str, std::vector<Label> *labels,
     // A bracketed span with multiple token-separator-delimited intervals is
     // processed as a sequence of generated labels.
     for (const auto token : tokens) {
-      int64 label = AddGeneratedToSymbolTable(token, syms);
-      labels->push_back(static_cast<Label>(label));
+      labels->push_back(static_cast<Label>(
+          AddGeneratedToSymbolTable(token, syms)));
     }
   }
   return true;
@@ -298,7 +295,7 @@ bool SymbolStringToLabels(const string &str, const SymbolTable &syms,
   std::vector<string> tokens = strings::Split(str, kTokenSeparator);
   labels->reserve(tokens.size());
   for (const auto token : tokens) {
-    Label label = static_cast<Label>(syms.Find(token));
+    const auto label = static_cast<Label>(syms.Find(token));
     if (label == kNoLabel) {
       LOG(ERROR) << "CompileSymbolString: Symbol \"" << token << "\" "
                  << "is not mapped to any integer label in symbol table "

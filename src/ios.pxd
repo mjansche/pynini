@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Copyright 2016 and onwards Google, Inc.
+# Copyright 2017 and onwards Google, Inc.
 #
 # See www.openfst.org for extensive documentation on this weighted
 # finite-state transducer library.

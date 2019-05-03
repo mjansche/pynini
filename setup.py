@@ -63,22 +63,26 @@ pynini = Extension(name="pynini", language="c++",
                             "src/containmentscript.cc"])
 
 setup(
-    name="pynini", version="1.5",
+    name="pynini",
+    version="1.6",
     description="Finite-state grammar compilation library",
-    author="Kyle Gorman", author_email="kbg@google.com",
+    author="Kyle Gorman",
+    author_email="kbg@google.com",
     url="http://pynini.opengrm.org/",
-    keywords=["natural language processing", "speech recognition",
-              "machine learning"],
-    classifiers=["Programming Language :: Python :: 2.7",
-                 "Development Status :: 5 - Production/Stable",
-                 "Environment :: Other Environment",
-                 "Environment :: Console",
-                 "Intended Audience :: Developers",
-                 "License :: OSI Approved :: Apache Software License",
-                 "Operating System :: OS Independent",
-                 "Topic :: Software Development :: Libraries :: Python Modules",
-                 "Topic :: Text Processing :: Linguistic",
-                 "Topic :: Scientific/Engineering :: Artificial Intelligence",
-                 "Topic :: Scientific/Engineering :: Mathematics"],
+    keywords=[
+        "natural language processing", "speech recognition", "machine learning"
+    ],
+    classifiers=[
+        "Programming Language :: Python :: 2.7",
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Other Environment", "Environment :: Console",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Text Processing :: Linguistic",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Scientific/Engineering :: Mathematics"
+    ],
     ext_modules=[pywrapfst, pynini],
     test_suite="pynini_test")

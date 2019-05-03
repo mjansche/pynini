@@ -317,8 +317,8 @@ class PyniniExceptionsTest(unittest.TestCase):
     with self.assertRaises(FstOpError):
       f.set_final(s, Weight.One("log"))
 
-  def testGarbageWeightTypeRaisesFstUnknownWeightTypeError(self):
-    with self.assertRaises(FstUnknownWeightTypeError):
+  def testGarbageWeightTypeRaisesFstArgError(self):
+    with self.assertRaises(FstArgError):
       unused_w = Weight("nonexistent", 1)
 
   def testNonexistentKeyFindSymbolTableRaisesKeyError(self):

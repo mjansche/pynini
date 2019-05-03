@@ -46,7 +46,7 @@ class StringFile {
 
   void Next();
 
-  bool Done() const { return istrm_.eof(); }
+  bool Done() const { return istrm_.eof() && line_.empty(); }
 
   const string &GetString() const { return line_; }
 
@@ -55,6 +55,8 @@ class StringFile {
   const string &Filename() const { return fname_; }
 
  private:
+  bool ReadLineOrClear();
+
   std::ifstream &istrm_;
   string line_;
   size_t linenum_;

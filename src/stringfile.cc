@@ -35,11 +35,19 @@ void StringFile::Next() {
   // Reads a line; if it's empty, reads until it runs out of file or it finds a
   // non-empty one.
   ++linenum_;
-  if (!std::getline(istrm_, line_)) return;
+  if (!ReadLineOrClear()) return;
   while (line_.empty()) {
     ++linenum_;
-    if (!std::getline(istrm_, line_)) return;
+    if (!ReadLineOrClear()) return;
   }
+}
+
+bool StringFile::ReadLineOrClear() {
+  if (!std::getline(istrm_, line_)) {
+    line_.clear();
+    return false;
+  }
+  return true;
 }
 
 bool PairStringFile::Parse() {

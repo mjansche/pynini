@@ -64,8 +64,9 @@ from fst cimport WeightClass
 from fst cimport kAcceptor
 from fst cimport kDelta
 from fst cimport kIDeterministic
-from fst cimport kNoEpsilons
 from fst cimport kError
+from fst cimport kNoEpsilons
+from fst cimport kNoStateId
 from fst cimport kString
 from fst cimport kUnweighted
 
@@ -389,9 +390,10 @@ cdef class Fst(_MutableFst):
   """
   Fst(arc_type="standard")
 
-  Pynini finite-state transducer class.
-
   This class wraps a mutable FST and exposes all destructive methods.
+
+  Args:
+    arc_type: An optional string indicating the arc type for the FST.
   """
 
   cdef void _from_MutableFstClass(self, MutableFstClass *tfst):
@@ -430,7 +432,7 @@ cdef class Fst(_MutableFst):
       ifst: Input FST of type pywrapfst._Fst.
 
     Returns:
-      An Fst.
+      An FST.
     """
     cdef Fst result = Fst.__new__(Fst)
     result._from_MutableFstClass(
@@ -459,7 +461,7 @@ cdef class Fst(_MutableFst):
   cpdef StringPaths paths(self, input_token_type=b"byte",
                           output_token_type=b"byte", bool rm_epsilon=True):
     """
-    paths(self, token_type="byte):
+    paths(self, token_type="byte)
 
     Creates iterator over all string paths in an acyclic FST.
 
@@ -469,10 +471,6 @@ cdef class Fst(_MutableFst):
     requested token type, the arc labels along the input and output sides of a
     path are interpreted as UTF-8-encoded Unicode strings, raw bytes, or a
     concatenation of string labels from a symbol table.
-
-    Note that this method creates an iterator over all paths *at the time
-    of creation* and the iterator will not be affected by any mutations to
-    the FST after that point.
 
     Args:
       input_token_type: A string indicating how the input strings are to be
@@ -498,7 +496,7 @@ cdef class Fst(_MutableFst):
     """
     stringify(self, token_type="byte")
 
-    Creates a Python string from a string FST.
+    Creates a string from a string FST.
 
     This method returns the string recognized by the FST as a Python byte or
     Unicode string. This is only well-defined when the FST is an acceptor and a
@@ -520,7 +518,7 @@ cdef class Fst(_MutableFst):
       rm_epsilon: Should epsilons be removed?
 
     Returns:
-      The string accepted by the FST.
+      The string corresponding to (an output projection) of the FST.
 
     Raises:
       FstArgError: FST is not a string.
@@ -581,9 +579,9 @@ cdef class Fst(_MutableFst):
 
     Regexp:\t\tThis method:\t\tCopy shortcuts:
 
-    /x?/\t\tx.closure(0, 1)\t\tx.ques()
-    /x*/\t\tx.closure()\t\tx.star()
-    /x+/\t\tx.closure(1)\t\tx.plus()
+    /x?/\t\tx.closure(0, 1)\t\tx.ques
+    /x*/\t\tx.closure()\t\tx.star
+    /x+/\t\tx.closure(1)\t\tx.plus
     /x{N}/\t\tx.closure(N, N)
     /x{M,N}/\t\tx.closure(M, N)
     /x{N,}/\t\tx.closure(N)
@@ -665,7 +663,7 @@ cdef class Fst(_MutableFst):
     a \otimes b.
 
     Args:
-      ifst: The second input Fst.
+      ifst: The second input FST.
 
     Returns:
       self.
@@ -744,7 +742,10 @@ cdef class Fst(_MutableFst):
     weight b.
 
     Args:
-      ifst: The second input Fst.
+      ifst: The second input FST.
+
+    Returns:
+      self.
 
     Raises:
       FstOpError: Operation failed.
@@ -1005,7 +1006,7 @@ cpdef Fst cdrewrite(tau,
         (obligatory application), "opt" (optional application).
 
   Returns:
-    An FST representing the context-dependent rewrite rule.
+    A rewrite rule FST.
 
   Raises:
     FstArgError: Unknown cdrewrite direction type.
@@ -1120,7 +1121,7 @@ cpdef Fst leniently_compose(ifst1, ifst2, sigma_star, compose_filter=b"auto",
     connect: Should output be trimmed?
 
   Returns:
-    An FST.
+    A leniently composed FST.
 
   Raises:
     FstOpError: Operation failed.
@@ -1515,7 +1516,7 @@ def union(*args):
    *args: Two or more input FSTs.
 
   Returns:
-    An Fst union.
+    An FST.
   """
   (first, *rest) = args
   if len(args) < 1:
@@ -1537,10 +1538,10 @@ cdef class PdtParentheses(object):
 
   Pushdown transducer parentheses class.
 
-  This class wraps a vector of pairs of FST arc labels in which the first
-  label is interpreted as a "push" stack operation and the second represents
-  the corresponding "pop" operation. When efficiency is desired, the push and
-  pop indices should be contiguous.
+  This class wraps a vector of pairs of arc labels in which the first label is
+  interpreted as a "push" stack operation and the second represents the
+  corresponding "pop" operation. When efficiency is desired, the push and pop
+  indices should be contiguous.
 
   A PDT is expressed as an (Fst, PdtParentheses) pair for the purposes of all
   supported PDT operations.
@@ -1574,13 +1575,13 @@ cdef class PdtParentheses(object):
 
   cpdef void add_pair(self, int64 push, int64 pop):
     """
-    add_pair(push, pop)
+    add_pair(self, push, pop)
 
     Adds a pair of parentheses to the set.
 
     Args:
-      push: An FST arc label to be interpreted as a "push" operation.
-      pop: An FST arc label to be interpreted as a "pop" operation.
+      push: An arc label to be interpreted as a "push" operation.
+      pop: An arc label to be interpreted as a "pop" operation.
     """
     self._parens.push_back(pair[int64, int64](push, pop))
 
@@ -1611,7 +1612,7 @@ cdef class PdtParentheses(object):
 
   cpdef void write(self, filename) except *:
     """
-    write(filename)
+    write(self, filename)
 
     Writes parentheses pairs to text file.
 
@@ -1869,11 +1870,11 @@ cdef class MPdtParentheses(object):
 
   Multi-pushdown transducer parentheses class.
 
-  This class wraps a vector of pairs of FST arc labels in which the first
-  label is interpreted as a "push" stack operation and the second represents
-  the corresponding "pop" operation, and an equally sized vector which assigns
-  each pair to a stack. The library currently only permits two stacks (numbered
-  1 and 2) to be used.
+  This class wraps a vector of pairs of arc labels in which the first label is
+  interpreted as a "push" stack operation and the second represents the
+  corresponding "pop" operation, and an equally sized vector which assigns each
+  pair to a stack. The library currently only permits two stacks (numbered 1
+  and 2) to be used.
 
   A MPDT is expressed as an (Fst, MPdtParentheses) pair for the purposes of all
   supported MPDT operations.
@@ -1909,16 +1910,16 @@ cdef class MPdtParentheses(object):
 
   cpdef void add_triple(self, int64 push, int64 pop, int64 assignment):
     """
-    add_triple(push, pop, assignment)
+    add_triple(self, push, pop, assignment)
 
     Adds a triple of (left parenthesis, right parenthesis, stack assignment)
     triples to the object.
 
     Args:
-      push: An FST arc label to be interpreted as a "push" operation.
-      pop: An FST arc label to be interpreted as a "pop" operation.
-      assignment: An FST arc label indicating what stack the parentheses pair
-          is assigned to.
+      push: An arc label to be interpreted as a "push" operation.
+      pop: An arc label to be interpreted as a "pop" operation.
+      assignment: An arc label indicating what stack the parentheses pair is
+          assigned to.
     """
     self._parens.push_back(pair[int64, int64](push, pop))
     self._assign.push_back(assignment)
@@ -1930,7 +1931,7 @@ cdef class MPdtParentheses(object):
 
     Reads parentheses/assignment triples from a text file.
 
-    This class method creates a new PdtParentheses object from a pairs of
+    This class method creates a new MPdtParentheses object from a pairs of
     integer labels in a text file.
 
     Args:
@@ -1950,9 +1951,9 @@ cdef class MPdtParentheses(object):
 
   cpdef void write(self, filename) except *:
     """
-    write(filename)
+    write(self, filename)
 
-    Writes parentheses triples to text file.
+    Writes parentheses triples to a text file.
 
     This method writes the MPdtParentheses object to a text file.
 
@@ -2117,9 +2118,6 @@ cdef class StringPaths(object):
   concatenation of string labels from a symbol table. This class is normally
   created by invoking the `paths` method of `Fst`.
 
-  Note that this class is an iterator over all paths at the time of creation and
-  the iterator will not be affected by any mutations to the argument FST.
-
   Args:
     input_token_type: A string indicating how the input strings are to be
         constructed from arc labels---one of: "byte" (interprets arc labels
@@ -2164,6 +2162,46 @@ cdef class StringPaths(object):
     if self._paths.get().Error():
       raise FstArgError("FST is not acyclic")
 
+  # This just registers this class as a possible iterator.
+  def __iter__(self):
+    return self
+
+  # Magic method used to get a Pythonic API out of the C++ API.
+  def __next__(self):
+    if self.done():
+      raise StopIteration
+    result = (self.istring(), self.ostring(), self.weight())
+    self.next()
+    return result
+
+  cpdef bool done(self):
+    """
+    done(self)
+
+    Indicates whether the iterator is exhausted or not.
+
+    Returns:
+      True if the iterator is exhausted, False otherwise.
+    """
+    return self._paths.get().Done()
+
+  cpdef void next(self):
+    """
+    next(self)
+
+    Advances the iterator.
+    """
+    self._paths.get().Next()
+
+  cpdef void reset(self):
+    """
+    reset(self)
+
+    Resets the iterator to the initial position.
+    """
+    self._paths.get().Reset()
+
+
   cpdef bool error(self):
     """
     error(self)
@@ -2180,9 +2218,6 @@ cdef class StringPaths(object):
     istring(self)
 
     Returns the current path's input string.
-
-    This method is provided for compatibility with the C++ API only; most users
-    should use the Pythonic API.
 
     Returns:
       The path's input string.
@@ -2211,9 +2246,6 @@ cdef class StringPaths(object):
 
     Returns the current path's output string.
 
-    This method is provided for compatibility with the C++ API only; most users
-    should use the Pythonic API.
-
     Returns:
       The path's output string.
     """
@@ -2240,9 +2272,6 @@ cdef class StringPaths(object):
     weight(self)
 
     Returns the current path's total weight.
-
-    This method is provided for compatibility with the C++ API only; most users
-    should use the Pythonic API.
 
     Returns:
       The path's Weight.
@@ -2280,7 +2309,7 @@ cdef class StringPaths(object):
 
   def olabels(self):
     """
-    olabels(self, rm_epsilon=True)
+    olabels(self)
 
     Returns the output labels for the current path.
 
@@ -2288,54 +2317,6 @@ cdef class StringPaths(object):
       A list of output labels for the current path.
     """
     return list(self._paths.get().OLabels())
-
-  cpdef bool done(self):
-    """"
-    done(self)
-
-    Indicates whether the iterator is exhausted or not.
-
-    This method is provided for compatibility with the C++ API only; most users
-    should use the Pythonic API.
-
-    Returns:
-      True if the iterator is exhausted, False otherwise.
-    """
-    return self._paths.get().Done()
-
-  cpdef void reset(self):
-    """
-    reset(self)
-
-    Resets the iterator to the initial position.
-
-    This method is provided for compatibility with the C++ API only; most users
-    should use the Pythonic API.
-    """
-    self._paths.get().Reset()
-
-  cpdef void next(self):
-    """
-    next(self)
-
-    Advances the iterator.
-
-    This method is provided for compatibility with the C++ API only; most users
-    should use the Pythonic API.
-    """
-    self._paths.get().Next()
-
-  # This just registers this class as a possible iterator.
-  def __iter__(self):
-    return self
-
-  # Magic method used to get a Pythonic API out of the C++ API.
-  def __next__(self):
-    if self.done():
-      raise StopIteration
-    result = (self.istring(), self.ostring(), self.weight())
-    self.next()
-    return result
 
 
 # Class for FAR reading and/or writing.
@@ -2359,13 +2340,6 @@ cdef class Far(object):
         reading.
     far_type: Desired FAR type; this is ignored if the FAR is opened for
         reading.
-
-  Attributes:
-    arc_type: A string indicating the arc type.
-    fst_type: A string indicating the FST (container) type.
-    mode: A string indicating whether the FAR is open for reading ("r") or
-        writing ("w").
-    name: A string indicating the filename.
   """
 
   cdef char _mode
@@ -2414,18 +2388,36 @@ cdef class Far(object):
     Returns:
       True if the FAR is in an errorful state, False otherwise.
     """
-    self._check_not_mode(b"c")
-    return self._reader.error() if self._mode == b"r" else self._writer.error()
+    if self._mode == b"r":
+      return self._reader.error()
+    elif self._mode == b"w":
+      return self._writer.error()
+    else:
+      return False
 
   cpdef string arc_type(self):
+    """
+    arc_type(self)
+
+    Returns a string indicating the arc type.
+    """
     self._check_not_mode(b"c")
     return (self._reader._arc_type() if self._mode == b"r" else
             self._writer._arc_type())
 
   cpdef bool closed(self):
+    """
+    closed(self)
+
+    Indicates whether the FAR is closed for IO.
+    """
     return self._mode == b"c"
 
   cpdef string far_type(self):
+    """far_type(self)
+
+    Returns a string indicating the FAR type.
+    """
     if self._mode == b"r":
       return self._reader.far_type()
     elif self._mode == b"w":
@@ -2434,9 +2426,19 @@ cdef class Far(object):
       return "closed"
 
   cpdef string mode(self):
-      return "{:c}".format(self._mode)
+    """
+    mode(self)
+
+    Returns a char indicating the FAR's current mode.
+    """
+    return "{:c}".format(self._mode)
 
   cpdef string name(self):
+    """
+    name(self)
+
+    Returns the FAR's filename.
+    """
     return self._name
 
   # FarReader API.
@@ -2450,15 +2452,27 @@ cdef class Far(object):
     (key, mfst) = next(self._reader)
     return (key, _init_Fst_from_MutableFst(mfst))
 
+  cpdef bool done(self) except *:
+    """
+    done(self)
+
+    Indicates whether the iterator is exhausted or not.
+
+    Returns:
+      True if the iterator is exhausted, False otherwise.
+
+    Raises:
+      FstOpError: Cannot invoke method in current mode.
+    """
+    self._check_mode(b"r")
+    self._reader.done()
+
   cpdef bool find(self, key) except *:
     """
     find(self, key)
 
     Sets the current position to the first entry greater than or equal to the
     key (a string) and indicates whether or not a match was found.
-
-    This method is provided for compatibility with the C++ API only; most users
-    should use the Pythonic API.
 
     Args:
       key: A string key.
@@ -2478,9 +2492,6 @@ cdef class Far(object):
 
     Returns the FST at the current position.
 
-    This method is provided for compatibility with the C++ API only; most users
-    should use the Pythonic API.
-
     Returns:
       A copy of the FST at the current position.
 
@@ -2495,9 +2506,6 @@ cdef class Far(object):
     get_key(self)
 
     Returns the string key at the current position.
-
-    This method is provided for compatibility with the C++ API only; most users
-    should use the Pythonic API.
 
     Returns:
       The string key at the current position.
@@ -2514,9 +2522,6 @@ cdef class Far(object):
 
     Advances the iterator.
 
-    This method is provided for compatibility with the C++ API only; most users
-    should use the Pythonic API.
-
     Raises:
       FstOpError: Cannot invoke method in current mode.
     """
@@ -2528,9 +2533,6 @@ cdef class Far(object):
     reset(self)
 
     Resets the iterator to the initial position.
-
-    This method is provided for compatibility with the C++ API only; most users
-    should use the Pythonic API.
 
     Raises:
       FstOpError: Cannot invoke method in current mode.
@@ -2554,9 +2556,6 @@ cdef class Far(object):
     This methods adds an FST to the FAR which can be retrieved with the
     specified string key.
 
-    This method is provided for compatibility with the C++ API only; most users
-    should use the Pythonic API.
-
     Args:
       key: The string used to key the input FST.
       fst: The FST to write to the FAR.
@@ -2574,7 +2573,7 @@ cdef class Far(object):
 
   cpdef void close(self):
     """
-    close(sel)
+    close(self)
 
     Closes the FAR and flushes to disk (when open for writing).
 
@@ -2619,8 +2618,6 @@ from pywrapfst import FstBadWeightError
 from pywrapfst import \
     FstDeletedConstructorError
 from pywrapfst import FstIndexError
-from pywrapfst import \
-    FstUnknownWeightTypeError
 
 
 # FST properties.
@@ -2689,6 +2686,26 @@ from pywrapfst import TRINARY_PROPERTIES
 from pywrapfst import POS_TRINARY_PROPERTIES
 from pywrapfst import NEG_TRINARY_PROPERTIES
 from pywrapfst import FST_PROPERTIES
+
+
+# Arc iterator properties.
+
+
+from pywrapfst import ARC_I_LABEL_VALUE
+from pywrapfst import ARC_O_LABEL_VALUE
+from pywrapfst import ARC_WEIGHT_VALUE
+from pywrapfst import ARC_NEXT_STATE_VALUE
+from pywrapfst import ARC_NO_CACHE
+from pywrapfst import ARC_VALUE_FLAGS
+from pywrapfst import ARC_FLAGS
+
+
+# Encode mapper properties.
+
+
+from pywrapfst import ENCODE_LABELS
+from pywrapfst import ENCODE_WEIGHTS
+from pywrapfst import ENCODE_FLAGS
 
 
 # Single-char aliases for the biggest three functions.

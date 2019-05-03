@@ -1,3 +1,11 @@
+v. 1.6 (compatible with OpenFst 1.6.3)
+======================================
+
+* Fix to `closure`
+* Adds complete documentation
+* Corrects many sundry module-level documentation errors
+* `string_file` now properly reads a final line without a newline terminator
+
 v. 1.5 (compatible with OpenFst 1.6.2)
 ======================================
 

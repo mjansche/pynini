@@ -59,7 +59,7 @@ struct UTF8Viewer {
   Arc operator()(string view, size_type byte_offset) const {
     UChar32 ch;
     int32 offset = byte_offset;
-    U8_NEXT(view.begin(), offset, view.size(), ch);
+    U8_NEXT(view.begin(), offset, view.ssize(), ch);
     return Arc(ch, ch, Weight::One(), offset);
   }
 
@@ -127,7 +127,7 @@ class StringViewFstImpl : public FstImpl<A> {
     return IsFinal(s) ? Weight::One() : Weight::Zero();
   }
 
-  StateId NumStates() const { return view_.size() + 1; }
+  StateId NumStates() const { return view_.ssize() + 1; }
 
   size_t NumArcs(StateId s) const { return !IsFinal(s); }
 
@@ -149,7 +149,7 @@ class StringViewFstImpl : public FstImpl<A> {
       kUnweighted | kUnweightedCycles | kAcyclic | kInitialAcyclic |
       kTopSorted | (Viewer::TokenType() == StringTokenType::BYTE ? kString : 0);
 
-  bool IsFinal(StateId s) const { return s == view_.size(); }
+  bool IsFinal(StateId s) const { return s == view_.ssize(); }
 
   Viewer viewer_;  // Stateless.
   string view_;

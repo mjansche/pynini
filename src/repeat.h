@@ -57,8 +57,11 @@ namespace fst {
 template <class Arc>
 void Repeat(MutableFst<Arc> *fst, int32 lower, int32 upper) {
   using Weight = typename Arc::Weight;
+  // Special cases.
+  // Empty FST.
+  if (fst->Start() == kNoStateId) return;
+  // Star- or plus-closures.
   if (upper <= 0) {
-    // Special cases.
     if (lower <= 0) {
       Closure(fst, CLOSURE_STAR);
       return;
@@ -68,10 +71,12 @@ void Repeat(MutableFst<Arc> *fst, int32 lower, int32 upper) {
     }
   }
   // Generic cases.
-  if (lower <= 0)  // Lower bound includes 0 repetitions.
+  // Lower bound includes 0.
+  if (lower <= 0) {
     fst->SetFinal(fst->Start(), Weight::One());
+  }
   std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-  for (auto i = 0; i < lower - 1; ++i) Concat(fst, *tfst);
+  for (size_t i = 0; i < lower - 1; ++i) Concat(fst, *tfst);
   if (upper <= 0) {  // Upper bound is infinite.
     // Concatenates a *-ed copy.
     Closure(tfst.get(), CLOSURE_STAR);
@@ -79,7 +84,7 @@ void Repeat(MutableFst<Arc> *fst, int32 lower, int32 upper) {
   } else {  // Upper bound is finite.
     // Concatenates ?-ed copies.
     tfst->SetFinal(tfst->Start(), Weight::One());
-    for (auto i = lower; i < upper; ++i) Concat(fst, *tfst);
+    for (size_t i = lower; i < upper; ++i) Concat(fst, *tfst);
   }
 }
 

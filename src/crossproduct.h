@@ -39,13 +39,11 @@ void CrossProduct(
   *ofst = ifst1;
   // Replaces output arcs on the upper language with epsilon, using the output
   // FST for temporary storage.
-  OutputEpsilonMapper<Arc> oe_mapper;
-  ArcMap(ofst, oe_mapper);
+  ArcMap(ofst, OutputEpsilonMapper<Arc>());
   // Replaces input arcs on the lower language with epsilon, using a temporary
   // mutable FST to store the mapped lower language.
   VectorFst<Arc> tfst(ifst2);
-  InputEpsilonMapper<Arc> ie_mapper;
-  ArcMap(&tfst, ie_mapper);
+  ArcMap(&tfst, InputEpsilonMapper<Arc>());
   // If a specific final weight is requested, apply it to all final states in
   // the lower language.
   if (final_weight != Weight::One()) {

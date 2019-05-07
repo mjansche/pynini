@@ -18,7 +18,6 @@ src/crossproduct.h
 src/crossproductscript.cc
 src/crossproductscript.h
 src/fst.pxd
-src/fst_util.pxd
 src/getters.cc
 src/getters.h
 src/gtl.cc
@@ -28,10 +27,10 @@ src/lenientlycompose.h
 src/lenientlycomposescript.cc
 src/lenientlycomposescript.h
 src/memory.pxd
-src/merge.cc
-src/merge.h
-src/mergescript.cc
-src/mergescript.h
+src/mergesymbols.cc
+src/mergesymbols.h
+src/mergesymbolsscript.cc
+src/mergesymbolsscript.h
 src/optimize.h
 src/optimizescript.cc
 src/optimizescript.h
@@ -53,6 +52,8 @@ src/pywrapfst.pyx
 src/repeat.h
 src/repeatscript.cc
 src/repeatscript.h
+src/rewrite.h
+src/rewritescript.h
 src/sigma_star.h
 src/stringcompile.cc
 src/stringcompile.h

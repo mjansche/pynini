@@ -15,7 +15,7 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#include "merge.h"
+#include "mergesymbols.h"
 
 namespace fst {
 namespace internal {

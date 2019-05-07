@@ -53,7 +53,6 @@ namespace fst {
 //     /x{M,N}/    Repeat(x, M, N)
 //     /x{N,}/     Repeat(x, N, 0)
 //     /x{,N}/     Repeat(x, 0, N)
-
 template <class Arc>
 void Repeat(MutableFst<Arc> *fst, int32 lower = 0, int32 upper = 0) {
   using Weight = typename Arc::Weight;

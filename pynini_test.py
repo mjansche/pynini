@@ -5,7 +5,7 @@
 
 """Tests for the Pynini grammar compilation module."""
 
-
+import collections
 import functools
 import math
 import os
@@ -282,13 +282,13 @@ class PyniniExceptionsTest(unittest.TestCase):
     with self.assertRaises(FstArgError):
       unused_f = string_map([], output_token_type="nonexistent")
 
-  def testGarbageInputTokenTypeStringPathsRaisesFstArgError(self):
+  def testGarbageInputTokenTypeStringPathIteratorRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
-      unused_sp = StringPaths(self.f, input_token_type="nonexistent")
+      unused_sp = StringPathIterator(self.f, input_token_type="nonexistent")
 
-  def testGarbageOutputTokenTypeStringPathsRaisesFstArgError(self):
+  def testGarbageOutputTokenTypeStringPathIteratorRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
-      unused_sp = StringPaths(self.f, output_token_type="nonexistent")
+      unused_sp = StringPathIterator(self.f, output_token_type="nonexistent")
 
   def testTransducerDifferenceRaisesFstArgError(self):
     with self.assertRaises(FstOpError):
@@ -769,7 +769,7 @@ class PyniniStringMapTest(unittest.TestCase):
     self.ContainsMapping("Pont-l'Évêque", mapper, symc("Camembert"))
 
 
-class PyniniStringPathsTest(unittest.TestCase):
+class PyniniStringPathIteratorTest(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
@@ -780,53 +780,33 @@ class PyniniStringPathsTest(unittest.TestCase):
                    ("Stilton", "Sorry", Weight("tropical", 2.)))
     cls.f = union(*(transducer(*triple) for triple in cls.triples))
 
-  def testStringPaths(self):
-    for (triple, triple_res) in zip(self.f.paths(), self.triples):
-      self.assertEqual(triple_res, triple)
+  def testStringPathIteratorIStrings(self):
+    self.assertEqual(collections.Counter(self.f.paths().istrings()),
+                     collections.Counter((t[0] for t in self.triples)))
 
-  def testStringPathsIterIStrings(self):
-    self.assertItemsEqual(self.f.paths().iter_istrings(),
-                          (t[0] for t in self.triples))
+  def testStringPathIteratorOStrings(self):
+    self.assertEqual(collections.Counter(self.f.paths().ostrings()),
+                     collections.Counter((t[1] for t in self.triples)))
 
-  def testStringPathsIterOStrings(self):
-    self.assertItemsEqual(self.f.paths().iter_ostrings(),
-                          (t[1] for t in self.triples))
+  def testStringPathIteratorWeights(self):
+    self.assertEqual(collections.Counter(
+                         (str(w) for w in self.f.paths().weights())),
+                     collections.Counter((str(t[2]) for t in self.triples)))
 
-  def testStringPathsIterWeights(self):
-    self.assertItemsEqual((str(w) for w in self.f.paths().iter_weights()),
-                          (str(t[2]) for t in self.triples))
-
-  def testStringPathsAfterFstDeletion(self):
+  def testStringPathIteratorAfterFstDeletion(self):
     f = union("Pipo Crem'", "Fynbo")
-    sp = StringPaths(f)
-    del f   # Should be garbage-collected immediately.
+    sp = StringPathIterator(f)
+    del f  # Should be garbage-collected immediately.
     self.assertEqual(len(list(sp)), 2)
-
-  def testStringPathLabelsWithoutEpsilons(self):
-    cheese = "Cheddar"
-    f = acceptor(cheese)
-    chars = [ord(i) for i in cheese]
-    sp = StringPaths(f)
-    eps_free_ilabels = sp.ilabels()
-    self.assertEqual(eps_free_ilabels, chars)
-    self.assertEqual(sp.ilabels(), eps_free_ilabels)
-    eps_free_olabels = sp.olabels()
-    self.assertEqual(eps_free_olabels, eps_free_ilabels)
-    self.assertEqual(sp.olabels(), eps_free_olabels)
-    sp.next()
-    self.assertTrue(sp.done())
 
   def testStringPathLabelsWithEpsilons(self):
     # Note that the Thompson construction for union connects the initial state
     # of the first FST to the initial state of the second FST with an
     # epsilon-arc, a fact we take advantage of here.
-    f = union("Ilchester", "Limburger")
-    sp = StringPaths(f)
-    self.assertEqual(sp.ilabels(), sp.ilabels())
-    sp.next()
-    self.assertEqual(sp.ilabels(), sp.ilabels())
-    sp.next()
-    self.assertTrue(sp.done())
+    cheeses = ("Ilchester", "Limburger")
+    f = union(*cheeses)
+    sp = StringPathIterator(f)
+    self.assertItemsEqual(cheeses, sp.ostrings())
 
 
 class PyniniSymbolTableTest(unittest.TestCase):

@@ -93,65 +93,57 @@ from pywrapfst cimport _init_MutableFst
 from pywrapfst cimport _init_SymbolTable
 from pywrapfst cimport tostring
 
-# C++ code from fst_util.
 
-from fst_util cimport CompileString
-from fst_util cimport CrossProduct
-from fst_util cimport GetByteSymbolTable
-from fst_util cimport GetStringTokenType
-from fst_util cimport LenientlyCompose
-from fst_util cimport MergeSymbols
-from fst_util cimport Optimize
-from fst_util cimport OptimizeDifferenceRhs
-from fst_util cimport PrintString
-from fst_util cimport Repeat
-from fst_util cimport StringFile
-from fst_util cimport StringMap
-from fst_util cimport StringPathsClass
+# C++ code for Pynini.
 
-from fst_util cimport MergeSymbolsType
-from fst_util cimport MERGE_INPUT_AND_OUTPUT_SYMBOLS
-from fst_util cimport MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS
 
-from fst_util cimport StringTokenType
-from fst_util cimport SYMBOL
-
-# C++ code for Pynini not from fst_util.
-
-from pynini_includes cimport StringFstClassPair
-
+from pynini_includes cimport CDRewriteDirection
+from pynini_includes cimport CDRewriteMode
+from pynini_includes cimport CompileString
+from pynini_includes cimport CrossProduct
+from pynini_includes cimport EXPAND_FILTER
+from pynini_includes cimport GetByteSymbolTable
+from pynini_includes cimport GetCDRewriteDirection
+from pynini_includes cimport GetCDRewriteMode
+from pynini_includes cimport GetPdtComposeFilter
+from pynini_includes cimport GetPdtParserType
+from pynini_includes cimport GetStringTokenType
+from pynini_includes cimport LenientlyCompose
+from pynini_includes cimport MERGE_INPUT_AND_OUTPUT_SYMBOLS
+from pynini_includes cimport MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS
+from pynini_includes cimport MergeSymbols
+from pynini_includes cimport MergeSymbolsType
 from pynini_includes cimport MPdtCompose
 from pynini_includes cimport MPdtComposeOptions
 from pynini_includes cimport MPdtExpand
 from pynini_includes cimport MPdtExpandOptions
 from pynini_includes cimport MPdtReverse
+from pynini_includes cimport Optimize
+from pynini_includes cimport OptimizeDifferenceRhs
 from pynini_includes cimport PdtCompose
+from pynini_includes cimport PdtComposeFilter
 from pynini_includes cimport PdtComposeOptions
 from pynini_includes cimport PdtExpand
 from pynini_includes cimport PdtExpandOptions
+from pynini_includes cimport PdtParserType
 from pynini_includes cimport PdtReverse
 from pynini_includes cimport PdtShortestPath
 from pynini_includes cimport PdtShortestPathOptions
+from pynini_includes cimport PrintString
 from pynini_includes cimport PyniniCDRewrite
 from pynini_includes cimport PyniniPdtReplace
 from pynini_includes cimport PyniniReplace
 from pynini_includes cimport ReadLabelPairs
 from pynini_includes cimport ReadLabelTriples
+from pynini_includes cimport Repeat
+from pynini_includes cimport StringFile
+from pynini_includes cimport StringFstClassPair
+from pynini_includes cimport StringMap
+from pynini_includes cimport StringPathIteratorClass
+from pynini_includes cimport StringTokenType
+from pynini_includes cimport SYMBOL
 from pynini_includes cimport WriteLabelPairs
 from pynini_includes cimport WriteLabelTriples
-
-from pynini_includes cimport GetCDRewriteDirection
-from pynini_includes cimport CDRewriteDirection
-
-from pynini_includes cimport GetCDRewriteMode
-from pynini_includes cimport CDRewriteMode
-
-from pynini_includes cimport GetPdtComposeFilter
-from pynini_includes cimport PdtComposeFilter
-from pynini_includes cimport EXPAND_FILTER
-
-from pynini_includes cimport GetPdtParserType
-from pynini_includes cimport PdtParserType
 
 
 # Python imports needed for implementation.
@@ -191,7 +183,7 @@ cdef StringTokenType _get_token_type(const string &token_type) except *:
   """Matches string with the appropriate StringTokenType enum value.
 
   This function takes a string argument and returns the matching StringTokenType
-  enum value used by StringMap, StringPathsClass and PrintString.
+  enum value used by StringMap, StringPathIteratorClass and PrintString.
 
   Args:
     token_type: A string matching a known token type.
@@ -472,8 +464,8 @@ cdef class Fst(_MutableFst):
   def __reduce__(self):
     return (_read_from_string, (self.write_to_string(),))
 
-  cpdef StringPaths paths(self, input_token_type=b"byte",
-                          output_token_type=b"byte", bool rm_epsilon=True):
+  cpdef StringPathIterator paths(self, input_token_type=b"byte",
+                                 output_token_type=b"byte"):
     """
     paths(self, token_type="byte)
 
@@ -495,18 +487,16 @@ cdef class Fst(_MutableFst):
           constructed from arc labels---one of: "byte" (interprets arc labels
           as raw bytes), "utf8" (interprets arc labels as Unicode code points),
           or "symbol" (interprets arc labels using the input symbol table).
-      rm_epsilon: Should epsilons be removed?
 
     Raises:
       FstArgError: Unknown token type.
       FstArgError: FST is not acyclic.
 
-    See also: `StringPaths`.
+    See also: `StringPathIterator`.
     """
-    return StringPaths(self, input_token_type, output_token_type, rm_epsilon)
+    return StringPathIterator(self, input_token_type, output_token_type)
 
-  cpdef string stringify(self, token_type=b"byte",
-                         bool rm_epsilon=True) except *:
+  cpdef string stringify(self, token_type=b"byte") except *:
     """
     stringify(self, token_type="byte")
 
@@ -529,7 +519,6 @@ cdef class Fst(_MutableFst):
           arc labels---one of: "byte" (interprets arc labels as raw bytes),
           "utf8" (interprets arc labels as Unicode code points), or a
           SymbolTable.
-      rm_epsilon: Should epsilons be removed?
 
     Returns:
       The string corresponding to (an output projection) of the FST.
@@ -548,7 +537,7 @@ cdef class Fst(_MutableFst):
       if ttype == SYMBOL:
         raise FstArgError("Invalid token type")
     cdef string result
-    if not PrintString(deref(self._fst), ttype, addr(result), syms, rm_epsilon):
+    if not PrintString(deref(self._fst), addr(result), ttype, syms):
       raise FstArgError("FST is not a string")
     return result
 
@@ -913,8 +902,8 @@ cpdef Fst acceptor(astring,
     syms = (<SymbolTable_ptr> (<_SymbolTable> token_type)._table)
   else:
     ttype = _get_token_type(tostring(token_type))
-  cdef bool success = CompileString(tostring(astring), wc, ttype,
-                                    result._mfst.get(), syms, attach_symbols)
+  cdef bool success = CompileString(tostring(astring), result._mfst.get(), 
+                                    ttype, syms, wc, attach_symbols)
   # First we check whether there were problems with arc or weight type, then
   # for string compilation issues.
   result._check_mutating_imethod()
@@ -1094,7 +1083,7 @@ cpdef Fst leniently_compose(ifst1, ifst2, sigma_star, compose_filter=b"auto",
   Constructively leniently-composes two FSTs.
 
   This operation computes the lenient composition of two FSTs. The lenient
-  composition of two FSTs the priority union of their composition and the
+  composition of two FSTs is the priority union of their composition and the
   left-hand side argument, where priority union is simply union in which the
   left-hand side argument's relations have "priority" over the right-hand side
   argument's relations.
@@ -1221,8 +1210,9 @@ cpdef Fst string_file(filename,
   else:
     otype = _get_token_type(tostring(output_token_type))
   cdef Fst result = Fst(arc_type)
-  if not StringFile(tostring(filename), itype, otype, result._mfst.get(),
-                    isyms, osyms, attach_input_symbols, attach_output_symbols):
+  if not StringFile(tostring(filename), result._mfst.get(),
+                    itype, otype, isyms, osyms, attach_input_symbols,
+                    attach_output_symbols):
     raise FstIOError("Read failed")
   return result
 
@@ -1304,10 +1294,8 @@ cpdef Fst string_map(lines,
       string_lines.push_back([tostring(elem) for elem in line])
     else:  # Single element.
       string_lines.push_back([tostring(line)])
-  cdef bool success = StringMap(string_lines, itype, otype,
-                                result._mfst.get(), isyms, osyms,
-                                attach_input_symbols, attach_output_symbols)
-  if not success:
+  if not StringMap(string_lines, result._mfst.get(), itype, otype, isyms, osyms,
+                   attach_input_symbols, attach_output_symbols):
     raise FstArgError("String map compilation failed")
   return result
 
@@ -1372,6 +1360,7 @@ def _compose_patch(fnc):
 
 
 compose = _compose_patch(pywrapfst.compose)
+intersect = _compose_patch(pywrapfst.intersect)
 
 
 def _difference_patch(fnc):
@@ -1393,23 +1382,6 @@ def _difference_patch(fnc):
 
 
 difference = _difference_patch(pywrapfst.difference)
-
-
-def _intersect_patch(fnc):
-  @functools.wraps(fnc)
-  def patch(arg1, arg2, *args, **kwargs):
-    cdef Fst lhs
-    cdef Fst rhs
-    (lhs, rhs) = _compile_or_copy_two_Fsts(arg1, arg2)
-    MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
-                 MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS)
-    MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
-                 MERGE_INPUT_AND_OUTPUT_SYMBOLS)
-    return _init_Fst_from_MutableFst(fnc(lhs, rhs, *args, **kwargs))
-  return patch
-
-
-intersect = _intersect_patch(pywrapfst.intersect)
 
 
 # Simple comparison operations.
@@ -1507,7 +1479,6 @@ def replace(root,
   # TODO(kbg): Is there a better way?
   replacements = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type)) for
                   (nt, rep) in replacements]
-
   cdef string nonterm
   cdef Fst replacement
   cdef vector[StringFstClassPair] pairs
@@ -1750,6 +1721,7 @@ def pdt_expand(ipdt,
   result._check_mutating_imethod()
   return result
 
+
 def pdt_replace(root, replacements, pdt_parser_type=b"left"):
   """
   pdt_replace(root, replacements, pdt_parser_type="left")
@@ -1872,7 +1844,6 @@ def pdt_shortestpath(ipdt,
                   deref(opts))
   result._check_mutating_imethod()
   return result
-
 
 
 # Multi-pushdown transducer classes and operations.
@@ -2109,10 +2080,10 @@ def mpdt_reverse(impdt, MPdtParentheses parens):
 # Class for printing paths.
 
 
-cdef class StringPaths(object):
+cdef class StringPathIterator(object):
 
   """
-  StringPaths(fst, token_type="byte", isymbols=None, osymbols=None)
+  StringPathIterator(fst, token_type="byte", isymbols=None, osymbols=None)
 
   Iterator for string paths in acyclic FST.
 
@@ -2133,20 +2104,19 @@ cdef class StringPaths(object):
         constructed from arc labels---one of: "byte" (interprets arc labels
         as raw bytes), "utf8" (interprets arc labels as Unicode code points),
         or a SymbolTable.
-    rm_epsilon: Should epsilons be removed?
 
   Raises:
     FstArgError: Unknown token type.
     FstArgError: FST is not acyclic.
   """
 
-  cdef unique_ptr[StringPathsClass] _paths
+  cdef unique_ptr[StringPathIteratorClass] _paths
 
   def __repr__(self):
-    return "<StringPaths at 0x{:x}>".format(id(self))
+    return "<StringPathIterator at 0x{:x}>".format(id(self))
 
   def __init__(self, ifst, input_token_type=b"byte",
-               output_token_type=b"byte", bool rm_epsilon=True):
+               output_token_type=b"byte"):
     # Sorts out the token type arguments.
     cdef StringTokenType itype
     cdef SymbolTable_ptr isyms = NULL
@@ -2163,8 +2133,8 @@ cdef class StringPaths(object):
     else:
       otype = _get_token_type(tostring(output_token_type))
     cdef Fst ifst_compiled = _compile_or_copy_Fst(ifst)
-    self._paths.reset(new StringPathsClass(deref(ifst_compiled._fst), itype,
-                                           otype, isyms, osyms, rm_epsilon))
+    self._paths.reset(new StringPathIteratorClass(deref(ifst_compiled._fst),
+                                                  itype, otype, isyms, osyms))
     if self._paths.get().Error():
       raise FstArgError("FST is not acyclic")
 
@@ -2207,15 +2177,14 @@ cdef class StringPaths(object):
     """
     self._paths.get().Reset()
 
-
   cpdef bool error(self):
     """
     error(self)
 
-    Indicates whether the StringPaths has encountered an error.
+    Indicates whether the StringPathIterator has encountered an error.
 
     Returns:
-      True if the StringPaths is in an errorful state, False otherwise.
+      True if the StringPathIterator is in an errorful state, False otherwise.
     """
     return self._paths.get().Error()
 
@@ -2230,9 +2199,9 @@ cdef class StringPaths(object):
     """
     return self._paths.get().IString()
 
-  def iter_istrings(self):
+  def istrings(self):
     """
-    iter_istrings(self)
+    istrings(self)
 
     Generates all input strings in the FST.
 
@@ -2257,9 +2226,9 @@ cdef class StringPaths(object):
     """
     return self._paths.get().OString()
 
-  def iter_ostrings(self):
+  def ostrings(self):
     """
-    iter_ostrings(self)
+    ostrings(self)
 
     Generates all output strings in the FST.
 
@@ -2286,9 +2255,9 @@ cdef class StringPaths(object):
     weight._weight.reset(new WeightClass(self._paths.get().Weight()))
     return weight
 
-  def iter_weights(self):
+  def weights(self):
     """
-    iter_weights(self)
+    weights(self)
 
     Generates all path weights in the FST.
 
@@ -2301,28 +2270,6 @@ cdef class StringPaths(object):
     while not self._paths.get().Done():
       yield self.weight()
       self._paths.get().Next()
-
-  def ilabels(self):
-    """
-    ilabels(self)
-
-    Returns the input labels for the current path.
-
-    Returns:
-      A list of input labels for the current path.
-    """
-    return list(self._paths.get().ILabels())
-
-  def olabels(self):
-    """
-    olabels(self)
-
-    Returns the output labels for the current path.
-
-    Returns:
-      A list of output labels for the current path.
-    """
-    return list(self._paths.get().OLabels())
 
 
 # Class for FAR reading and/or writing.
@@ -2366,10 +2313,8 @@ cdef class Far(object):
       raise FstArgError("Unknown mode: {!r}".format(mode))
 
   def __repr__(self):
-    return "<{} Far {!r}, mode '{:c}' at 0x{:x}>".format(self.far_type(),
-                                                         self._name,
-                                                         self._mode,
-                                                         id(self))
+    return "<{} Far {!r}, mode '{:c}' at 0x{:x}>".format(
+        self.far_type(), self._name, self._mode, id(self))
 
   cdef void _check_mode(self, char mode) except *:
     if not self._mode == mode:
@@ -2537,9 +2482,10 @@ cdef class Far(object):
     self._reader.reset()
 
   def __getitem__(self, key):
-    if not self.find(key):
+    if self.get_key() == tostring(key) or self._reader.find(key):
+      return self.get_fst()
+    else:
       raise KeyError(key)
-    return self.get_fst()
 
   # FarWriter API.
 
@@ -2617,6 +2563,7 @@ from pywrapfst import FstIndexError
 
 
 # FST constants.
+
 
 from pywrapfst import NO_LABEL
 from pywrapfst import NO_STATE_ID
@@ -2751,12 +2698,16 @@ reweight = _copy_patch(Fst.reweight)
 rmepsilon = _copy_patch(Fst.rmepsilon)
 topsort = _copy_patch(Fst.topsort)
 
+
 # Symbol table functions.
+
 
 from pywrapfst import compact_symbol_table
 from pywrapfst import merge_symbol_table
 
+
 # Weight operations.
+
 
 from pywrapfst import plus
 from pywrapfst import times

@@ -20,15 +20,15 @@ Pynini depends on:
 
 -  A standards-compliant C++ 11 compiler (GCC >= 4.8 or Clang >= 700)
 -  The most recent version of `OpenFst <http://openfst.org>`__ (at the time of
-   writing, 1.6.7) built with the ``far``, ``pdt``, ``mpdt``, and ``script``
+   writing, 1.6.8) built with the ``far``, ``pdt``, ``mpdt``, and ``script``
    extensions (i.e., built with ``./configure --enable-grm``) and headers
 -  A recent version of `re2 <http:://github.com/google/re2>`__ (at the time of
-   writing, tag ``2018-03-01``; issue ``git checkout 2018-03-01; git pull``
+   writing, tag ``2018-04-01``; issue ``git checkout 2018-04-01; git pull``
    from the ``re2`` directory to sync to this tag) and headers
 -  `Python 2.7 <https://www.python.org>`__ and headers
 
-It is tested with: Ubuntu Linux 14.04 LTS on x86\_64, GCC 4.8, Python 2.7.6,
-Cython 0.27.3.
+It is tested with: Debian Linux 4.9.82 on x86\_64, GCC 7.3, Python 2.7.13,
+Cython 0.28.3.
 
 Installation instructions
 -------------------------
@@ -52,7 +52,8 @@ directory) like so:
     cython -3 --cplus -o pynini.cc pynini.pyx
 
 and then (re)compile as described above. There are still some warts related to
-the switch from byte to Unicode strings.
+the switch from byte to Unicode strings which will be handled in a future
+version.
 
 License
 -------

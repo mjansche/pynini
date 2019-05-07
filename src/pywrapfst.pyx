@@ -3366,7 +3366,7 @@ cpdef _Fst convert(_Fst ifst, fst_type=None):
         no conversion is desired.
 
   Returns:
-    An equivalent Fst converted to the desired FST type.
+    The input FST converted to the desired FST type.
 
   Raises:
     FstOpError: Conversion failed.
@@ -4354,7 +4354,8 @@ cdef class FarReader(object):
     cdef string ckey = tostring(key)
     if self.get_key() == ckey or self._reader.get().Find(ckey):
       return self.get_fst()
-    raise KeyError(key)
+    else:
+      raise KeyError(key)
 
 
 cdef class FarWriter(object):

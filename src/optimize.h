@@ -209,8 +209,7 @@ void OptimizeDifferenceRhs(MutableFst<Arc> *fst, bool compute_props = false) {
   }
   // Minimally, RHS must be input label-sorted; the LHS does not need
   // arc-sorting when the RHS is deterministic (as it now should be).
-  ILabelCompare<Arc> icomp;
-  ArcSort(fst, icomp);
+  ArcSort(fst, ILabelCompare<Arc>());
 }
 
 }  // namespace fst

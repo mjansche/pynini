@@ -1,4 +1,4 @@
-#cython: nonecheck=True
+#cython: nonecheck=True, c_string_type=unicode, c_string_encoding=utf8
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,13 +17,7 @@
 # pynini.opengrm.org.
 
 
-"""Pynini: finite-state grammar compilation for Python.
-
-Pynini is an experimental Python module which implements compilation of
-grammars as finite-state transducers (FSTs).
-
-This module is designed to be wildcard-import-safe.
-"""
+"""Pynini: finite-state grammar compilation for Python."""
 
 
 ## IMPLEMENTATION.
@@ -47,43 +41,40 @@ from basictypes cimport int32
 from basictypes cimport int64
 from basictypes cimport uint64
 
-from fst cimport CLOSURE_PLUS
-from fst cimport CLOSURE_STAR
-from fst cimport ILABEL_SORT
-from fst cimport OLABEL_SORT
-
 from fst cimport ArcSort
 from fst cimport Closure
+from fst cimport CLOSURE_PLUS
+from fst cimport CLOSURE_STAR
 from fst cimport Compose
 from fst cimport ComposeOptions
 from fst cimport Equal
 from fst cimport FstClass
+from fst cimport ILABEL_SORT
+from fst cimport kAcceptor
+from fst cimport kDelta
+from fst cimport kError
+from fst cimport kIDeterministic
+from fst cimport kNoEpsilons
+from fst cimport kNoStateId
+from fst cimport kString
+from fst cimport kUnweighted
 from fst cimport LabelFstClassPair
 from fst cimport MutableFstClass
+from fst cimport OLABEL_SORT
 from fst cimport ReplaceLabelType
 from fst cimport ReplaceOptions
 from fst cimport VectorFstClass
 from fst cimport WeightClass
 
-from fst cimport kAcceptor
-from fst cimport kDelta
-from fst cimport kIDeterministic
-from fst cimport kError
-from fst cimport kNoEpsilons
-from fst cimport kNoStateId
-from fst cimport kString
-from fst cimport kUnweighted
-
 from memory cimport static_pointer_cast
 
-from pywrapfst cimport _Fst
-from pywrapfst cimport _MutableFst
-from pywrapfst cimport _SymbolTable
 from pywrapfst cimport FarReader
 from pywrapfst cimport FarWriter
 from pywrapfst cimport SymbolTable_ptr
 from pywrapfst cimport Weight as _Weight
-
+from pywrapfst cimport _Fst
+from pywrapfst cimport _MutableFst
+from pywrapfst cimport _SymbolTable
 from pywrapfst cimport _get_WeightClass_or_One
 from pywrapfst cimport _get_WeightClass_or_Zero
 from pywrapfst cimport _get_compose_filter
@@ -93,9 +84,7 @@ from pywrapfst cimport _init_MutableFst
 from pywrapfst cimport _init_SymbolTable
 from pywrapfst cimport tostring
 
-
-# C++ code for Pynini.
-
+# C++ code for Pynini not from fst_util.
 
 from pynini_includes cimport CDRewriteDirection
 from pynini_includes cimport CDRewriteMode
@@ -332,7 +321,7 @@ cdef void _add_parentheses_symbols(MutableFstClass *fst,
     sink_syms = fst.MutableInputSymbols()
     if sink_syms == NULL:
       return
-  for i in xrange(parens.size()):
+  for i in range(parens.size()):
     label = parens[i].first
     symbol = source_syms.FindSymbol(label)
     if symbol == b"":
@@ -768,8 +757,9 @@ cdef class Fst(_MutableFst):
   # x + y
 
   def __add__(self, other):
-    cdef string arc_type = (self.arc_type() if hasattr(self, "arc_type") else
-                            other.arc_type())
+    cdef string arc_type = tostring(self.arc_type()
+                                    if hasattr(self, "arc_type") else
+                                    other.arc_type())
     cdef Fst lhs = _compile_or_copy_Fst(self, arc_type=arc_type)
     lhs.concat(other)
     return lhs
@@ -779,16 +769,23 @@ cdef class Fst(_MutableFst):
   def __sub__(self, other):
     return difference(self, other)
 
-  # x * y
+
+  # x * y: deprecated in favor of '@'.
 
   def __mul__(self, other):
+    return compose(self, other)
+
+  # x @ y: requires Python 3.5 or better.
+
+  def __matmul__(self, other):
     return compose(self, other)
 
   # x | y
 
   def __or__(self, other):
-    cdef string arc_type = (self.arc_type() if hasattr(self, "arc_type") else
-                            other.arc_type())
+    cdef string arc_type = tostring(self.arc_type()
+                                    if hasattr(self, "arc_type") else
+                                    other.arc_type())
     cdef Fst lhs = _compile_or_copy_Fst(self, arc_type=arc_type)
     lhs.union(other)
     return lhs
@@ -1242,7 +1239,7 @@ cpdef Fst string_map(lines,
 
   Args:
     lines: An iterable of indexables of size one, two, or three. If the
-        iterable implements .iteritems or .items, this is used to extract the
+        iterable implements .items, this is used to extract the
         indexables. The first element in each indexable is interpreted as the
         input string, the second (optional) as the output string, defaulting
         to the input string, and the third (optional) as a string to be
@@ -1284,16 +1281,18 @@ cpdef Fst string_map(lines,
   cdef Fst result = Fst(arc_type)
   # Allows this to work with dictionary-like objects by extracting 
   # key-value pairs form it.
-  if hasattr(lines, "iteritems"):
-    lines = lines.iteritems()
-  elif hasattr(lines, "items"):
+  if hasattr(lines, "items"):
     lines = lines.items()
+  cdef vector[string] string_line
   cdef vector[vector[string]] string_lines
   for line in lines:
-    if hasattr(line, "__iter__"):
-      string_lines.push_back([tostring(elem) for elem in line])
-    else:  # Single element.
-      string_lines.push_back([tostring(line)])
+    if hasattr(line, "__iter__") and type(line) is not str:
+      for elem in line:
+        string_line.push_back(tostring(elem))
+    else:
+      string_line.push_back(tostring(line))
+    string_lines.push_back(string_line)
+    string_line.clear()
   if not StringMap(string_lines, result._mfst.get(), itype, otype, isyms, osyms,
                    attach_input_symbols, attach_output_symbols):
     raise FstArgError("String map compilation failed")
@@ -1447,7 +1446,7 @@ def replace(root,
   Args:
     root: The root FST.
     replacements: An iterable containing label/FST pairs. If the iterable
-       implements .iteritems or .items, this is used to extract the pairs.
+       implements .items, this is used to extract the pairs.
     call_arc_labeling: A string indicating which call arc labels should be
         non-epsilon. One of: "input" (default), "output", "both", "neither".
         This value is set to "neither" if epsilon_on_replace is True.
@@ -1470,20 +1469,20 @@ def replace(root,
   """
   cdef Fst root_fst = _compile_or_copy_Fst(root)
   cdef string arc_type = root_fst.arc_type()
-  if hasattr(replacements, "iteritems"):
-    replacements = replacements.iteritems()
   if hasattr(replacements, "items"):
     replacements = replacements.items()
   # This has the pleasant effect of preventing Python from garbage-collecting
   # these FSTs until we're ready.
   # TODO(kbg): Is there a better way?
-  replacements = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type)) for
+  replacements = [(nt, _compile_or_copy_Fst(rep, arc_type)) for
                   (nt, rep) in replacements]
   cdef string nonterm
   cdef Fst replacement
   cdef vector[StringFstClassPair] pairs
   pairs.reserve(len(replacements))
-  for (nonterm, replacement) in replacements:
+  for (nt, rep) in replacements:
+    nonterm = tostring(nt)
+    replacement = rep
     pairs.push_back(StringFstClassPair(nonterm, replacement._fst.get()))
   cdef ReplaceLabelType cal = _get_replace_label_type(
       tostring(call_arc_labeling), epsilon_on_replace)
@@ -1552,7 +1551,7 @@ cdef class PdtParentheses(object):
 
   def __iter__(self):
     cdef size_t i = 0
-    for i in xrange(self._parens.size()):
+    for i in range(self._parens.size()):
       yield (self._parens[i].first, self._parens[i].second)
 
   cpdef PdtParentheses copy(self):
@@ -1745,7 +1744,7 @@ def pdt_replace(root, replacements, pdt_parser_type=b"left"):
   Args:
     root: The root FST.
     replacements: An iterable containing string/FST pairs. If the iterable
-       implements .iteritems or .items, this is used to extract the pairs.
+       implements .items, this is used to extract the pairs.
     pdt_parser_type: A string matching a known PdtParserType. One of: "left"
         (default), "left_sr".
 
@@ -1759,20 +1758,20 @@ def pdt_replace(root, replacements, pdt_parser_type=b"left"):
   """
   cdef Fst root_fst = _compile_or_copy_Fst(root)
   cdef string arc_type = root_fst.arc_type()
-  if hasattr(replacements, "iteritems"):
-    replacements = replacements.iteritems()
-  elif hasattr(replacements, "items"):
+  if hasattr(replacements, "items"):
     replacements = replacements.items()
   # This has the pleasant effect of preventing Python from garbage-collecting
   # these FSTs until we're ready.
   # TODO(kbg): Is there a better way?
-  replacements = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type)) for
+  replacements = [(nt, _compile_or_copy_Fst(rep, arc_type)) for
                   (nt, rep) in replacements]
   cdef string nonterm
   cdef Fst replacement
   cdef vector[StringFstClassPair] pairs
   pairs.reserve(len(replacements))
-  for (nonterm, replacement) in replacements:
+  for (nt, rep) in replacements:
+    nonterm = tostring(nt)
+    replacement = rep
     pairs.push_back(StringFstClassPair(nonterm, replacement._fst.get()))
   cdef Fst result = Fst(arc_type)
   cdef PdtParentheses parens = PdtParentheses()
@@ -1877,7 +1876,7 @@ cdef class MPdtParentheses(object):
 
   def __iter__(self):
     cdef size_t i = 0
-    for i in xrange(self._parens.size()):
+    for i in range(self._parens.size()):
       yield (self._parens[i].first, self._parens[i].second, self._assign[i])
 
   cpdef MPdtParentheses copy(self):
@@ -2557,8 +2556,7 @@ from pywrapfst import Weight
 
 
 from pywrapfst import FstBadWeightError
-from pywrapfst import \
-    FstDeletedConstructorError
+from pywrapfst import FstDeletedConstructorError
 from pywrapfst import FstIndexError
 
 
@@ -2572,90 +2570,84 @@ from pywrapfst import NO_SYMBOL
 
 # FST properties.
 
-
-from pywrapfst import EXPANDED
-from pywrapfst import MUTABLE
-from pywrapfst import ERROR
 from pywrapfst import ACCEPTOR
-from pywrapfst import NOT_ACCEPTOR
-from pywrapfst import I_DETERMINISTIC
-from pywrapfst import NON_I_DETERMINISTIC
-from pywrapfst import O_DETERMINISTIC
-from pywrapfst import NON_O_DETERMINISTIC
-from pywrapfst import EPSILONS
-from pywrapfst import NO_EPSILONS
-from pywrapfst import I_EPSILONS
-from pywrapfst import NO_I_EPSILONS
-from pywrapfst import O_EPSILONS
-from pywrapfst import NO_O_EPSILONS
-from pywrapfst import I_LABEL_SORTED
-from pywrapfst import NOT_I_LABEL_SORTED
-from pywrapfst import O_LABEL_SORTED
-from pywrapfst import NOT_O_LABEL_SORTED
-from pywrapfst import WEIGHTED
-from pywrapfst import UNWEIGHTED
-from pywrapfst import CYCLIC
-from pywrapfst import ACYCLIC
-from pywrapfst import INITIAL_CYCLIC
-from pywrapfst import INITIAL_ACYCLIC
-from pywrapfst import TOP_SORTED
-from pywrapfst import NOT_TOP_SORTED
 from pywrapfst import ACCESSIBLE
-from pywrapfst import NOT_ACCESSIBLE
-from pywrapfst import COACCESSIBLE
-from pywrapfst import NOT_COACCESSIBLE
-from pywrapfst import STRING
-from pywrapfst import NOT_STRING
-from pywrapfst import WEIGHTED_CYCLES
-from pywrapfst import UNWEIGHTED_CYCLES
-from pywrapfst import NULL_PROPERTIES
-from pywrapfst import COPY_PROPERTIES
-from pywrapfst import INTRINSIC_PROPERTIES
-from pywrapfst import EXTRINSIC_PROPERTIES
-from pywrapfst import SET_START_PROPERTIES
-from pywrapfst import SET_FINAL_PROPERTIES
-from pywrapfst import ADD_STATE_PROPERTIES
+from pywrapfst import ACYCLIC
 from pywrapfst import ADD_ARC_PROPERTIES
-from pywrapfst import SET_ARC_PROPERTIES
-from pywrapfst import DELETE_STATE_PROPERTIES
-from pywrapfst import DELETE_ARC_PROPERTIES
-from pywrapfst import STATE_SORT_PROPERTIES
+from pywrapfst import ADD_STATE_PROPERTIES
+from pywrapfst import ADD_SUPERFINAL_PROPERTIES
 from pywrapfst import ARC_SORT_PROPERTIES
-from pywrapfst import \
-    I_LABEL_INVARIANT_PROPERTIES
-from pywrapfst import \
-    O_LABEL_INVARIANT_PROPERTIES
-from pywrapfst import \
-    WEIGHT_INVARIANT_PROPERTIES
-from pywrapfst import \
-    ADD_SUPERFINAL_PROPERTIES
-from pywrapfst import \
-    RM_SUPERFINAL_PROPERTIES
 from pywrapfst import BINARY_PROPERTIES
-from pywrapfst import TRINARY_PROPERTIES
-from pywrapfst import POS_TRINARY_PROPERTIES
-from pywrapfst import NEG_TRINARY_PROPERTIES
+from pywrapfst import COACCESSIBLE
+from pywrapfst import COPY_PROPERTIES
+from pywrapfst import CYCLIC
+from pywrapfst import DELETE_ARC_PROPERTIES
+from pywrapfst import DELETE_STATE_PROPERTIES
+from pywrapfst import EPSILONS
+from pywrapfst import ERROR
+from pywrapfst import EXPANDED
+from pywrapfst import EXTRINSIC_PROPERTIES
 from pywrapfst import FST_PROPERTIES
+from pywrapfst import I_DETERMINISTIC
+from pywrapfst import I_EPSILONS
+from pywrapfst import I_LABEL_INVARIANT_PROPERTIES
+from pywrapfst import I_LABEL_SORTED
+from pywrapfst import INITIAL_ACYCLIC
+from pywrapfst import INITIAL_CYCLIC
+from pywrapfst import INTRINSIC_PROPERTIES
+from pywrapfst import MUTABLE
+from pywrapfst import NEG_TRINARY_PROPERTIES
+from pywrapfst import NO_EPSILONS
+from pywrapfst import NO_I_EPSILONS
+from pywrapfst import NON_I_DETERMINISTIC
+from pywrapfst import NON_O_DETERMINISTIC
+from pywrapfst import NO_O_EPSILONS
+from pywrapfst import NOT_ACCEPTOR
+from pywrapfst import NOT_ACCESSIBLE
+from pywrapfst import NOT_COACCESSIBLE
+from pywrapfst import NOT_I_LABEL_SORTED
+from pywrapfst import NOT_O_LABEL_SORTED
+from pywrapfst import NOT_STRING
+from pywrapfst import NOT_TOP_SORTED
+from pywrapfst import NULL_PROPERTIES
+from pywrapfst import O_DETERMINISTIC
+from pywrapfst import O_EPSILONS
+from pywrapfst import O_LABEL_INVARIANT_PROPERTIES
+from pywrapfst import O_LABEL_SORTED
+from pywrapfst import POS_TRINARY_PROPERTIES
+from pywrapfst import RM_SUPERFINAL_PROPERTIES
+from pywrapfst import SET_ARC_PROPERTIES
+from pywrapfst import SET_FINAL_PROPERTIES
+from pywrapfst import SET_START_PROPERTIES
+from pywrapfst import STATE_SORT_PROPERTIES
+from pywrapfst import STRING
+from pywrapfst import TOP_SORTED
+from pywrapfst import TRINARY_PROPERTIES
+from pywrapfst import UNWEIGHTED
+from pywrapfst import UNWEIGHTED_CYCLES
+from pywrapfst import WEIGHTED
+from pywrapfst import WEIGHTED_CYCLES
+from pywrapfst import WEIGHT_INVARIANT_PROPERTIES
 
 
 # Arc iterator properties.
 
 
+from pywrapfst import ARC_FLAGS
 from pywrapfst import ARC_I_LABEL_VALUE
-from pywrapfst import ARC_O_LABEL_VALUE
-from pywrapfst import ARC_WEIGHT_VALUE
 from pywrapfst import ARC_NEXT_STATE_VALUE
 from pywrapfst import ARC_NO_CACHE
+from pywrapfst import ARC_O_LABEL_VALUE
 from pywrapfst import ARC_VALUE_FLAGS
-from pywrapfst import ARC_FLAGS
+from pywrapfst import ARC_WEIGHT_VALUE
 
 
 # Encode mapper properties.
 
 
+from pywrapfst import ENCODE_FLAGS
 from pywrapfst import ENCODE_LABELS
 from pywrapfst import ENCODE_WEIGHTS
-from pywrapfst import ENCODE_FLAGS
 
 
 # Single-char aliases for the biggest three functions.
@@ -2709,8 +2701,8 @@ from pywrapfst import merge_symbol_table
 # Weight operations.
 
 
-from pywrapfst import plus
-from pywrapfst import times
 from pywrapfst import divide
 from pywrapfst import power
+from pywrapfst import plus
+from pywrapfst import times
 

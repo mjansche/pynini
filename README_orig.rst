@@ -25,10 +25,10 @@ Pynini depends on:
 -  A recent version of `re2 <http:://github.com/google/re2>`__ (at the time of
    writing, tag ``2018-04-01``; issue ``git checkout 2018-04-01; git pull``
    from the ``re2`` directory to sync to this tag) and headers
--  `Python 2.7 <https://www.python.org>`__ and headers
+-  `Python 2.7 <https://www.python.org>`__ or 3.6+, and headers
 
-It is tested with: Debian Linux 4.9.82 on x86\_64, GCC 7.3, Python 2.7.13,
-Cython 0.28.3.
+It is tested with: Debian Linux 4.9.82 on x86\_64, GCC 7.3, Cython 0.28.3, and
+Python 2.7.13 and Python 3.6.2.
 
 Installation instructions
 -------------------------
@@ -41,19 +41,7 @@ To confirm successful installation, execute ``python setup.py test``.
 Python 3 support
 ----------------
 
-Pynini is not regularly tested using Python 3 but it should work with some
-modifications, assuming you have Cython (a Python-to-C transpiler). Minimally,
-you will want to regenerate ``pywrapfst.cc`` and ``pynini.cc`` (in the ``src``
-directory) like so:
-
-::
-
-    cython -3 --cplus -o pywrapfst.cc pywrapfst.pyx
-    cython -3 --cplus -o pynini.cc pynini.pyx
-
-and then (re)compile as described above. There are still some warts related to
-the switch from byte to Unicode strings which will be handled in a future
-version.
+Python 3 support is available as of Pynini 2.0.0.
 
 License
 -------

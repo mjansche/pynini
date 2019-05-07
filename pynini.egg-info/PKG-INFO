@@ -1,8 +1,8 @@
 Metadata-Version: 1.1
 Name: pynini
-Version: 1.9.3
+Version: 2.0.0
 Summary: Finite-state grammar compilation library
-Home-page: http://pynini.opengrm.org/
+Home-page: http://pynini.opengrm.org
 Author: Kyle Gorman
 Author-email: kbg@google.com
 License: UNKNOWN
@@ -10,6 +10,7 @@ Description: UNKNOWN
 Keywords: natural language processing,speech recognition,machine learning
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.6
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Environment :: Other Environment
 Classifier: Environment :: Console

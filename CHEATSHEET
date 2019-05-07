@@ -30,7 +30,7 @@ Compilation:
 
 Sample operations:
     closure(f, ...)                      f.closure(...)
-    compose(f, g, ...)      f * g
+    compose(f, g, ...)      f @ g
     concat(f, g)            f + g        f.concat(g)
     difference(f, g, ...)   f - g
     invert(f)                            f.invert()

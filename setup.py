@@ -63,16 +63,17 @@ pynini = Extension(name="pynini", language="c++",
 
 setup(
     name="pynini",
-    version="1.9.3",
+    version="2.0.0",
     description="Finite-state grammar compilation library",
     author="Kyle Gorman",
     author_email="kbg@google.com",
-    url="http://pynini.opengrm.org/",
+    url="http://pynini.opengrm.org",
     keywords=[
         "natural language processing", "speech recognition", "machine learning"
     ],
     classifiers=[
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.6",
         "Development Status :: 5 - Production/Stable",
         "Environment :: Other Environment", "Environment :: Console",
         "Intended Audience :: Developers",

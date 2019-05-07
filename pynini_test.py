@@ -6,6 +6,7 @@
 """Tests for the Pynini grammar compilation module."""
 
 import collections
+import collections
 import functools
 import math
 import os
@@ -13,6 +14,7 @@ import pickle
 import string
 import tempfile
 import unittest
+
 
 # This module is designed to be import-safe.
 from pynini import *
@@ -26,7 +28,7 @@ class PyniniCDRewriteTest(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    cls.sigstar = union(*string.letters)
+    cls.sigstar = union(*string.ascii_letters)
     cls.sigstar.closure()
     cls.sigstar.optimize()
     cls.coronal = union("L", "N", "R", "T", "D")
@@ -116,10 +118,10 @@ class PyniniClosureTest(unittest.TestCase):
     ac = acceptor(cheese)
     ac.closure(m, n)
     # Doesn't accept <3 copies.
-    for i in xrange(m):
+    for i in range(m):
       self.assertEqual(compose(ac, cheese * i).num_states(), 0)
     # Accepts between 3-7 copies.
-    for i in xrange(m, n + 1):
+    for i in range(m, n + 1):
       self.assertNotEqual(compose(ac, cheese * i).num_states(), 0)
     # Doesn't accept more than 7 copies.
     self.assertEqual(compose(ac, cheese * (n + 1)).num_states(), 0)
@@ -427,7 +429,7 @@ class PyniniPdtReplaceTest(unittest.TestCase):
   def testPdtReplace(self):
     s_rhs = union("a[S]b", "ab")  # a^n b^n.
     (f, parens) = pdt_replace("[S]", (("S", s_rhs),))
-    for n in xrange(1, 100):
+    for n in range(1, 100):
       anbn = n * "a" + n * "b"
       self.assertEqual(pdt_compose(f, anbn, parens, compose_filter="expand"),
                        anbn)
@@ -473,10 +475,9 @@ class PyniniStringTest(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    cls.cheese = b"Red Leicester"
-    cls.reply = b"I'm afraid we're fresh out of Red Leicester sir"
+    cls.cheese = "Red Leicester"
+    cls.reply = "I'm afraid we're fresh out of Red Leicester sir"
     cls.imported_cheese = u"Pont l'Evêque"
-    cls.imported_cheese_encoded = cls.imported_cheese.encode("utf8")
     cls.acceptor_props = (ACCEPTOR | I_DETERMINISTIC | O_DETERMINISTIC |
                           I_LABEL_SORTED | O_LABEL_SORTED | UNWEIGHTED |
                           ACYCLIC | INITIAL_ACYCLIC | TOP_SORTED | ACCESSIBLE |
@@ -537,17 +538,11 @@ class PyniniStringTest(unittest.TestCase):
     self.assertEqual(cheese.properties(self.acceptor_props, True),
                      self.acceptor_props)
 
-  def testUnicodeUtf8AcceptorCompilation(self):
-    cheese = acceptor(self.imported_cheese, token_type="utf8")
-    for (i, state) in enumerate(cheese.states()):
-      for arc in cheese.arcs(state):
-        self.assertEqual(unichr(arc.olabel), self.imported_cheese[i])
-
   def testEscapedBracketsBytestringAcceptorCompilation(self):
     ac = acceptor("[\[Camembert\] is a]\[cheese\]")
-    self.assertEqual(ac.num_states(), 12)
     # Should have 3 states accepting generated symbols, 8 accepting a byte,
     # and 1 final state.
+    self.assertEqual(ac.num_states(), 12)
 
   def testGarbageWeightAcceptorRaisesFstBadWeightError(self):
     with self.assertRaises(FstBadWeightError):
@@ -589,8 +584,8 @@ class PyniniStringTest(unittest.TestCase):
                      self.cheese)
 
   def testUtf8ByteStringify(self):
-    self.assertEqual(acceptor(self.imported_cheese_encoded).stringify(),
-                     self.imported_cheese_encoded)
+    self.assertEqual(
+        acceptor(self.imported_cheese).stringify(), self.imported_cheese)
 
   def testAsciiByteStringifyAfterSymbolTableDeletion(self):
     ac = acceptor(self.cheese)
@@ -598,28 +593,29 @@ class PyniniStringTest(unittest.TestCase):
     self.assertEqual(ac.stringify(), self.cheese)
 
   def testUtf8Utf8Stringify(self):
-    self.assertEqual(acceptor(self.imported_cheese_encoded,
-                              token_type="utf8").stringify("utf8"),
-                     self.imported_cheese_encoded)
+    self.assertEqual(
+        acceptor(self.imported_cheese, token_type="utf8").stringify("utf8"),
+        self.imported_cheese)
 
   def testUnicodeByteStringify(self):
-    self.assertEqual(acceptor(self.imported_cheese).stringify(),
-                     self.imported_cheese_encoded)
+    self.assertEqual(
+        acceptor(self.imported_cheese).stringify(), self.imported_cheese)
 
   def testUnicodeUtf8Stringify(self):
-    self.assertEqual(acceptor(self.imported_cheese,
-                              token_type="utf8").stringify("utf8"),
-                     self.imported_cheese_encoded)
+    self.assertEqual(
+        acceptor(self.imported_cheese, token_type="utf8").stringify("utf8"),
+        self.imported_cheese)
 
   def testUtf8StringifyAfterSymbolTableDeletion(self):
     ac = acceptor(self.imported_cheese, token_type="utf8")
     ac.set_output_symbols(None)
-    self.assertEqual(ac.stringify("utf8"), self.imported_cheese_encoded)
+    self.assertEqual(ac.stringify("utf8"), self.imported_cheese)
 
   def testUnicodeSymbolStringify(self):
     ac = acceptor(self.imported_cheese, token_type="utf8")
-    self.assertEqual(ac.stringify(ac.output_symbols()),
-                     b"P o n t <SPACE> l ' E v <0xea> q u e")
+    self.assertEqual(
+        ac.stringify(ac.output_symbols()),
+        "P o n t <SPACE> l ' E v <0xea> q u e")
 
   def testStringifyOnNonkStringFstRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
@@ -671,7 +667,7 @@ class PyniniStringFileTest(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    cls.map_file =  "testdata/str.map"
+    cls.map_file = "testdata/str.map"
 
   def ContainsMapping(self, istring, mapper, ostring):
     lattice = compose(istring, mapper).project(True)
@@ -782,6 +778,11 @@ class PyniniStringMapTest(unittest.TestCase):
 
 class PyniniStringPathIteratorTest(unittest.TestCase):
 
+  # Implements this, in the case of Python 2.7.
+
+  def assertCountEqual(self, arg1, arg2):
+    self.assertEqual(collections.Counter(arg1), collections.Counter(arg2))
+
   @classmethod
   def setUpClass(cls):
     cls.triples = (("Bel Paese", "Sorry", Weight("tropical", 4.)),
@@ -795,16 +796,19 @@ class PyniniStringPathIteratorTest(unittest.TestCase):
     self.assertEqual(collections.Counter(self.f.paths().istrings()),
                      collections.Counter((t[0] for t in self.triples)))
 
-  def testStringPathIteratorOStrings(self):
-    self.assertEqual(collections.Counter(self.f.paths().ostrings()),
-                     collections.Counter((t[1] for t in self.triples)))
+  def testStringPathsIStrings(self):
+    self.assertCountEqual(self.f.paths().istrings(),
+                          (t[0] for t in self.triples))
 
-  def testStringPathIteratorWeights(self):
-    self.assertEqual(collections.Counter(
-                         (str(w) for w in self.f.paths().weights())),
-                     collections.Counter((str(t[2]) for t in self.triples)))
+  def testStringPathsOStrings(self):
+    self.assertCountEqual(self.f.paths().ostrings(),
+                          (t[1] for t in self.triples))
 
-  def testStringPathIteratorAfterFstDeletion(self):
+  def testStringPathsWeights(self):
+    self.assertCountEqual((str(w) for w in self.f.paths().weights()),
+                          (str(t[2]) for t in self.triples))
+
+  def testStringPathsAfterFstDeletion(self):
     f = union("Pipo Crem'", "Fynbo")
     sp = StringPathIterator(f)
     del f  # Should be garbage-collected immediately.
@@ -817,7 +821,7 @@ class PyniniStringPathIteratorTest(unittest.TestCase):
     cheeses = ("Ilchester", "Limburger")
     f = union(*cheeses)
     sp = StringPathIterator(f)
-    self.assertItemsEqual(cheeses, sp.ostrings())
+    self.assertCountEqual(cheeses, sp.ostrings())
 
 
 class PyniniSymbolTableTest(unittest.TestCase):

@@ -1,7 +1,13 @@
+v. 1.9.3 (compatible with OpenFst 1.6.8)
+========================================
+
+* `string_file` and `string_map` now obey `attach_input_symbols`/`attach_output_symbols`
+* Removes obsolete library flag
+
 v. 1.9.2 (compatible with OpenFst 1.6.8)
 ========================================
 
-* Removes obsolete rm_epsilon options to string printing methods
+* Removes obsolete `rm_epsilon` options to string printing methods
 * Renames `iter_itring` (etc.) methods to just `istrings`
 * Renames `StringPaths` to `StringPathIterator`
 

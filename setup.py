@@ -63,7 +63,7 @@ pynini = Extension(name="pynini", language="c++",
 
 setup(
     name="pynini",
-    version="1.9.2",
+    version="1.9.3",
     description="Finite-state grammar compilation library",
     author="Kyle Gorman",
     author_email="kbg@google.com",

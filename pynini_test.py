@@ -700,7 +700,6 @@ class PyniniStringFileTest(unittest.TestCase):
     self.ContainsMapping(utf8("[Bel Paese]"), mapper, utf8("Sorry"))
     self.ContainsMapping(utf8("Pont-l'Évêque"), mapper, utf8("Camembert"))
 
-
   def testByteToSymbolStringFile(self):
     syms = SymbolTable()
     syms.add_symbol("<epsilon>")
@@ -712,6 +711,12 @@ class PyniniStringFileTest(unittest.TestCase):
     symc = functools.partial(acceptor, token_type=syms)
     self.ContainsMapping("[Bel Paese]", mapper, symc("Sorry"))
     self.ContainsMapping("Pont-l'Évêque", mapper, symc("Camembert"))
+
+  def testStringFileWithoutAttachedSymbolTables(self):
+    mapper = string_file(self.map_file, attach_input_symbols=False,
+                         attach_output_symbols=False)
+    self.assertIsNone(mapper.input_symbols())
+    self.assertIsNone(mapper.output_symbols())
 
 
 class PyniniStringMapTest(unittest.TestCase):
@@ -767,6 +772,12 @@ class PyniniStringMapTest(unittest.TestCase):
     symc = functools.partial(acceptor, token_type=syms)
     self.ContainsMapping("[Bel Paese]", mapper, symc("Sorry"))
     self.ContainsMapping("Pont-l'Évêque", mapper, symc("Camembert"))
+
+  def testStringMapWithoutAttachedSymbolTables(self):
+    mapper = string_map(self.lines, attach_input_symbols=False,
+                        attach_output_symbols=False)
+    self.assertIsNone(mapper.input_symbols())
+    self.assertIsNone(mapper.output_symbols())
 
 
 class PyniniStringPathIteratorTest(unittest.TestCase):

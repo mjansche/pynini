@@ -34,7 +34,6 @@ DECLARE_int32(left_boundary_index);
 DECLARE_string(left_boundary_symbol);
 DECLARE_int32(right_boundary_index);
 DECLARE_string(right_boundary_symbol);
-DECLARE_bool(cdrewrite_verify);
 
 namespace fst {
 namespace internal {

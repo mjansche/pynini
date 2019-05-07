@@ -142,7 +142,7 @@ bool CompileStringFile(const string &fname, MutableFst<Arc> *fst,
       }
     }
   }
-  compiler.Compile(fst);
+  compiler.Compile(fst, attach_input_symbols, attach_output_symbols);
   return true;
 }
 
@@ -172,12 +172,12 @@ bool CompileStringMap(const std::vector<std::vector<string>> &lines,
         break;
       }
       default: {
-        LOG(ERROR) << "CompileStringMap: Illformed line";
+        LOG(ERROR) << "CompileStringMap: Ill-formed line";
         return false;
       }
     }
   }
-  compiler.Compile(fst);
+  compiler.Compile(fst, attach_input_symbols, attach_output_symbols);
   return true;
 }
 

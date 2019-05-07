@@ -52,6 +52,8 @@ inline bool CheckNonEmptyAndCleanup(MutableFst<Arc> *lattice) {
   return true;
 }
 
+}  // namespace internal
+
 // Constructs a weighted, epsilon-free lattice of output strings given a
 // input FST and a rule FST.
 //
@@ -61,7 +63,7 @@ bool RewriteLattice(const Fst<Arc> &input, const Fst<Arc> &rule,
                     MutableFst<Arc> *lattice) {
   static const ComposeOptions opts(true, ALT_SEQUENCE_FILTER);
   Compose(input, rule, lattice);
-  return CheckNonEmptyAndCleanup(lattice);
+  return internal::CheckNonEmptyAndCleanup(lattice);
 }
 
 // Same, but supports PDT composition.
@@ -72,7 +74,7 @@ bool RewriteLattice(
         &pdt_parens) {
   static const PdtComposeOptions opts(true, EXPAND_FILTER);
   Compose(input, rule, pdt_parens, lattice, opts);
-  return CheckNonEmptyAndCleanup(lattice);
+  return internal::CheckNonEmptyAndCleanup(lattice);
 }
 
 // Same, but supports MPDT composition.
@@ -84,7 +86,7 @@ bool RewriteLattice(
     const std::vector<typename Arc::Label> &mpdt_assignments) {
   static const MPdtComposeOptions opts(true, EXPAND_FILTER);
   Compose(input, rule, pdt_parens, mpdt_assignments, lattice, opts);
-  return CheckNonEmptyAndCleanup(lattice);
+  return internal::CheckNonEmptyAndCleanup(lattice);
 }
 
 // Given an epsilon-free lattice of output strings (such as produced by
@@ -194,16 +196,14 @@ bool LatticeToStrings(const Fst<Arc> &lattice,
 }
 #endif  // NO_GOOGLE
 
-}  // namespace internal
-
 // Top rewrite.
 template <class Arc>
 bool TopRewrite(const Fst<Arc> &input, const Fst<Arc> &rule, string *output,
                 StringTokenType ttype = BYTE,
                 const SymbolTable *syms = nullptr) {
   VectorFst<Arc> lattice;
-  return internal::RewriteLattice(input, rule, &lattice) &&
-         internal::LatticeToTopString(lattice, output, ttype, syms);
+  return RewriteLattice(input, rule, &lattice) &&
+         LatticeToTopString(lattice, output, ttype, syms);
 }
 
 // Top rewrite, returning false and logging if there's a tie.
@@ -213,9 +213,9 @@ bool OneTopRewrite(const Fst<Arc> &input, const Fst<Arc> &rule, string *output,
                    const SymbolTable *syms = nullptr,
                    typename Arc::StateId state_multiplier = 4) {
   VectorFst<Arc> lattice;
-  if (!internal::RewriteLattice(input, rule, &lattice)) return false;
-  internal::LatticeToDfa(&lattice, /*optimal_only=*/true, state_multiplier);
-  return internal::LatticeToOneTopString(lattice, output, ttype, syms);
+  if (!RewriteLattice(input, rule, &lattice)) return false;
+  LatticeToDfa(&lattice, /*optimal_only=*/true, state_multiplier);
+  return LatticeToOneTopString(lattice, output, ttype, syms);
 }
 
 // All rewrites.
@@ -225,9 +225,9 @@ bool Rewrites(const Fst<Arc> &input, const Fst<Arc> &rule,
               const SymbolTable *syms = nullptr,
               typename Arc::StateId state_multiplier = 4) {
   VectorFst<Arc> lattice;
-  if (!internal::RewriteLattice(input, rule, &lattice)) return false;
-  internal::LatticeToDfa(&lattice, /*optimal_only=*/false, state_multiplier);
-  return internal::LatticeToStrings(lattice, outputs, ttype, syms);
+  if (!RewriteLattice(input, rule, &lattice)) return false;
+  LatticeToDfa(&lattice, /*optimal_only=*/false, state_multiplier);
+  return LatticeToStrings(lattice, outputs, ttype, syms);
 }
 
 // The same, but with repeated string fields.
@@ -238,9 +238,9 @@ bool Rewrites(const Fst<Arc> &input, const Fst<Arc> &rule,
               StringTokenType ttype = BYTE, const SymbolTable *syms = nullptr,
               typename Arc::StateId state_multiplier = 4) {
   VectorFst<Arc> lattice;
-  if (!internal::RewriteLattice(input, rule, &lattice)) return false;
-  internal::LatticeToDfa(&lattice, /*optimal_only=*/false, state_multiplier);
-  return internal::LatticeToStrings(lattice, outputs, ttype, syms);
+  if (!RewriteLattice(input, rule, &lattice)) return false;
+  LatticeToDfa(&lattice, /*optimal_only=*/false, state_multiplier);
+  return LatticeToStrings(lattice, outputs, ttype, syms);
 }
 #endif  // NO_GOOGLE
 
@@ -251,9 +251,9 @@ bool TopRewrites(const Fst<Arc> &input, const Fst<Arc> &rule,
                  const SymbolTable *syms = nullptr,
                  typename Arc::StateId state_multiplier = 4) {
   VectorFst<Arc> lattice;
-  if (!internal::RewriteLattice(input, rule, &lattice)) return false;
-  internal::LatticeToDfa(&lattice, /*optimal_only=*/true, state_multiplier);
-  return internal::LatticeToStrings(lattice, outputs, ttype, syms);
+  if (!RewriteLattice(input, rule, &lattice)) return false;
+  LatticeToDfa(&lattice, /*optimal_only=*/true, state_multiplier);
+  return LatticeToStrings(lattice, outputs, ttype, syms);
 }
 
 // The same, but with repeated string fields.
@@ -265,9 +265,9 @@ bool TopRewrites(const Fst<Arc> &input, const Fst<Arc> &rule,
                  const SymbolTable *syms = nullptr,
                  typename Arc::StateId state_multiplier = 4) {
   VectorFst<Arc> lattice;
-  if (!internal::RewriteLattice(input, rule, &lattice)) return false;
-  internal::LatticeToDfa(&lattice, /*optimal_only=*/true, state_multiplier);
-  return internal::LatticeToStrings(lattice, outputs, ttype, syms);
+  if (!RewriteLattice(input, rule, &lattice)) return false;
+  LatticeToDfa(&lattice, /*optimal_only=*/true, state_multiplier);
+  return LatticeToStrings(lattice, outputs, ttype, syms);
 }
 #endif  // NO_GOOGLE
 
@@ -277,9 +277,9 @@ bool TopRewrites(const Fst<Arc> &input, const Fst<Arc> &rule, int32 nshortest,
                  std::vector<string> *outputs, StringTokenType ttype = BYTE,
                  const SymbolTable *syms = nullptr) {
   VectorFst<Arc> lattice;
-  if (!internal::RewriteLattice(input, rule, &lattice)) return false;
-  internal::LatticeToShortest(&lattice, nshortest);
-  return internal::LatticeToStrings(lattice, outputs, ttype, syms);
+  if (!RewriteLattice(input, rule, &lattice)) return false;
+  LatticeToShortest(&lattice, nshortest);
+  return LatticeToStrings(lattice, outputs, ttype, syms);
 }
 
 // The same, but with repeated string fields.
@@ -290,9 +290,9 @@ bool TopRewrites(const Fst<Arc> &input, const Fst<Arc> &rule, int32 nshortest,
                  StringTokenType ttype = BYTE,
                  const SymbolTable *syms = nullptr) {
   VectorFst<Arc> lattice;
-  if (!internal::RewriteLattice(input, rule, &lattice)) return false;
-  internal::LatticeToShortest(&lattice, nshortest);
-  return internal::LatticeToStrings(lattice, ttype, syms);
+  if (!RewriteLattice(input, rule, &lattice)) return false;
+  LatticeToShortest(&lattice, nshortest);
+  return LatticeToStrings(lattice, ttype, syms);
 }
 #endif  // NO_GOOGLE
 

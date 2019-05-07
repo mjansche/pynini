@@ -3572,7 +3572,6 @@ static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_leniently_compose(PyObject 
 static bool __pyx_f_6pynini_matches(PyObject *, PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_6pynini_matches *__pyx_optional_args); /*proto*/
 static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_string_file(PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_6pynini_string_file *__pyx_optional_args); /*proto*/
 static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_string_map(PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_6pynini_string_map *__pyx_optional_args); /*proto*/
-static struct __pyx_obj_9pywrapfst__SymbolTable *__pyx_f_6pynini_get_byte_symbol_table(int __pyx_skip_dispatch); /*proto*/
 static struct __pyx_obj_6pynini_Fst *__pyx_f_6pynini_mpdt_compose(PyObject *, PyObject *, struct __pyx_obj_6pynini_MPdtParentheses *, int __pyx_skip_dispatch, struct __pyx_opt_args_6pynini_mpdt_compose *__pyx_optional_args); /*proto*/
 static PyObject *__pyx_f_6pynini___pyx_unpickle_PdtParentheses__set_state(struct __pyx_obj_6pynini_PdtParentheses *, PyObject *); /*proto*/
 static PyObject *__pyx_f_6pynini___pyx_unpickle_MPdtParentheses__set_state(struct __pyx_obj_6pynini_MPdtParentheses *, PyObject *); /*proto*/
@@ -3915,6 +3914,7 @@ static const char __pyx_k_DELETE_ARC_PROPERTIES[] = "DELETE_ARC_PROPERTIES";
 static const char __pyx_k_PdtParentheses___iter[] = "PdtParentheses.__iter__";
 static const char __pyx_k_STATE_SORT_PROPERTIES[] = "STATE_SORT_PROPERTIES";
 static const char __pyx_k_attach_output_symbols[] = "attach_output_symbols";
+static const char __pyx_k_get_byte_symbol_table[] = "get_byte_symbol_table";
 static const char __pyx_k_MPdtParentheses___iter[] = "MPdtParentheses.__iter__";
 static const char __pyx_k_NEG_TRINARY_PROPERTIES[] = "NEG_TRINARY_PROPERTIES";
 static const char __pyx_k_POS_TRINARY_PROPERTIES[] = "POS_TRINARY_PROPERTIES";
@@ -4166,6 +4166,7 @@ static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_from_pywrapfst;
 static PyObject *__pyx_n_s_fst;
 static PyObject *__pyx_n_s_functools;
+static PyObject *__pyx_n_s_get_byte_symbol_table;
 static PyObject *__pyx_n_s_get_fst;
 static PyObject *__pyx_n_s_get_key;
 static PyObject *__pyx_n_s_getstate;
@@ -4475,26 +4476,26 @@ static PyObject *__pyx_tuple__13;
 static PyObject *__pyx_tuple__14;
 static PyObject *__pyx_tuple__15;
 static PyObject *__pyx_tuple__16;
-static PyObject *__pyx_tuple__18;
-static PyObject *__pyx_tuple__20;
-static PyObject *__pyx_tuple__22;
-static PyObject *__pyx_tuple__24;
-static PyObject *__pyx_tuple__26;
-static PyObject *__pyx_tuple__28;
-static PyObject *__pyx_tuple__30;
-static PyObject *__pyx_tuple__32;
-static PyObject *__pyx_tuple__34;
-static PyObject *__pyx_tuple__36;
-static PyObject *__pyx_tuple__38;
-static PyObject *__pyx_tuple__40;
-static PyObject *__pyx_tuple__42;
-static PyObject *__pyx_tuple__44;
-static PyObject *__pyx_tuple__46;
-static PyObject *__pyx_tuple__48;
-static PyObject *__pyx_tuple__50;
-static PyObject *__pyx_tuple__52;
-static PyObject *__pyx_tuple__54;
-static PyObject *__pyx_tuple__56;
+static PyObject *__pyx_tuple__19;
+static PyObject *__pyx_tuple__21;
+static PyObject *__pyx_tuple__23;
+static PyObject *__pyx_tuple__25;
+static PyObject *__pyx_tuple__27;
+static PyObject *__pyx_tuple__29;
+static PyObject *__pyx_tuple__31;
+static PyObject *__pyx_tuple__33;
+static PyObject *__pyx_tuple__35;
+static PyObject *__pyx_tuple__37;
+static PyObject *__pyx_tuple__39;
+static PyObject *__pyx_tuple__41;
+static PyObject *__pyx_tuple__43;
+static PyObject *__pyx_tuple__45;
+static PyObject *__pyx_tuple__47;
+static PyObject *__pyx_tuple__49;
+static PyObject *__pyx_tuple__51;
+static PyObject *__pyx_tuple__53;
+static PyObject *__pyx_tuple__55;
+static PyObject *__pyx_tuple__57;
 static PyObject *__pyx_codeobj__2;
 static PyObject *__pyx_codeobj__4;
 static PyObject *__pyx_codeobj__6;
@@ -4502,26 +4503,27 @@ static PyObject *__pyx_codeobj__8;
 static PyObject *__pyx_codeobj__10;
 static PyObject *__pyx_codeobj__12;
 static PyObject *__pyx_codeobj__17;
-static PyObject *__pyx_codeobj__19;
-static PyObject *__pyx_codeobj__21;
-static PyObject *__pyx_codeobj__23;
-static PyObject *__pyx_codeobj__25;
-static PyObject *__pyx_codeobj__27;
-static PyObject *__pyx_codeobj__29;
-static PyObject *__pyx_codeobj__31;
-static PyObject *__pyx_codeobj__33;
-static PyObject *__pyx_codeobj__35;
-static PyObject *__pyx_codeobj__37;
-static PyObject *__pyx_codeobj__39;
-static PyObject *__pyx_codeobj__41;
-static PyObject *__pyx_codeobj__43;
-static PyObject *__pyx_codeobj__45;
-static PyObject *__pyx_codeobj__47;
-static PyObject *__pyx_codeobj__49;
-static PyObject *__pyx_codeobj__51;
-static PyObject *__pyx_codeobj__53;
-static PyObject *__pyx_codeobj__55;
-static PyObject *__pyx_codeobj__57;
+static PyObject *__pyx_codeobj__18;
+static PyObject *__pyx_codeobj__20;
+static PyObject *__pyx_codeobj__22;
+static PyObject *__pyx_codeobj__24;
+static PyObject *__pyx_codeobj__26;
+static PyObject *__pyx_codeobj__28;
+static PyObject *__pyx_codeobj__30;
+static PyObject *__pyx_codeobj__32;
+static PyObject *__pyx_codeobj__34;
+static PyObject *__pyx_codeobj__36;
+static PyObject *__pyx_codeobj__38;
+static PyObject *__pyx_codeobj__40;
+static PyObject *__pyx_codeobj__42;
+static PyObject *__pyx_codeobj__44;
+static PyObject *__pyx_codeobj__46;
+static PyObject *__pyx_codeobj__48;
+static PyObject *__pyx_codeobj__50;
+static PyObject *__pyx_codeobj__52;
+static PyObject *__pyx_codeobj__54;
+static PyObject *__pyx_codeobj__56;
+static PyObject *__pyx_codeobj__58;
 /* Late includes */
 
 /* "pynini.pyx":171
@@ -13217,54 +13219,15 @@ static PyObject *__pyx_pf_6pynini_20string_map(CYTHON_UNUSED PyObject *__pyx_sel
 /* "pynini.pyx":1302
  * 
  * 
- * cpdef _SymbolTable get_byte_symbol_table():             # <<<<<<<<<<<<<<
+ * def get_byte_symbol_table():             # <<<<<<<<<<<<<<
  *   """Returns a symbol table containing all bytes."""
  *   return _init_SymbolTable(GetByteSymbolTable())
  */
-
-static PyObject *__pyx_pw_6pynini_23get_byte_symbol_table(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static struct __pyx_obj_9pywrapfst__SymbolTable *__pyx_f_6pynini_get_byte_symbol_table(CYTHON_UNUSED int __pyx_skip_dispatch) {
-  struct __pyx_obj_9pywrapfst__SymbolTable *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  __Pyx_RefNannySetupContext("get_byte_symbol_table", 0);
-
-  /* "pynini.pyx":1304
- * cpdef _SymbolTable get_byte_symbol_table():
- *   """Returns a symbol table containing all bytes."""
- *   return _init_SymbolTable(GetByteSymbolTable())             # <<<<<<<<<<<<<<
- * 
- * 
- */
-  __Pyx_XDECREF(((PyObject *)__pyx_r));
-  __pyx_t_1 = ((PyObject *)__pyx_f_9pywrapfst__init_SymbolTable(fst::GetByteSymbolTable())); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1304, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = ((struct __pyx_obj_9pywrapfst__SymbolTable *)__pyx_t_1);
-  __pyx_t_1 = 0;
-  goto __pyx_L0;
-
-  /* "pynini.pyx":1302
- * 
- * 
- * cpdef _SymbolTable get_byte_symbol_table():             # <<<<<<<<<<<<<<
- *   """Returns a symbol table containing all bytes."""
- *   return _init_SymbolTable(GetByteSymbolTable())
- */
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pynini.get_byte_symbol_table", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = 0;
-  __pyx_L0:;
-  __Pyx_XGIVEREF((PyObject *)__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
 
 /* Python wrapper */
 static PyObject *__pyx_pw_6pynini_23get_byte_symbol_table(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
 static char __pyx_doc_6pynini_22get_byte_symbol_table[] = "Returns a symbol table containing all bytes.";
+static PyMethodDef __pyx_mdef_6pynini_23get_byte_symbol_table = {"get_byte_symbol_table", (PyCFunction)__pyx_pw_6pynini_23get_byte_symbol_table, METH_NOARGS, __pyx_doc_6pynini_22get_byte_symbol_table};
 static PyObject *__pyx_pw_6pynini_23get_byte_symbol_table(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
@@ -13281,12 +13244,28 @@ static PyObject *__pyx_pf_6pynini_22get_byte_symbol_table(CYTHON_UNUSED PyObject
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_byte_symbol_table", 0);
+
+  /* "pynini.pyx":1304
+ * def get_byte_symbol_table():
+ *   """Returns a symbol table containing all bytes."""
+ *   return _init_SymbolTable(GetByteSymbolTable())             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_6pynini_get_byte_symbol_table(0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1302, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_9pywrapfst__init_SymbolTable(fst::GetByteSymbolTable())); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1304, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
+
+  /* "pynini.pyx":1302
+ * 
+ * 
+ * def get_byte_symbol_table():             # <<<<<<<<<<<<<<
+ *   """Returns a symbol table containing all bytes."""
+ *   return _init_SymbolTable(GetByteSymbolTable())
+ */
 
   /* function exit code */
   __pyx_L1_error:;
@@ -33103,7 +33082,6 @@ static PyMethodDef __pyx_methods[] = {
   {"matches", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6pynini_17matches, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pynini_16matches},
   {"string_file", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6pynini_19string_file, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pynini_18string_file},
   {"string_map", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6pynini_21string_map, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pynini_20string_map},
-  {"get_byte_symbol_table", (PyCFunction)__pyx_pw_6pynini_23get_byte_symbol_table, METH_NOARGS, __pyx_doc_6pynini_22get_byte_symbol_table},
   {"mpdt_compose", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6pynini_53mpdt_compose, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pynini_52mpdt_compose},
   {0, 0, 0, 0}
 };
@@ -33357,6 +33335,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_from_pywrapfst, __pyx_k_from_pywrapfst, sizeof(__pyx_k_from_pywrapfst), 0, 0, 1, 1},
   {&__pyx_n_s_fst, __pyx_k_fst, sizeof(__pyx_k_fst), 0, 0, 1, 1},
   {&__pyx_n_s_functools, __pyx_k_functools, sizeof(__pyx_k_functools), 0, 0, 1, 1},
+  {&__pyx_n_s_get_byte_symbol_table, __pyx_k_get_byte_symbol_table, sizeof(__pyx_k_get_byte_symbol_table), 0, 0, 1, 1},
   {&__pyx_n_s_get_fst, __pyx_k_get_fst, sizeof(__pyx_k_get_fst), 0, 0, 1, 1},
   {&__pyx_n_s_get_key, __pyx_k_get_key, sizeof(__pyx_k_get_key), 0, 0, 1, 1},
   {&__pyx_n_s_getstate, __pyx_k_getstate, sizeof(__pyx_k_getstate), 0, 0, 1, 1},
@@ -33646,6 +33625,15 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__16);
   __pyx_codeobj__17 = (PyObject*)__Pyx_PyCode_New(1, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARARGS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__16, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_patch, 2724, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__17)) __PYX_ERR(0, 2724, __pyx_L1_error)
 
+  /* "pynini.pyx":1302
+ * 
+ * 
+ * def get_byte_symbol_table():             # <<<<<<<<<<<<<<
+ *   """Returns a symbol table containing all bytes."""
+ *   return _init_SymbolTable(GetByteSymbolTable())
+ */
+  __pyx_codeobj__18 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_get_byte_symbol_table, 1302, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__18)) __PYX_ERR(0, 1302, __pyx_L1_error)
+
   /* "pynini.pyx":1310
  * 
  * 
@@ -33653,10 +33641,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *   @functools.wraps(fnc)
  *   def patch(arg, *args, **kwargs):
  */
-  __pyx_tuple__18 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(0, 1310, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__18);
-  __Pyx_GIVEREF(__pyx_tuple__18);
-  __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_1arg_patch, 1310, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(0, 1310, __pyx_L1_error)
+  __pyx_tuple__19 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 1310, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__19);
+  __Pyx_GIVEREF(__pyx_tuple__19);
+  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_1arg_patch, 1310, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 1310, __pyx_L1_error)
 
   /* "pynini.pyx":1331
  * 
@@ -33665,10 +33653,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *   @functools.wraps(fnc)
  *   def patch(arg, *args, **kwargs):
  */
-  __pyx_tuple__20 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 1331, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__20);
-  __Pyx_GIVEREF(__pyx_tuple__20);
-  __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_shortestdistance_patch, 1331, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 1331, __pyx_L1_error)
+  __pyx_tuple__21 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 1331, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__21);
+  __Pyx_GIVEREF(__pyx_tuple__21);
+  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_shortestdistance_patch, 1331, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(0, 1331, __pyx_L1_error)
 
   /* "pynini.pyx":1347
  * 
@@ -33677,10 +33665,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *   @functools.wraps(fnc)
  *   def patch(arg1, arg2, *args, **kwargs):
  */
-  __pyx_tuple__22 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 1347, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__22);
-  __Pyx_GIVEREF(__pyx_tuple__22);
-  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_compose_patch, 1347, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 1347, __pyx_L1_error)
+  __pyx_tuple__23 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 1347, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__23);
+  __Pyx_GIVEREF(__pyx_tuple__23);
+  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_compose_patch, 1347, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 1347, __pyx_L1_error)
 
   /* "pynini.pyx":1365
  * 
@@ -33689,10 +33677,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *   @functools.wraps(fnc)
  *   def patch(arg1, arg2, *args, **kwargs):
  */
-  __pyx_tuple__24 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 1365, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__24);
-  __Pyx_GIVEREF(__pyx_tuple__24);
-  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_difference_patch, 1365, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(0, 1365, __pyx_L1_error)
+  __pyx_tuple__25 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 1365, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__25);
+  __Pyx_GIVEREF(__pyx_tuple__25);
+  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_difference_patch, 1365, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) __PYX_ERR(0, 1365, __pyx_L1_error)
 
   /* "pynini.pyx":1389
  * 
@@ -33701,10 +33689,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *   @functools.wraps(fnc)
  *   def patch(arg1, arg2, *args, **kwargs):
  */
-  __pyx_tuple__26 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 1389, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__26);
-  __Pyx_GIVEREF(__pyx_tuple__26);
-  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_comp_patch, 1389, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) __PYX_ERR(0, 1389, __pyx_L1_error)
+  __pyx_tuple__27 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 1389, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__27);
+  __Pyx_GIVEREF(__pyx_tuple__27);
+  __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_comp_patch, 1389, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) __PYX_ERR(0, 1389, __pyx_L1_error)
 
   /* "pynini.pyx":1406
  * 
@@ -33713,10 +33701,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *   @functools.wraps(fnc)
  *   def patch(arg1, arg2, *args, **kwargs):
  */
-  __pyx_tuple__28 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 1406, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__28);
-  __Pyx_GIVEREF(__pyx_tuple__28);
-  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_comp_merge_patch, 1406, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(0, 1406, __pyx_L1_error)
+  __pyx_tuple__29 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 1406, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__29);
+  __Pyx_GIVEREF(__pyx_tuple__29);
+  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_comp_merge_patch, 1406, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 1406, __pyx_L1_error)
 
   /* "pynini.pyx":1422
  * 
@@ -33725,10 +33713,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *   """
  *   concat(*args)
  */
-  __pyx_tuple__30 = PyTuple_Pack(5, __pyx_n_s_args, __pyx_n_s_first, __pyx_n_s_rest, __pyx_n_s_lhs, __pyx_n_s_rhs); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 1422, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__30);
-  __Pyx_GIVEREF(__pyx_tuple__30);
-  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_concat, 1422, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 1422, __pyx_L1_error)
+  __pyx_tuple__31 = PyTuple_Pack(5, __pyx_n_s_args, __pyx_n_s_first, __pyx_n_s_rest, __pyx_n_s_lhs, __pyx_n_s_rhs); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 1422, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__31);
+  __Pyx_GIVEREF(__pyx_tuple__31);
+  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_concat, 1422, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(0, 1422, __pyx_L1_error)
 
   /* "pynini.pyx":1449
  * 
@@ -33737,10 +33725,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *             replacements,
  *             call_arc_labeling=b"neither",
  */
-  __pyx_tuple__32 = PyTuple_Pack(19, __pyx_n_s_root, __pyx_n_s_replacements, __pyx_n_s_call_arc_labeling, __pyx_n_s_return_arc_labeling, __pyx_n_s_epsilon_on_replace, __pyx_n_s_return_label, __pyx_n_s_root_fst, __pyx_n_s_arc_type, __pyx_n_s_nonterm, __pyx_n_s_replacement, __pyx_n_s_pairs, __pyx_n_s_nt, __pyx_n_s_rep, __pyx_n_s_cal, __pyx_n_s_ral, __pyx_n_s_opts, __pyx_n_s_result, __pyx_n_s_nt, __pyx_n_s_rep); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 1449, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__32);
-  __Pyx_GIVEREF(__pyx_tuple__32);
-  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(6, 0, 19, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_replace, 1449, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) __PYX_ERR(0, 1449, __pyx_L1_error)
+  __pyx_tuple__33 = PyTuple_Pack(19, __pyx_n_s_root, __pyx_n_s_replacements, __pyx_n_s_call_arc_labeling, __pyx_n_s_return_arc_labeling, __pyx_n_s_epsilon_on_replace, __pyx_n_s_return_label, __pyx_n_s_root_fst, __pyx_n_s_arc_type, __pyx_n_s_nonterm, __pyx_n_s_replacement, __pyx_n_s_pairs, __pyx_n_s_nt, __pyx_n_s_rep, __pyx_n_s_cal, __pyx_n_s_ral, __pyx_n_s_opts, __pyx_n_s_result, __pyx_n_s_nt, __pyx_n_s_rep); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 1449, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__33);
+  __Pyx_GIVEREF(__pyx_tuple__33);
+  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(6, 0, 19, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_replace, 1449, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(0, 1449, __pyx_L1_error)
 
   /* "pynini.pyx":1526
  * 
@@ -33749,10 +33737,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *   """
  *   union(*args)
  */
-  __pyx_tuple__34 = PyTuple_Pack(5, __pyx_n_s_args, __pyx_n_s_first, __pyx_n_s_rest, __pyx_n_s_lhs, __pyx_n_s_rhs); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 1526, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__34);
-  __Pyx_GIVEREF(__pyx_tuple__34);
-  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_union, 1526, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) __PYX_ERR(0, 1526, __pyx_L1_error)
+  __pyx_tuple__35 = PyTuple_Pack(5, __pyx_n_s_args, __pyx_n_s_first, __pyx_n_s_rest, __pyx_n_s_lhs, __pyx_n_s_rhs); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 1526, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__35);
+  __Pyx_GIVEREF(__pyx_tuple__35);
+  __pyx_codeobj__36 = (PyObject*)__Pyx_PyCode_New(0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__35, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_union, 1526, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__36)) __PYX_ERR(0, 1526, __pyx_L1_error)
 
   /* "pynini.pyx":1652
  * 
@@ -33761,10 +33749,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *                 ifst2,
  *                 PdtParentheses parens,
  */
-  __pyx_tuple__36 = PyTuple_Pack(10, __pyx_n_s_ifst1, __pyx_n_s_ifst2, __pyx_n_s_parens, __pyx_n_s_compose_filter, __pyx_n_s_left_pdt, __pyx_n_s_lhs, __pyx_n_s_rhs, __pyx_n_s_result, __pyx_n_s_compose_filter_enum, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 1652, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__36);
-  __Pyx_GIVEREF(__pyx_tuple__36);
-  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(5, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__36, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_pdt_compose, 1652, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) __PYX_ERR(0, 1652, __pyx_L1_error)
+  __pyx_tuple__37 = PyTuple_Pack(10, __pyx_n_s_ifst1, __pyx_n_s_ifst2, __pyx_n_s_parens, __pyx_n_s_compose_filter, __pyx_n_s_left_pdt, __pyx_n_s_lhs, __pyx_n_s_rhs, __pyx_n_s_result, __pyx_n_s_compose_filter_enum, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 1652, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__37);
+  __Pyx_GIVEREF(__pyx_tuple__37);
+  __pyx_codeobj__38 = (PyObject*)__Pyx_PyCode_New(5, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__37, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_pdt_compose, 1652, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__38)) __PYX_ERR(0, 1652, __pyx_L1_error)
 
   /* "pynini.pyx":1709
  * 
@@ -33773,10 +33761,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *                PdtParentheses parens,
  *                bool connect=True,
  */
-  __pyx_tuple__38 = PyTuple_Pack(9, __pyx_n_s_ipdt, __pyx_n_s_parens, __pyx_n_s_connect, __pyx_n_s_keep_parentheses, __pyx_n_s_weight, __pyx_n_s_pdt, __pyx_n_s_result, __pyx_n_s_wc, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(0, 1709, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__38);
-  __Pyx_GIVEREF(__pyx_tuple__38);
-  __pyx_codeobj__39 = (PyObject*)__Pyx_PyCode_New(5, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__38, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_pdt_expand, 1709, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__39)) __PYX_ERR(0, 1709, __pyx_L1_error)
+  __pyx_tuple__39 = PyTuple_Pack(9, __pyx_n_s_ipdt, __pyx_n_s_parens, __pyx_n_s_connect, __pyx_n_s_keep_parentheses, __pyx_n_s_weight, __pyx_n_s_pdt, __pyx_n_s_result, __pyx_n_s_wc, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__39)) __PYX_ERR(0, 1709, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__39);
+  __Pyx_GIVEREF(__pyx_tuple__39);
+  __pyx_codeobj__40 = (PyObject*)__Pyx_PyCode_New(5, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__39, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_pdt_expand, 1709, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__40)) __PYX_ERR(0, 1709, __pyx_L1_error)
 
   /* "pynini.pyx":1751
  * 
@@ -33785,10 +33773,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *   """
  *   pdt_replace(root, replacements, pdt_parser_type="left")
  */
-  __pyx_tuple__40 = PyTuple_Pack(14, __pyx_n_s_root, __pyx_n_s_replacements, __pyx_n_s_pdt_parser_type, __pyx_n_s_root_fst, __pyx_n_s_arc_type, __pyx_n_s_nonterm, __pyx_n_s_replacement, __pyx_n_s_pairs, __pyx_n_s_nt, __pyx_n_s_rep, __pyx_n_s_result, __pyx_n_s_parens, __pyx_n_s_nt, __pyx_n_s_rep); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(0, 1751, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__40);
-  __Pyx_GIVEREF(__pyx_tuple__40);
-  __pyx_codeobj__41 = (PyObject*)__Pyx_PyCode_New(3, 0, 14, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__40, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_pdt_replace, 1751, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__41)) __PYX_ERR(0, 1751, __pyx_L1_error)
+  __pyx_tuple__41 = PyTuple_Pack(14, __pyx_n_s_root, __pyx_n_s_replacements, __pyx_n_s_pdt_parser_type, __pyx_n_s_root_fst, __pyx_n_s_arc_type, __pyx_n_s_nonterm, __pyx_n_s_replacement, __pyx_n_s_pairs, __pyx_n_s_nt, __pyx_n_s_rep, __pyx_n_s_result, __pyx_n_s_parens, __pyx_n_s_nt, __pyx_n_s_rep); if (unlikely(!__pyx_tuple__41)) __PYX_ERR(0, 1751, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__41);
+  __Pyx_GIVEREF(__pyx_tuple__41);
+  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(3, 0, 14, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_pdt_replace, 1751, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) __PYX_ERR(0, 1751, __pyx_L1_error)
 
   /* "pynini.pyx":1812
  * 
@@ -33797,10 +33785,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *   """
  *   pdt_reverse(ipdt, parens)
  */
-  __pyx_tuple__42 = PyTuple_Pack(4, __pyx_n_s_ipdt, __pyx_n_s_parens, __pyx_n_s_pdt, __pyx_n_s_result); if (unlikely(!__pyx_tuple__42)) __PYX_ERR(0, 1812, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__42);
-  __Pyx_GIVEREF(__pyx_tuple__42);
-  __pyx_codeobj__43 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__42, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_pdt_reverse, 1812, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__43)) __PYX_ERR(0, 1812, __pyx_L1_error)
+  __pyx_tuple__43 = PyTuple_Pack(4, __pyx_n_s_ipdt, __pyx_n_s_parens, __pyx_n_s_pdt, __pyx_n_s_result); if (unlikely(!__pyx_tuple__43)) __PYX_ERR(0, 1812, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__43);
+  __Pyx_GIVEREF(__pyx_tuple__43);
+  __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__43, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_pdt_reverse, 1812, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) __PYX_ERR(0, 1812, __pyx_L1_error)
 
   /* "pynini.pyx":1835
  * 
@@ -33809,10 +33797,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *                      PdtParentheses parens,
  *                      queue_type=b"fifo",
  */
-  __pyx_tuple__44 = PyTuple_Pack(8, __pyx_n_s_ipdt, __pyx_n_s_parens, __pyx_n_s_queue_type, __pyx_n_s_keep_parentheses, __pyx_n_s_path_gc, __pyx_n_s_pdt, __pyx_n_s_result, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__44)) __PYX_ERR(0, 1835, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__44);
-  __Pyx_GIVEREF(__pyx_tuple__44);
-  __pyx_codeobj__45 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__44, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_pdt_shortestpath, 1835, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__45)) __PYX_ERR(0, 1835, __pyx_L1_error)
+  __pyx_tuple__45 = PyTuple_Pack(8, __pyx_n_s_ipdt, __pyx_n_s_parens, __pyx_n_s_queue_type, __pyx_n_s_keep_parentheses, __pyx_n_s_path_gc, __pyx_n_s_pdt, __pyx_n_s_result, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__45)) __PYX_ERR(0, 1835, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__45);
+  __Pyx_GIVEREF(__pyx_tuple__45);
+  __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__45, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_pdt_shortestpath, 1835, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) __PYX_ERR(0, 1835, __pyx_L1_error)
 
   /* "pynini.pyx":2041
  * 
@@ -33821,10 +33809,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *                 bool keep_parentheses=False):
  *   """
  */
-  __pyx_tuple__46 = PyTuple_Pack(7, __pyx_n_s_impdt, __pyx_n_s_parens, __pyx_n_s_connect, __pyx_n_s_keep_parentheses, __pyx_n_s_mpdt, __pyx_n_s_result, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__46)) __PYX_ERR(0, 2041, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__46);
-  __Pyx_GIVEREF(__pyx_tuple__46);
-  __pyx_codeobj__47 = (PyObject*)__Pyx_PyCode_New(4, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__46, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_mpdt_expand, 2041, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__47)) __PYX_ERR(0, 2041, __pyx_L1_error)
+  __pyx_tuple__47 = PyTuple_Pack(7, __pyx_n_s_impdt, __pyx_n_s_parens, __pyx_n_s_connect, __pyx_n_s_keep_parentheses, __pyx_n_s_mpdt, __pyx_n_s_result, __pyx_n_s_opts); if (unlikely(!__pyx_tuple__47)) __PYX_ERR(0, 2041, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__47);
+  __Pyx_GIVEREF(__pyx_tuple__47);
+  __pyx_codeobj__48 = (PyObject*)__Pyx_PyCode_New(4, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__47, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_mpdt_expand, 2041, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__48)) __PYX_ERR(0, 2041, __pyx_L1_error)
 
   /* "pynini.pyx":2078
  * 
@@ -33833,10 +33821,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *   """
  *   mpdt_reverse(impdt, parens)
  */
-  __pyx_tuple__48 = PyTuple_Pack(5, __pyx_n_s_impdt, __pyx_n_s_parens, __pyx_n_s_mpdt, __pyx_n_s_result_fst, __pyx_n_s_result_parens); if (unlikely(!__pyx_tuple__48)) __PYX_ERR(0, 2078, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__48);
-  __Pyx_GIVEREF(__pyx_tuple__48);
-  __pyx_codeobj__49 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__48, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_mpdt_reverse, 2078, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__49)) __PYX_ERR(0, 2078, __pyx_L1_error)
+  __pyx_tuple__49 = PyTuple_Pack(5, __pyx_n_s_impdt, __pyx_n_s_parens, __pyx_n_s_mpdt, __pyx_n_s_result_fst, __pyx_n_s_result_parens); if (unlikely(!__pyx_tuple__49)) __PYX_ERR(0, 2078, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__49);
+  __Pyx_GIVEREF(__pyx_tuple__49);
+  __pyx_codeobj__50 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__49, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_mpdt_reverse, 2078, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__50)) __PYX_ERR(0, 2078, __pyx_L1_error)
 
   /* "pynini.pyx":2720
  * 
@@ -33845,28 +33833,28 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *   # The junk in the `functools.wraps` decorator is due to a long-standing bug
  *   # in Python 2.7 (https://bugs.python.org/issue3445).
  */
-  __pyx_tuple__50 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__50)) __PYX_ERR(0, 2720, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__50);
-  __Pyx_GIVEREF(__pyx_tuple__50);
-  __pyx_codeobj__51 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__50, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_copy_patch, 2720, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__51)) __PYX_ERR(0, 2720, __pyx_L1_error)
+  __pyx_tuple__51 = PyTuple_Pack(3, __pyx_n_s_fnc, __pyx_n_s_patch, __pyx_n_s_patch); if (unlikely(!__pyx_tuple__51)) __PYX_ERR(0, 2720, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__51);
+  __Pyx_GIVEREF(__pyx_tuple__51);
+  __pyx_codeobj__52 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__51, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pynini_pyx, __pyx_n_s_copy_patch, 2720, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__52)) __PYX_ERR(0, 2720, __pyx_L1_error)
 
   /* "(tree fragment)":1
  * def __pyx_unpickle_PdtParentheses(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     if __pyx_checksum != 0x078cdb7:
  *         from pickle import PickleError as __pyx_PickleError
  */
-  __pyx_tuple__52 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__52)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__52);
-  __Pyx_GIVEREF(__pyx_tuple__52);
-  __pyx_codeobj__53 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__52, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_PdtParentheses, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__53)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __pyx_tuple__54 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__54)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__54);
-  __Pyx_GIVEREF(__pyx_tuple__54);
-  __pyx_codeobj__55 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__54, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_MPdtParentheses, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__55)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __pyx_tuple__56 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__56)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__56);
-  __Pyx_GIVEREF(__pyx_tuple__56);
-  __pyx_codeobj__57 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__56, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Far, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__57)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__53 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__53)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__53);
+  __Pyx_GIVEREF(__pyx_tuple__53);
+  __pyx_codeobj__54 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__53, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_PdtParentheses, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__54)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__55 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__55)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__55);
+  __Pyx_GIVEREF(__pyx_tuple__55);
+  __pyx_codeobj__56 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__55, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_MPdtParentheses, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__56)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__57 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__57)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__57);
+  __Pyx_GIVEREF(__pyx_tuple__57);
+  __pyx_codeobj__58 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__57, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Far, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__58)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -34613,6 +34601,18 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem((PyObject *)__pyx_ptype_6pynini_Fst->tp_dict, __pyx_n_s_read_from_string_2, __pyx_t_2) < 0) __PYX_ERR(0, 434, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   PyType_Modified(__pyx_ptype_6pynini_Fst);
+
+  /* "pynini.pyx":1302
+ * 
+ * 
+ * def get_byte_symbol_table():             # <<<<<<<<<<<<<<
+ *   """Returns a symbol table containing all bytes."""
+ *   return _init_SymbolTable(GetByteSymbolTable())
+ */
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_6pynini_23get_byte_symbol_table, NULL, __pyx_n_s_pynini); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1302, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_byte_symbol_table, __pyx_t_2) < 0) __PYX_ERR(0, 1302, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "pynini.pyx":1310
  * 

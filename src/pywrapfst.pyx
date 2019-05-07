@@ -1398,8 +1398,7 @@ cdef class _Fst(object):
     proc = subprocess.Popen(("dot", "-Tsvg"),
                             stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE)
-    (out, _) = proc.communicate(dot.encode("utf8"))
-    return out.decode("utf8")
+    return proc.communicate(dot.encode("utf8"))[0]
 
   def _repr_svg_(self):
     """IPython notebook magic to produce an SVG of the FST using GraphViz.
@@ -2710,7 +2709,7 @@ cdef class _MutableFst(_Fst):
 
 
 cdef _Fst _init_Fst(FstClass_ptr tfst):
-  if tfst.Properties(fst.kError, True):
+  if tfst.Properties(fst.kError, True) == fst.kError:
     raise FstOpError("Operation failed")
   cdef _Fst ofst = _Fst.__new__(_Fst)
   ofst._fst.reset(tfst)
@@ -2718,7 +2717,7 @@ cdef _Fst _init_Fst(FstClass_ptr tfst):
 
 
 cdef _MutableFst _init_MutableFst(MutableFstClass_ptr tfst):
-  if tfst.Properties(fst.kError, True):
+  if tfst.Properties(fst.kError, True) == fst.kError:
     raise FstOpError("Operation failed")
   cdef _MutableFst ofst = _MutableFst.__new__(_MutableFst)
   ofst._fst.reset(tfst)
@@ -2728,7 +2727,7 @@ cdef _MutableFst _init_MutableFst(MutableFstClass_ptr tfst):
 
 
 cdef _Fst _init_XFst(FstClass_ptr tfst):
-  if tfst.Properties(fst.kMutable, True):
+  if tfst.Properties(fst.kMutable, True) == fst.kMutable:
     return _init_MutableFst(static_cast[MutableFstClass_ptr](tfst))
   else:
     return _init_Fst(tfst)

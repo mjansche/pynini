@@ -1,7 +1,14 @@
+v. 2.0.2 (compatible with OpenFst 1.7.0)
+========================================
+
+* OpenFst compatibility release
+
 v. 2.0.2 (compatible with OpenFst 1.6.9)
 ========================================
 
 * Improves SVG rendering code for Jupyter
+* Simplifies implementation of cross-product and removes special case
+  string-to-string optimization (for faster compilation)
 * SymbolTables gain methods for (un)pickling and (de)serialization
 
 v. 2.0.1 (compatible with OpenFst 1.6.9)

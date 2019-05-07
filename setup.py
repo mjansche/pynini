@@ -16,8 +16,9 @@
 # pynini.opengrm.org.
 
 
-from setuptools import Extension, setup
+from io import open
 from os import path
+from setuptools import Extension, setup
 
 COMPILE_ARGS = ["-std=c++11",
                 "-Wno-unused-function",
@@ -66,7 +67,7 @@ with open(path.join(this_directory, "README.md"), encoding="utf8") as source:
 
 setup(
     name="pynini",
-    version="2.0.2",
+    version="2.0.3",
     description="Finite-state grammar compilation library",
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -39,21 +39,50 @@ typename T::value_type::second_type LookupOrInsertNew(
   std::pair<typename T::iterator, bool> ret =
       collection->insert(typename T::value_type(
           key, static_cast<typename T::value_type::second_type>(nullptr)));
-  if (ret.second) {
-    MapUtilAssignNewDefaultInstance(&(ret.first->second));
-  }
+  if (ret.second) MapUtilAssignNewDefaultInstance(&(ret.first->second));
   return ret.first->second;
 }
 
 // Strings stuff.
 
 namespace strings {
+namespace internal {
+
+inline void StringReplace(string *full, const string &before,
+                          const string &after) {
+  size_t pos = 0;
+  while ((pos = full->find(before, pos)) != string::npos) {
+    full->replace(pos, before.size(), after);
+    pos += after.size();
+  }
+}
+
+inline void StripTrailingAsciiWhitespace(string *full) {
+  const auto lambda = [](char ch) { return !std::isspace(ch); };
+  const auto pos = std::find_if(full->rbegin(), full->rend(), lambda).base();
+  full->erase(pos, full->end());
+}
+
+}  // namespace internal
 
 string Join(const std::vector<string> &elements, const string &delim);
 
 std::vector<string> Split(const string &full, const char *delim);
 
 std::vector<string> Split(const string &full, const string &delim);
+
+inline string StringReplace(const string &full, const string &before,
+                            const string &after, bool /* ignored */) {
+  string copy(full);
+  internal::StringReplace(&copy, before, after);
+  return copy;
+}
+
+inline string StripTrailingAsciiWhitespace(const string &full) {
+  string copy(full);
+  internal::StripTrailingAsciiWhitespace(&copy);
+  return copy;
+}
 
 }  // namespace strings
 

@@ -6,7 +6,6 @@
 """Tests for the Pynini grammar compilation module."""
 
 
-import itertools
 import math
 import string
 import unittest
@@ -248,11 +247,14 @@ class PyniniExceptionsTest(unittest.TestCase):
 
   def testGarbageCallArcLabelingReplaceRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
-      unused_f = replace(self.f, f=self.f, call_arc_labeling="nonexistent")
+      unused_f = replace(
+          self.f, (("f", self.f),), call_arc_labeling="nonexistent")
+
 
   def testGarbageReturnArcLabelingReplaceRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
-      unused_f = replace(self.f, f=self.f, return_arc_labeling="nonexistent")
+      unused_f = replace(
+          self.f, (("f", self.f),), call_arc_labeling="nonexistent")
 
   def testGarbageInputTokenTypeStringFileRaisesFstArgError(self):
     with self.assertRaises(FstArgError):
@@ -321,14 +323,6 @@ class PyniniExceptionsTest(unittest.TestCase):
     with self.assertRaises(FstArgError):
       unused_w = Weight("nonexistent", 1)
 
-  def testNonexistentKeyFindSymbolTableRaisesKeyError(self):
-    with self.assertRaises(KeyError):
-      self.s.find("nonexistent")
-
-  def testNonexistentIndexFindSymbolTableRaisesKeyError(self):
-    with self.assertRaises(KeyError):
-      self.s.find(1024)
-
 
 class PyniniLenientlyComposeTest(unittest.TestCase):
 
@@ -366,11 +360,24 @@ class PyniniLenientlyComposeTest(unittest.TestCase):
                      "England")
 
 
+class PyniniMatchesTest(unittest.TestCase):
+
+  def testMatches(self):
+    m1 = "abc123"
+    m2 = u("a", "b", "c", "1", "2", "3").closure()
+    self.assertTrue(matches(m1, m2))
+
+  def testNotMatch(self):
+    m1 = "abc123"
+    m2 = u("a", "b", "c").closure()
+    self.assertFalse(matches(m1, m2))
+
+
 class PyniniPdtReplaceTest(unittest.TestCase):
 
   def testPdtReplace(self):
     s_rhs = union("a[S]b", "ab")  # a^n b^n.
-    (f, parens) = pdt_replace("[S]", S=s_rhs)
+    (f, parens) = pdt_replace("[S]", (("S", s_rhs),))
     for n in xrange(1, 100):
       anbn = n * "a" + n * "b"
       self.assertEqual(pdt_compose(f, anbn, parens, compose_filter="expand"),
@@ -384,28 +391,31 @@ class PyniniReplaceTest(unittest.TestCase):
   def testReplace(self):
     root = acceptor("[Number] [Measure]")
     singular_numbers = transducer("1", "one")
-    singular_measurements = string_map((("ft", "foot"), ("in", "inch"),
-                                        ("cm", "centimeter"), ("m", "meter"),
-                                        ("kg", "kilogram")))
-    singular = replace(root, Number=singular_numbers,
-                       Measure=singular_measurements,
-                       call_arc_labeling="neither",
-                       return_arc_labeling="neither")
+    singular_measurements = string_map(
+        (("ft", "foot"), ("in", "inch"), ("cm", "centimeter"), ("m", "meter"),
+         ("kg", "kilogram")))
+    singular = replace(
+        root, (("Number", singular_numbers), ("Measure",
+                                              singular_measurements)),
+        call_arc_labeling="neither",
+        return_arc_labeling="neither")
     self.assertEqual(optimize(project("1 ft" * singular, True)), "one foot")
-    plural_numbers = string_map((("2", "two"), ("3", "three"), ("4", "four"),
-                                 ("5", "five"), ("6", "six"), ("7", "seven"),
-                                 ("8", "eight"), ("9", "nine")))
-    plural_measurements = string_map((("ft", "feet"), ("in", "inches"),
-                                      ("cm", "centimeter"), ("m", "meters"),
-                                      ("kg", "kilograms")))
-    plural = replace(root, Number=plural_numbers, Measure=plural_measurements,
-                     call_arc_labeling="neither", return_arc_labeling="neither")
+    plural_numbers = string_map(
+        (("2", "two"), ("3", "three"), ("4", "four"), ("5", "five"),
+         ("6", "six"), ("7", "seven"), ("8", "eight"), ("9", "nine")))
+    plural_measurements = string_map(
+        (("ft", "feet"), ("in", "inches"), ("cm", "centimeter"),
+         ("m", "meters"), ("kg", "kilograms")))
+    plural = replace(
+        root, (("Number", plural_numbers), ("Measure", plural_measurements)),
+        call_arc_labeling="neither",
+        return_arc_labeling="neither")
     self.assertEqual(optimize(project("2 m" * plural, True)), "two meters")
 
   def testReplaceWithCyclicDependenciesRaisesFstOpError(self):
     s_rhs = union("a[S]b", "ab")  # a^n b^n.
     with self.assertRaises(FstOpError):
-      unused_f = replace("[S]", S=s_rhs)
+      unused_f = replace("[S]", (("S", s_rhs),))
 
 
 class PyniniStringTest(unittest.TestCase):
@@ -730,7 +740,7 @@ class PyniniStringPathsTest(unittest.TestCase):
     cls.f = union(*(transducer(*triple) for triple in cls.triples))
 
   def testStringPaths(self):
-    for (triple, triple_res) in itertools.izip(self.f.paths(), self.triples):
+    for (triple, triple_res) in zip(self.f.paths(), self.triples):
       self.assertEqual(triple_res, triple)
 
   def testStringPathsIterIStrings(self):
@@ -818,6 +828,11 @@ class PyniniWeightTest(unittest.TestCase):
     cls.log64_one_half = Weight("log64", one_half)
     cls.log64_two = Weight("log64", two)
 
+  # Helper.
+
+  def assertApproxEquals(self, w1, w2):
+    self.assertAlmostEqual(float(w1), float(w2), self.delta)
+
   # Tropical weights.
 
   def testTropicalZeroPlusZeroEqualsZero(self):
@@ -896,7 +911,7 @@ class PyniniWeightTest(unittest.TestCase):
   def testLogOnePlusOneEqualsTwo(self):
     one = self.log_one
     two = self.log_two
-    self.assertAlmostEqual(plus(one, one), two, delta=self.delta)
+    self.assertApproxEquals(plus(one, one), two)
 
   def testLogOnePlusZeroEqualsOne(self):
     one = self.log_one
@@ -908,8 +923,7 @@ class PyniniWeightTest(unittest.TestCase):
     half = self.log_half
     one = self.log_one
     one_half = self.log_one_half
-    self.assertAlmostEqual(float(plus(half, one)),
-                           float(one_half), delta=self.delta)
+    self.assertApproxEquals(plus(half, one), one_half)
 
   def testLogZeroTimesZeroEqualsZero(self):
     zero = self.log_zero
@@ -969,7 +983,7 @@ class PyniniWeightTest(unittest.TestCase):
   def testLog64OnePlusOneEqualsTwo(self):
     one = self.log64_one
     two = self.log64_two
-    self.assertAlmostEqual(plus(one, one), two, delta=self.delta)
+    self.assertApproxEquals(plus(one, one), two)
 
   def testLog64OnePlusZeroEqualsOne(self):
     one = self.log64_one
@@ -981,8 +995,7 @@ class PyniniWeightTest(unittest.TestCase):
     half = self.log64_half
     one = self.log64_one
     one_half = self.log64_one_half
-    self.assertAlmostEqual(float(plus(half, one)),
-                           float(one_half), delta=self.delta)
+    self.assertApproxEquals(plus(half, one), one_half)
 
   def testLog64ZeroTimesZeroEqualsZero(self):
     zero = self.log64_zero
@@ -1037,7 +1050,7 @@ class PyniniWeightTest(unittest.TestCase):
 class PyniniWorkedExampleTest(unittest.TestCase):
 
   def testWorkedExample(self):
-    pairs = itertools.izip(string.ascii_lowercase, string.ascii_uppercase)
+    pairs = zip(string.ascii_lowercase, string.ascii_uppercase)
     self.upcaser = string_map(pairs).closure()
     self.downcaser = invert(self.upcaser)
     awords = "You do have some cheese do you".lower().split()

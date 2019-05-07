@@ -18,27 +18,24 @@
 #ifndef PYNINI_STRINGFILE_H_
 #define PYNINI_STRINGFILE_H_
 
+#include <istream>
 #include <string>
 using std::string;
 #include <utility>
 
-#include <iostream>
 #include <fst/fstlib.h>
 #include "stringcompile.h"
 #include <re2/stringpiece.h>
 
 namespace fst {
-
 namespace internal {
 
 // Basic line-by-line file iterator.
 
 class StringFile {
  public:
-  StringFile(std::ifstream &istrm, const string &fname)  // NOLINT
-      : istrm_(istrm),
-        linenum_(0),
-        fname_(fname) {
+  StringFile(std::istream &istrm, const string &fname)  // NOLINT
+      : istrm_(istrm), linenum_(0), fname_(fname) {
     Next();
   }
 
@@ -57,7 +54,7 @@ class StringFile {
  private:
   bool ReadLineOrClear();
 
-  std::ifstream &istrm_;
+  std::istream &istrm_;
   string line_;
   size_t linenum_;
   const string fname_;
@@ -67,7 +64,7 @@ class StringFile {
 
 class PairStringFile {
  public:
-  PairStringFile(std::ifstream &istrm, const string &fname)  // NOLINT
+  PairStringFile(std::istream &istrm, const string &fname)  // NOLINT
       : sf_(istrm, fname) {
     Parse();
   }
@@ -112,7 +109,7 @@ class FstStringFile {
  public:
   using Weight = typename Arc::Weight;
 
-  FstStringFile(std::ifstream &istrm,  // NOLINT
+  FstStringFile(std::istream &istrm,  // NOLINT
                 const string &fname, StringTokenType ttype,
                 const SymbolTable *syms = nullptr)
       : sf_(istrm, fname), ttype_(ttype), syms_(syms) {
@@ -161,7 +158,7 @@ class PairFstStringFile {
  public:
   using Weight = typename Arc::Weight;
 
-  PairFstStringFile(std::ifstream &istrm,  // NOLINT
+  PairFstStringFile(std::istream &istrm,  // NOLINT
                     const string &fname, StringTokenType itype,
                     StringTokenType otype, const SymbolTable *isyms = nullptr,
                     const SymbolTable *osyms = nullptr)

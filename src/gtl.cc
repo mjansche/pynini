@@ -15,17 +15,20 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
+#include <algorithm>
+
 #include "gtl.h"
 
 namespace strings {
-
 namespace internal {
 
 size_t GetResultSize(const std::vector<string> &elements, size_t s_size) {
-  size_t length = 0;
-  for (const string &element : elements)
-    length += element.size();
-  return length + s_size * (elements.size() - 1);
+  // Sums length of strings.
+  const auto lambda = [](size_t partial, const string &right) {
+      return partial + right.size();
+  };
+  return (std::accumulate(elements.begin(), elements.end(), 0, lambda) +
+          s_size * (elements.size() - 1));
 }
 
 }  // namespace internal
@@ -56,7 +59,7 @@ std::vector<string> Split(const string &full, const char *delim) {
   while (found != string::npos) {
     prev = found + 1;
     found = full.find_first_of(delim, prev);
-    size_t size = found - prev;
+    size = found - prev;
     if (size > 0) result.push_back(full.substr(prev, size));
   }
   return result;

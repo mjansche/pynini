@@ -1,3 +1,12 @@
+v. 1.7 (compatible with OpenFst ?.?.?)
+======================================
+
+* Adds string_file support '#' comments; use "\#" for a '#' literal
+* Exposes `NO_STATE_ID`, `NO_LABEL`, etc., constants
+* Modifies `SymbolTable.find` to mimic C++ behavior
+* Modifies `replace` to mimic C++ behavior
+* Adds `match` function
+
 v. 1.6 (compatible with OpenFst 1.6.3)
 ======================================
 

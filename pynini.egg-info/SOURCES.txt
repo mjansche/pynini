@@ -57,7 +57,6 @@ src/repeat.h
 src/repeatscript.cc
 src/repeatscript.h
 src/sigma_star.h
-src/string-view-fst.h
 src/stringcompile.cc
 src/stringcompile.h
 src/stringcompilescript.cc
@@ -72,4 +71,5 @@ src/stringprintscript.cc
 src/stringprintscript.h
 src/stringtokentype.cc
 src/stringtokentype.h
+src/stripcomment.h
 testdata/cheese.map

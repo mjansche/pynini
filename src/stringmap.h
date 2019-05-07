@@ -26,6 +26,7 @@ using std::string;
 #include <utility>
 #include <vector>
 
+#include <iostream>
 #include <fst/fstlib.h>
 #include "optimize.h"
 #include "stringcompile.h"
@@ -72,13 +73,13 @@ bool CompileStringMap(Data *data, StringTokenType itype, StringTokenType otype,
   std::unique_ptr<SymbolTable> new_osyms(
       internal::GetSymbolTable(otype, osyms));
   // Converts the string pairs to vectors of arc labels.
+  std::vector<Label> ilabels;
+  std::vector<Label> olabels;
   for (; !data->Done(); data->Next()) {
-    std::vector<Label> ilabels;
     if (!StringToLabels<Label>(data->GetLeftString(), itype, &ilabels,
                                new_isyms.get())) {
       return false;
     }
-    std::vector<Label> olabels;
     if (!StringToLabels<Label>(data->GetRightString(), otype, &olabels,
                                new_osyms.get())) {
       return false;

@@ -41,24 +41,25 @@ void CrossProduct(
   // FST for temporary storage.
   OutputEpsilonMapper<Arc> oe_mapper;
   ArcMap(ofst, oe_mapper);
-  // Modifies output FST's input symbol table to include
   // Replaces input arcs on the lower language with epsilon, using a temporary
   // mutable FST to store the mapped lower language.
   VectorFst<Arc> tfst(ifst2);
   InputEpsilonMapper<Arc> ie_mapper;
   ArcMap(&tfst, ie_mapper);
+  // If a specific final weight is requested, apply it to all final states in
+  // the lower language.
+  if (final_weight != Weight::One()) {
+    for (StateIterator<VectorFst<Arc>> siter(tfst); !siter.Done();
+         siter.Next()) {
+      const auto state = siter.Value();
+      const auto &old_final_weight = tfst.Final(state);
+      if (old_final_weight != Weight::Zero()) {
+        tfst.SetFinal(state, Times(old_final_weight, final_weight));
+      }
+    }
+  }
   // Concatenates the mapped lower language into the output FST.
   Concat(ofst, tfst);
-  // Adds a superfinal state when a final weight argument is specified. This
-  // is equivalent to setting all final weights to their current value
-  // \otimes final_weight.
-  if (final_weight != Weight::One()) {
-    VectorFst<Arc> superfinal;
-    auto state = superfinal.AddState();
-    superfinal.SetStart(state);
-    superfinal.SetFinal(state, final_weight);
-    Concat(ofst, superfinal);
-  }
   static constexpr auto props = kAcceptor | kString;
   // Optimizes output, if both inputs are known to be string FSAs.
   if (ifst1.Properties(props, true) == props &&

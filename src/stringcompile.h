@@ -247,12 +247,12 @@ bool BracketedByteStringToLabels(const string &str,
       return false;
     } else if (!unbracketed.empty()) {
       RemoveBracketEscapes(&unbracketed);
-      for (auto label : unbracketed)
+      for (const auto label : unbracketed) {
         labels->push_back(static_cast<Label>(label));
-    } else {  // A non-empty bracketed span.
-      if (!ProcessBracketedSpan<Label>(&bracketed, labels, syms)) {
-        return false;
       }
+    } else if (!ProcessBracketedSpan<Label>(&bracketed, labels, syms)) {
+      // A non-empty bracketed span.
+      return false;
     }
   }
   return true;
@@ -282,8 +282,9 @@ bool BracketedUTF8StringToLabels(const string &str,
         AddUnicodeCodepointToSymbolTable(static_cast<Label>((*labels)[i]),
                                          syms);
       }
-    } else {  // A non-empty bracketed span.
-      if (!ProcessBracketedSpan<Label>(&bracketed, labels, syms)) return false;
+    } else if (!ProcessBracketedSpan<Label>(&bracketed, labels, syms)) {
+      // A non-empty bracketed span.
+      return false;
     }
   }
   return true;
@@ -297,7 +298,7 @@ bool SymbolStringToLabels(const string &str, const SymbolTable &syms,
   labels->reserve(tokens.size());
   for (const auto token : tokens) {
     const auto label = static_cast<Label>(syms.Find(token));
-    if (label == kNoLabel) {
+    if (label == SymbolTable::kNoSymbol) {
       LOG(ERROR) << "CompileSymbolString: Symbol \"" << token << "\" "
                  << "is not mapped to any integer label in symbol table "
                  << syms.Name();
@@ -334,6 +335,7 @@ bool CompileByteString(const string &str,
                        MutableFst<Arc> *fst) {
   using Label = typename Arc::Label;
   std::vector<Label> labels;
+  labels.reserve(str.size());
   for (auto ch : str) labels.push_back(static_cast<Label>(ch));
   std::unique_ptr<SymbolTable> syms(internal::byte_table_factory.GetTable());
   internal::CompileStringFromLabels<Arc>(labels, weight, fst);
@@ -401,6 +403,7 @@ bool CompileBracketedUTF8String(const string &str,
 template <class Label>
 bool StringToLabels(const string &str, StringTokenType ttype,
                     std::vector<Label> *labels, SymbolTable *syms) {
+  labels->clear();
   switch (ttype) {
     case BYTE:
       return internal::BracketedByteStringToLabels<Label>(str, labels, syms);

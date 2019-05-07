@@ -51,6 +51,7 @@ from fst cimport OLABEL_SORT
 
 from fst cimport ArcSort
 from fst cimport Closure
+from fst cimport Compose
 from fst cimport ComposeOptions
 from fst cimport Equal
 from fst cimport FstClass
@@ -408,11 +409,11 @@ cdef class Fst(_MutableFst):
     self._mfst = static_pointer_cast[MutableFstClass, FstClass](self._fst)
 
   def __init__(self, arc_type=b"standard"):
-    cdef VectorFstClass *tfst = new VectorFstClass(<string> tostring(arc_type))
-
-    if tfst.Properties(kError, True) == kError:
+    cdef unique_ptr[VectorFstClass] tfst
+    tfst.reset(new VectorFstClass(<string> tostring(arc_type)))
+    if tfst.get().Properties(kError, True) == kError:
        raise FstArgError("Unknown arc type: {!r}".format(arc_type))
-    self._from_MutableFstClass(tfst)
+    self._from_MutableFstClass(tfst.release())
 
   @classmethod
   def from_pywrapfst(cls, _Fst ifst):
@@ -1025,8 +1026,6 @@ cpdef Fst cdrewrite(tau,
                   deref(rho_compiled._fst), deref(sigma_star_compiled._fst),
                   result._mfst.get(), cd, cm)
   result._check_mutating_imethod()
-  if not result.num_states():
-    logging.warning("Compiled rewrite rule has no connected states")
   return result
 
 
@@ -1141,9 +1140,33 @@ cpdef Fst leniently_compose(ifst1, ifst2, sigma_star, compose_filter=b"auto",
                    deref(sigma_star_compiled._fst), result._mfst.get(),
                    deref(opts))
   result._check_mutating_imethod()
-  if not result.num_states():
-    logging.warning("Composed FST has no connected states")
   return result
+
+
+cpdef bool matches(ifst1, ifst2, compose_filter=b"auto"):
+  """
+  matches(ifst1, ifst2, compose_filter="auto")
+
+  Returns whether or not two FSTs "match" (have a non-empty composition).
+
+  This operation computes the composition of two FSTs, connects the result,
+  and then returns True iff the composition is non-empty (has a valid start
+  state); the resulting composition is then discarded. Normally the first
+  argument is a string and the second an acceptor, but many other sensible
+  configurations are possible.
+
+  Args:
+    ifst1: The first input FST.
+    ifst2: The second input FST.
+    compose_filter: A string matching a known composition filter; one of:
+        "alt_sequence", "auto", "match", "null", "sequence", "trivial".
+
+  Returns:
+    True if the composition of ifst1 and ifst2 is non-null, else False.
+  """
+  cdef Fst tfst = compose(ifst1, ifst2, compose_filter=compose_filter)
+  # If the connected cascade FST has no start state, composition failed.
+  return tfst._mfst.get().Start() != kNoStateId
 
 
 cpdef Fst string_file(filename,
@@ -1156,6 +1179,11 @@ cpdef Fst string_file(filename,
 
   Creates a transducer that maps between elements of mappings read from
   a tab-delimited file.
+
+  The comment character is #, and has scope until the end of the line. Any
+  preceding whitespace before a comment is ignored. To use the '#' literal
+  (i.e., to ensure it is not interpreted as the start of a comment) escape it
+  with \; the escaping \ in the string "\#" also ignored.
 
   Args:
     filename: The path to a file consisting of lines of input/output pairs
@@ -1245,25 +1273,25 @@ cpdef Fst string_map(pairs,
   else:
     otype = _get_token_type(tostring(output_token_type))
   cdef Fst result = Fst(arc_type)
-  cdef vector[StringPair] new_pairs
   if hasattr(pairs, "iteritems"):
     pairs = pairs.iteritems()
   elif hasattr(pairs, "items"):
     pairs = pairs.items()
+  cdef vector[StringPair] strings
   for pair in pairs:
     if hasattr(pair, "__iter__"):
       if len(pair) == 2:
-        new_pairs.push_back(StringPair(tostring(pair[0]),
-                                       tostring(pair[1])))
+        strings.push_back(StringPair(tostring(pair[0]),
+                                     tostring(pair[1])))
       elif len(pair) == 1:
         string = tostring(pair[0])
-        new_pairs.push_back(StringPair(string, string))
+        strings.push_back(StringPair(string, string))
       else:
         raise FstArgError("Mappings must be of length 1 or 2")
     else:
       string = tostring(pair)
-      new_pairs.push_back(StringPair(string, string))
-  cdef bool success = StringMap(new_pairs, itype, otype,
+      strings.push_back(StringPair(string, string))
+  cdef bool success = StringMap(strings, itype, otype,
                                 result._mfst.get(), isyms, osyms)
   if not success:
     raise FstArgError("String map compilation failed")
@@ -1326,8 +1354,6 @@ def _compose_patch(fnc):
        raise FstOpError("Operation failed")
     _maybe_arcsort(lhs._mfst.get(), rhs._mfst.get())
     lhs = _init_Fst_from_MutableFst(fnc(lhs, rhs, *args, **kwargs))
-    if not lhs.num_states():
-      logging.warning("Composed FST has no connected states")
     return lhs
   return patch
 
@@ -1428,14 +1454,14 @@ equivalent = _comp_merge_patch(pywrapfst.equivalent)
 randequivalent = _comp_merge_patch(pywrapfst.randequivalent)
 
 
-def replace(root, *,
+def replace(root,
+            replacements,
             call_arc_labeling=b"neither",
             return_arc_labeling=b"neither",
             bool epsilon_on_replace=False,
-            int64 return_label=0,
-            **replacements):
+            int64 return_label=0):
   """
-  replace(root, **replacements, call_arc_labeling="neither",
+  replace(root, replacements, call_arc_labeling="neither",
           return_arc_labeling="neither", epsilon_on_replace=False,
           return_label=0)
 
@@ -1454,10 +1480,8 @@ def replace(root, *,
 
   Args:
     root: The root FST.
-    **replacements: Keyword argument label/FST pairs to be replaced in
-       `root_fst`. For example, they keyword argument `DT=union("the", "a")`
-       indicates that all instances of label "DT" should be replaced by the
-       union of "the" and "a".
+    replacements: An iterable containing label/FST pairs. If the iterable
+       implements .iteritems or .items, this is used to extract the pairs.
     call_arc_labeling: A string indicating which call arc labels should be
         non-epsilon. One of: "input" (default), "output", "both", "neither".
         This value is set to "neither" if epsilon_on_replace is True.
@@ -1480,15 +1504,21 @@ def replace(root, *,
   """
   cdef Fst root_fst = _compile_or_copy_Fst(root)
   cdef string arc_type = root_fst.arc_type()
-  cdef vector[StringFstClassPair] pairs
+  if hasattr(replacements, "iteritems"):
+    replacements = replacements.iteritems()
+  if hasattr(replacements, "items"):
+    replacements = replacements.items()
   # This has the pleasant effect of preventing Python from garbage-collecting
   # these FSTs until we're ready.
   # TODO(kbg): Is there a better way?
-  replacement_set = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type)) for
-                     (nt, rep) in replacements.iteritems()]
+  replacements = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type)) for
+                  (nt, rep) in replacements]
+
   cdef string nonterm
   cdef Fst replacement
-  for (nonterm, replacement) in replacement_set:
+  cdef vector[StringFstClassPair] pairs
+  pairs.reserve(len(replacements))
+  for (nonterm, replacement) in replacements:
     pairs.push_back(StringFstClassPair(nonterm, replacement._fst.get()))
   cdef ReplaceLabelType cal = _get_replace_label_type(
       tostring(call_arc_labeling), epsilon_on_replace)
@@ -1681,8 +1711,6 @@ def pdt_compose(ifst1,
   opts.reset(new PdtComposeOptions(True, compose_filter_enum))
   PdtCompose(deref(lhs._fst), deref(rhs._fst), parens._parens,
              result._mfst.get(), deref(opts), left_pdt)
-  if not result.num_states():
-    logging.warning("Composed PDT has no connected states")
   result._check_mutating_imethod()
   # If the "expand" filter is selected, all parentheses have been mapped to
   # epsilon. This conveniently removes the arcs that result.
@@ -1735,12 +1763,9 @@ def pdt_expand(ipdt,
   result._check_mutating_imethod()
   return result
 
-
-def pdt_replace(root, *,
-                pdt_parser_type=b"left",
-                **replacements):
+def pdt_replace(root, replacements, pdt_parser_type=b"left"):
   """
-  pdt_replace(root, pdt_parser_type="left", **replacements)
+  pdt_replace(root, replacements, pdt_parser_type="left")
 
   Constructively replaces arcs in an FST with other FST(s), producing a PDT.
 
@@ -1760,12 +1785,10 @@ def pdt_replace(root, *,
 
   Args:
     root: The root FST.
+    replacements: An iterable containing string/FST pairs. If the iterable
+       implements .iteritems or .items, this is used to extract the pairs.
     pdt_parser_type: A string matching a known PdtParserType. One of: "left"
         (default), "left_sr".
-    **replacements: Keyword argument label/FST pairs to be replaced in
-       `root_fst`. For example, the keyword argument `DT=union("the", "a")`
-       indicates that all instances of label "DT" should be replaced by the
-       union of "the" and "a".
 
   Returns:
    An (Fst, PdtParentheses) pair defining a PDT resulting from PDT replacement.
@@ -1777,15 +1800,20 @@ def pdt_replace(root, *,
   """
   cdef Fst root_fst = _compile_or_copy_Fst(root)
   cdef string arc_type = root_fst.arc_type()
-  cdef vector[StringFstClassPair] pairs
+  if hasattr(replacements, "iteritems"):
+    replacements = replacements.iteritems()
+  elif hasattr(replacements, "items"):
+    replacements = replacements.items()
   # This has the pleasant effect of preventing Python from garbage-collecting
   # these FSTs until we're ready.
   # TODO(kbg): Is there a better way?
-  replacement_set = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type))
-                     for (nt, rep) in replacements.iteritems()]
+  replacements = [(tostring(nt), _compile_or_copy_Fst(rep, arc_type)) for
+                  (nt, rep) in replacements]
   cdef string nonterm
   cdef Fst replacement
-  for (nonterm, replacement) in replacement_set:
+  cdef vector[StringFstClassPair] pairs
+  pairs.reserve(len(replacements))
+  for (nonterm, replacement) in replacements:
     pairs.push_back(StringFstClassPair(nonterm, replacement._fst.get()))
   cdef Fst result = Fst(arc_type)
   cdef PdtParentheses parens = PdtParentheses()
@@ -2021,8 +2049,6 @@ cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens,
   opts.reset(new MPdtComposeOptions(True, compose_filter_enum))
   MPdtCompose(deref(lhs._fst), deref(rhs._fst), parens._parens,
               parens._assign, result._mfst.get(), deref(opts), left_mpdt)
-  if not result.num_states():
-    logging.warning("Composed MPDT has no connected states")
   if result._fst.get().Properties(kError, True) == kError:
     raise FstOpError("Operation failed")
   # If the "expand" filter is selected, all parentheses have been mapped to
@@ -2336,10 +2362,8 @@ cdef class Far(object):
   Args:
     filename: A string indicating the filename.
     mode: FAR IO mode; one of: "r" (open for reading), "w" (open for writing).
-    arc_type: Desired arc type; this is ignored if the FAR is opened for
-        reading.
-    far_type: Desired FAR type; this is ignored if the FAR is opened for
-        reading.
+    arc_type: Desired arc type; ignored if the FAR is opened for reading.
+    far_type: Desired FAR type; ignored if the FAR is opened for reading.
   """
 
   cdef char _mode
@@ -2423,7 +2447,7 @@ cdef class Far(object):
     elif self._mode == b"w":
       return self._writer.far_type()
     else:
-      return "closed"
+      return b"closed"
 
   cpdef string mode(self):
     """
@@ -2618,6 +2642,13 @@ from pywrapfst import FstBadWeightError
 from pywrapfst import \
     FstDeletedConstructorError
 from pywrapfst import FstIndexError
+
+
+# FST constants.
+
+from pywrapfst import NO_LABEL
+from pywrapfst import NO_STATE_ID
+from pywrapfst import NO_SYMBOL
 
 
 # FST properties.

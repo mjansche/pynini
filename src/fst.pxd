@@ -117,8 +117,8 @@ cdef extern from "<fst/fstlib.h>" namespace "fst" nogil:
 
   # Default argument constants.
   const float kDelta
+  const int64 kNoLabel
   const int64 kNoStateId
-
 
   enum ClosureType:
     CLOSURE_STAR
@@ -290,6 +290,12 @@ cdef extern from "<fst/script/fstscript.h>" namespace "fst::script" nogil:
 
     @staticmethod
     const WeightClass &NoWeight(const string &)
+
+  # Aliased so the Cython transpiler can sort out the overloading.
+
+  cdef bool Eq "operator=="(const WeightClass &, const WeightClass &)
+
+  cdef bool Ne "operator!="(const WeightClass &, const WeightClass &)
 
   cdef WeightClass Plus(const WeightClass &, const WeightClass &)
 

@@ -69,14 +69,6 @@ class PathIterator {
 
   const std::vector<Label> &OLabels() const { return path_olabels_; }
 
-  // For backwards compatibility only.
-
-  OPENFST_DEPRECATED("Use ILabels() instead")
-  const std::vector<Label> &IValue() const { return ILabels(); }
-
-  OPENFST_DEPRECATED("Use OLabels() instead")
-  const std::vector<Label> &OValue() const { return OLabels(); }
-
   ArcWeight Weight() const {
     auto weight = ArcWeight::One();
     for (const auto &path_weight : path_weights_) {

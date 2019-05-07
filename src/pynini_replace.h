@@ -58,7 +58,7 @@ bool PrepareReplacePairs(
     const std::vector<std::pair<string, const Fst<Arc> *>> &pairs,
     std::vector<std::pair<typename Arc::Label, const Fst<Arc> *>> *new_pairs) {
   using Label = typename Arc::Label;
-  auto size = pairs.size();
+  const size_t size = pairs.size();
   new_pairs->resize(size + 1);
   // During replacement, all symbols are kept in "global" input and output
   // tables attached to the root while symbol tables attached to the
@@ -69,7 +69,7 @@ bool PrepareReplacePairs(
   std::unique_ptr<SymbolTable> osyms(root.OutputSymbols()->Copy());
   // The first time through, we put a dummy index index into the first slot of
   // each pair, as we don't have the complete symbol table yet.
-  for (auto i = 0; i < size; ++i) {
+  for (size_t i = 0; i < size; ++i) {
     auto replace_fst = new VectorFst<Arc>(*pairs[i].second);
     isyms.reset(PrepareInputSymbols(isyms.get(), replace_fst));
     osyms.reset(PrepareOutputSymbols(osyms.get(), replace_fst));
@@ -78,9 +78,9 @@ bool PrepareReplacePairs(
   // Now we set all non-initial replacement labels using the global symbol
   // table. As elsewhere in the library, output labels/symbols are used when
   // we have to choose just one table.
-  for (auto i = 0; i < size; ++i) {
-    auto nonterm = pairs[i].first;
-    auto idx = osyms->Find(nonterm);
+  for (size_t i = 0; i < size; ++i) {
+    const auto nonterm = pairs[i].first;
+    const auto idx = osyms->Find(nonterm);
     if (idx == kNoLabel) {
       FSTERROR() << "Replacement requested for unknown label: " << nonterm;
       return false;
@@ -99,8 +99,7 @@ bool PrepareReplacePairs(
 template <class Arc>
 inline void CleanUpNewPairs(
     std::vector<std::pair<typename Arc::Label, const Fst<Arc> *>> *new_pairs) {
-  for (auto it = new_pairs->begin(); it != new_pairs->end(); ++it)
-    delete it->second;
+  for (const auto &pair : *new_pairs) delete pair.second;
 }
 
 }  // namespace internal
@@ -112,8 +111,8 @@ void PyniniReplace(
     const Fst<Arc> &root,
     const std::vector<std::pair<string, const Fst<Arc> *>> &pairs,
     MutableFst<Arc> *ofst, ReplaceFstOptions<Arc> *opts) {
-  auto size = pairs.size();
-  if (!size) {
+  const size_t size = pairs.size();
+  if (size < 1) {
     FSTERROR() << "PyniniReplace: Expected at least 1 replacement, "
                << "got " << size;
     ofst->SetProperties(kError, kError);
@@ -147,8 +146,8 @@ void PyniniReplace(
     std::vector<std::pair<typename Arc::Label, typename Arc::Label>> *parens,
     PdtParserType type = PDT_LEFT_PARSER) {
   using Label = typename Arc::Label;
-  auto size = pairs.size();
-  if (!size) {
+  const size_t size = pairs.size();
+  if (size < 1) {
     FSTERROR() << "PyniniReplace: Expected at least 1 replacement, "
                << "got " << size;
     ofst->SetProperties(kError, kError);
@@ -184,11 +183,12 @@ template <class Arc>
 void PyniniReplace(PyniniReplaceArgs *args) {
   const Fst<Arc> &root = *(args->arg1.GetFst<Arc>());
   const auto &untyped_pairs = args->arg2;
-  auto size = untyped_pairs.size();
-  std::vector<std::pair<string, const Fst<Arc> *>> typed_pairs(size);
-  for (auto i = 0; i < size; ++i) {
-    typed_pairs[i] = std::make_pair(untyped_pairs[i].first,
-                                    untyped_pairs[i].second->GetFst<Arc>());
+  const size_t size = untyped_pairs.size();
+  std::vector<std::pair<string, const Fst<Arc> *>> typed_pairs;
+  typed_pairs.reserve(size);
+  for (const auto &untyped_pair : untyped_pairs) {
+    typed_pairs.emplace_back(untyped_pair.first,
+                             untyped_pair.second->GetFst<Arc>());
   }
   MutableFst<Arc> *ofst = args->arg3->GetMutableFst<Arc>();
   const ReplaceOptions &untyped_opts = args->arg4;
@@ -212,11 +212,12 @@ template <class Arc>
 void PyniniPdtReplace(PyniniPdtReplaceArgs *args) {
   const Fst<Arc> &root = *(args->arg1.GetFst<Arc>());
   const auto &untyped_pairs = args->arg2;
-  auto size = untyped_pairs.size();
-  std::vector<std::pair<string, const Fst<Arc> *>> typed_pairs(size);
-  for (auto i = 0; i < size; ++i) {
-    typed_pairs[i] = std::make_pair(untyped_pairs[i].first,
-                                    untyped_pairs[i].second->GetFst<Arc>());
+  const size_t size = untyped_pairs.size();
+  std::vector<std::pair<string, const Fst<Arc> *>> typed_pairs;
+  typed_pairs.reserve(size);
+  for (const auto &untyped_pair : untyped_pairs) {
+    typed_pairs.emplace_back(untyped_pair.first,
+                             untyped_pair.second->GetFst<Arc>());
   }
   MutableFst<Arc> *ofst = args->arg3->GetMutableFst<Arc>();
   std::vector<std::pair<typename Arc::Label, typename Arc::Label>> typed_parens;

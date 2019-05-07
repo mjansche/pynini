@@ -19,6 +19,7 @@
 
 #include <vector>
 
+#include "stripcomment.h"
 #include "gtl.h"
 #include <re2/stringpiece.h>
 
@@ -47,6 +48,7 @@ bool StringFile::ReadLineOrClear() {
     line_.clear();
     return false;
   }
+  line_ = StripCommentAndRemoveEscape(line_);
   return true;
 }
 

@@ -1,7 +1,15 @@
-v. 2.0.2 (compatible with OpenFst 1.7.0)
+v. 2.0.4 (compatible with OpenFst 1.7.0)
+========================================
+
+* Composition-based implementation of cross-product
+* Pythonic iteration for MutableArcIterator
+* Logging cleanup
+
+v. 2.0.3 (compatible with OpenFst 1.7.0)
 ========================================
 
 * OpenFst compatibility release
+* Improved integration of boundary symbols in CDRewrite
 
 v. 2.0.2 (compatible with OpenFst 1.6.9)
 ========================================

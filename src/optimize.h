@@ -182,19 +182,6 @@ void Optimize(MutableFst<Arc> *fst, bool compute_props = false) {
   }
 }
 
-// This function performs a simple space optimization on FSTs that are
-// (unions of) pairs of strings. It first pushes labels towards the initial
-// state, then performs epsilon-removal. This will reduce the number of arcs
-// and states by the length of the shorter of the two strings in the
-// cross-product; label-pushing may also speed up downstream composition.
-template <class Arc>
-void OptimizeStringCrossProducts(MutableFst<Arc> *fst,
-                                 bool compute_props = false) {
-  // Pushes labels towards the initial state.
-  Push<Arc, REWEIGHT_TO_INITIAL>(*fst, fst, kPushLabels);
-  internal::MaybeRmEpsilon(fst, compute_props);
-}
-
 // This function optimizes the right-hand side of an FST difference in an
 // attempt to satisfy the constraint that it must be epsilon-free and
 // deterministic. The input is assumed to be an unweighted acceptor.

@@ -146,8 +146,6 @@ from pywrapfst import FstOpError
 
 import pywrapfst
 
-import logging
-
 
 # Constants
 
@@ -973,16 +971,12 @@ cpdef Fst transducer(istring,
                      attach_symbols=attach_input_symbols)
   else:
     upper = istring
-  if upper._fst.get().Properties(kAcceptor, True) != kAcceptor:
-    logging.warning("Expecting acceptor or string argument, got a transducer")
   # Sets up lower language, and passes weight.
   if not isinstance(ostring, Fst):
     lower = acceptor(ostring, arc_type=arc_type, token_type=output_token_type,
                      attach_symbols=attach_output_symbols)
   else:
     lower = ostring
-    if lower._fst.get().Properties(kAcceptor, True) != kAcceptor:
-      logging.warning("Expecting acceptor or string argument, got a transducer")
   # Actually computes cross-product.
   CrossProduct(deref(upper._fst), deref(lower._fst), result._mfst.get(),
                _get_WeightClass_or_One(result.weight_type(), weight))

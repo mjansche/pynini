@@ -41,6 +41,12 @@ class PyniniCDRewriteTest(unittest.TestCase):
     a_to_b = cdrewrite(transducer("A", "B"), "C", "D", self.sigstar)
     self.TestRule(a_to_b, "CADCAD", "CBDCBD")
 
+  # A -> B / C __ #.
+  def testAGoesToBInTheContextOfCAndHash(self):
+    a_to_b = cdrewrite(transducer("A", "B"), "C", "[EOS]", self.sigstar)
+    self.TestRule(a_to_b, "CA", "CB")
+    self.TestRule(a_to_b, "CAB", "CAB")
+
   # Pre-Latin rhotacism:
   # s > r / V __ V.
   def testRhotacism(self):
@@ -812,7 +818,7 @@ class PyniniStringPathIteratorTest(unittest.TestCase):
 
   def testStringPathsAfterFstDeletion(self):
     cheeses = ("Pipo Crem'", "Fynbo")
-    f = union(*cheeses) 
+    f = union(*cheeses)
     sp = StringPathIterator(f)
     del f  # Should be garbage-collected immediately.
     self.assertCountEqual(sp.ostrings(), cheeses)

@@ -29,7 +29,6 @@ using std::string;
 
 #include <iostream>
 #include <fst/fstlib.h>
-#include "optimize.h"
 #include "stringcompile.h"
 #include "stringfile.h"
 #include "prefix_tree.h"
@@ -82,8 +81,7 @@ class StringMapCompiler {
                bool attach_input_symbols = true,
                bool attach_output_symbols = true) const {
     ptree_.ToFst(fst);
-    OptimizeStringCrossProducts(fst);
-    // Optionally symbol tables.
+    // Optionally attaches symbol tables.
     if (attach_input_symbols) fst->SetInputSymbols(isyms_.get());
     if (attach_output_symbols) fst->SetOutputSymbols(osyms_.get());
   }

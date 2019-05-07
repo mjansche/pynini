@@ -63,11 +63,11 @@ pynini = Extension(name="pynini", language="c++",
 
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf8") as source:
-    long_description = source.read()
+  long_description = source.read()
 
 setup(
     name="pynini",
-    version="2.0.3",
+    version="2.0.4",
     description="Finite-state grammar compilation library",
     long_description=long_description,
     long_description_content_type="text/markdown",

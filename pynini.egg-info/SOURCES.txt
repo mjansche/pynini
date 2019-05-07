@@ -6,6 +6,7 @@ MANIFEST.in
 NEWS
 README.md
 pynini_test.py
+setup.cfg
 setup.py
 pynini.egg-info/PKG-INFO
 pynini.egg-info/SOURCES.txt
@@ -52,7 +53,6 @@ src/repeat.h
 src/repeatscript.cc
 src/repeatscript.h
 src/rewrite.h
-src/rewritescript.h
 src/sigma_star.h
 src/string-view-fst.h
 src/stringcompile.cc

@@ -238,7 +238,7 @@ cdef extern from "pathsscript.h" \
     WeightClass Weight()
 
 
-cdef extern from "stringcompile.h" \
+cdef extern from "stringcompilescript.h" \
     namespace "fst" nogil:
 
   SymbolTable *GetByteSymbolTable()

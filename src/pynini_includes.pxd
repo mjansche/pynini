@@ -211,7 +211,6 @@ cdef extern from "repeatscript.h" \
   void Repeat(MutableFstClass *, int32, int32)
 
 
-
 cdef extern from "pathsscript.h" \
     namespace "fst::script" nogil:
 
@@ -220,23 +219,23 @@ cdef extern from "pathsscript.h" \
     StringPathIteratorClass(const FstClass &, StringTokenType, StringTokenType,
                             const SymbolTable *, const SymbolTable *)
 
+    bool Done()
+
     bool Error()
 
+    vector[int64] ILabels()
+
     string IString()
+
+    void Next()
+
+    void Reset()
+
+    vector[int64] OLabels()
 
     string OString()
 
     WeightClass Weight()
-
-    vector[int64] ILabels()
-
-    vector[int64] OLabels()
-
-    void Reset()
-
-    void Next()
-
-    bool Done()
 
 
 cdef extern from "stringcompile.h" \

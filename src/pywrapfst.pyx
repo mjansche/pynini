@@ -95,7 +95,6 @@ from cython.operator cimport dereference as deref  # *foo
 from cython.operator cimport preincrement as inc   # ++foo
 
 # Python imports.
-import atexit
 import numbers
 import subprocess
 import logging
@@ -1526,6 +1525,8 @@ cdef class _Fst(object):
     """
     cdef Weight weight = Weight.__new__(Weight)
     weight._weight.reset(new fst.WeightClass(self._fst.get().Final(state)))
+    if weight.to_string() == b"BadNumber":
+      raise FstIndexError("State index out of range")
     return weight
 
   cpdef string fst_type(self):
@@ -1854,8 +1855,6 @@ cdef class _MutableFst(_Fst):
 
     Raises:
       FstArgError: Unknown sort type.
-
-    See also: `topsort`.
     """
     self._arcsort(sort_type)
     return self
@@ -2632,8 +2631,6 @@ cdef class _MutableFst(_Fst):
 
     Returns:
        self.
-
-    See also: `arcsort`.
     """
     self._topsort()
     return self
@@ -3788,7 +3785,7 @@ cpdef _MutableFst randgen(_Fst ifst,
                           bool remove_total_weight=False):
   """
   randgen(ifst, npath=1, seed=0, select="uniform", max_length=2147483647,
-          weight=False, remove_total_weight=False)
+          weighted=False, remove_total_weight=False)
 
   Randomly generate successful paths in an FST.
 
@@ -4202,7 +4199,10 @@ cdef class Compiler(object):
     Args:
       expression: A string expression to add to compiler string buffer.
     """
-    deref(self._sstrm) << tostring(expression)
+    cdef string line = tostring(expression)
+    if not line.empty() and line.back() != '\n':
+      line.append('\n')
+    deref(self._sstrm) << line
 
 
 ## FarReader and FarWriter.
@@ -4349,8 +4349,7 @@ cdef class FarReader(object):
     self._reader.get().Reset()
 
   def __getitem__(self, key):
-    cdef string ckey = tostring(key)
-    if self.get_key() == ckey or self._reader.get().Find(ckey):
+    if self._reader.get().Find(tostring(key)):
       return self.get_fst()
     else:
       raise KeyError(key)
@@ -4475,19 +4474,6 @@ cdef class FarWriter(object):
   def __setitem__(self, key, _Fst fst):
     self.add(key, fst)
 
-
-## Cleanup operations for module entrance and exit.
-
-
-# Masks fst_error_fatal flags while this module is running, returning to the
-# previous state upon module exit.
-
-
-cdef bool _fst_error_fatal_old = fst.FLAGS_fst_error_fatal
+# Masks fst_error_fatal in-module.
 fst.FLAGS_fst_error_fatal = False
-
-
-@atexit.register
-def _reset_fst_error_fatal():
-  fst.FLAGS_fst_error_fatal = _fst_error_fatal_old
 

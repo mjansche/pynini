@@ -456,7 +456,7 @@ cdef class Fst(_MutableFst):
   cpdef StringPathIterator paths(self, input_token_type=b"byte",
                                  output_token_type=b"byte"):
     """
-    paths(self, token_type="byte)
+    paths(self, input_token_type="byte", output_token_type="byte)
 
     Creates iterator over all string paths in an acyclic FST.
 
@@ -1419,6 +1419,33 @@ equivalent = _comp_merge_patch(pywrapfst.equivalent)
 randequivalent = _comp_merge_patch(pywrapfst.randequivalent)
 
 
+def concat(*args):
+  """
+  concat(*args)
+
+  Computes the concatenation (product) of two or more FSTs.
+
+  This operation destructively concatenates the FST with other FSTs. If A
+  transduces string x to y with weight a and B transduces string w to v with
+  weight b, then their concatenation transduces string xw to yv with weight
+  a \otimes b.
+
+  Args:
+   *args: Two or more input FSTs.
+
+  Returns:
+    An FST.
+  """
+  (first, *rest) = args
+  if len(args) < 1:
+    raise FstArgError("Expected at least 2 positional arguments "
+                      "({} given)".format(len(rest) + 1))
+  cdef Fst lhs = _compile_or_copy_Fst(first)
+  for rhs in rest:
+    lhs.concat(rhs)
+  return lhs
+
+
 def replace(root,
             replacements,
             call_arc_labeling=b"neither",
@@ -1515,7 +1542,7 @@ def union(*args):
   (first, *rest) = args
   if len(args) < 1:
     raise FstArgError("Expected at least 2 positional arguments "
-                         "({} given)".format(len(rest) + 1))
+                      "({} given)".format(len(rest) + 1))
   cdef Fst lhs = _compile_or_copy_Fst(first)
   for rhs in rest:
     lhs.union(rhs)
@@ -2082,7 +2109,7 @@ def mpdt_reverse(impdt, MPdtParentheses parens):
 cdef class StringPathIterator(object):
 
   """
-  StringPathIterator(fst, token_type="byte", isymbols=None, osymbols=None)
+  StringPathIterator(fst, input_token_type="byte", output_token_type="byte)
 
   Iterator for string paths in acyclic FST.
 
@@ -2095,6 +2122,7 @@ cdef class StringPathIterator(object):
   created by invoking the `paths` method of `Fst`.
 
   Args:
+    fst: input acyclic FST.
     input_token_type: A string indicating how the input strings are to be
         constructed from arc labels---one of: "byte" (interprets arc labels
         as raw bytes), "utf8" (interprets arc labels as Unicode code points),
@@ -2137,18 +2165,6 @@ cdef class StringPathIterator(object):
     if self._paths.get().Error():
       raise FstArgError("FST is not acyclic")
 
-  # This just registers this class as a possible iterator.
-  def __iter__(self):
-    return self
-
-  # Magic method used to get a Pythonic API out of the C++ API.
-  def __next__(self):
-    if self.done():
-      raise StopIteration
-    result = (self.istring(), self.ostring(), self.weight())
-    self.next()
-    return result
-
   cpdef bool done(self):
     """
     done(self)
@@ -2160,22 +2176,6 @@ cdef class StringPathIterator(object):
     """
     return self._paths.get().Done()
 
-  cpdef void next(self):
-    """
-    next(self)
-
-    Advances the iterator.
-    """
-    self._paths.get().Next()
-
-  cpdef void reset(self):
-    """
-    reset(self)
-
-    Resets the iterator to the initial position.
-    """
-    self._paths.get().Reset()
-
   cpdef bool error(self):
     """
     error(self)
@@ -2186,6 +2186,28 @@ cdef class StringPathIterator(object):
       True if the StringPathIterator is in an errorful state, False otherwise.
     """
     return self._paths.get().Error()
+
+  def ilabels(self):
+    """
+    ilabels(self)
+
+    Returns the input labels for the current path.
+
+    Returns:
+      A list of input labels for the current path.
+    """
+    return list(self._paths.get().ILabels())
+
+  def olabels(self):
+    """
+    olabels(self)
+
+    Returns the output labels for the current path.
+
+    Returns:
+      A list of output labels for the current path.
+    """
+    return list(self._paths.get().OLabels())
 
   cpdef string istring(self):
     """
@@ -2213,6 +2235,39 @@ cdef class StringPathIterator(object):
     while not self._paths.get().Done():
       yield self.istring()
       self._paths.get().Next()
+
+  def items(self):
+     """
+     items(self)
+
+     Generates all (istring, ostring, weight) triples in the FST.
+
+     This method returns a generator over all triples of input strings, 
+     output strings, and path weights. The caller is responsible for resetting
+     the iterator if desired.
+
+     Yields:
+        All (istring, ostring, weight) triples.
+     """
+     while not self._paths.get().Done():
+       yield (self.istring(), self.ostring(), self.weight())
+       self._paths.get().Next()
+
+  cpdef void next(self):
+    """
+    next(self)
+
+    Advances the iterator.
+    """
+    self._paths.get().Next()
+
+  cpdef void reset(self):
+    """
+    reset(self)
+
+    Resets the iterator to the initial position.
+    """
+    self._paths.get().Reset()
 
   cpdef string ostring(self):
     """
@@ -2269,7 +2324,6 @@ cdef class StringPathIterator(object):
     while not self._paths.get().Done():
       yield self.weight()
       self._paths.get().Next()
-
 
 # Class for FAR reading and/or writing.
 
@@ -2676,7 +2730,6 @@ def _copy_patch(fnc):
 
 arcsort = _copy_patch(Fst.arcsort)
 closure = _copy_patch(Fst.closure)
-concat = _copy_patch(Fst.concat)
 connect = _copy_patch(Fst.connect)
 decode = _copy_patch(Fst.decode)
 encode = _copy_patch(Fst.encode)

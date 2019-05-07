@@ -4,8 +4,7 @@ CONTRIBUTING
 LICENSE
 MANIFEST.in
 NEWS
-README.rst
-pynini.pdf
+README.md
 pynini_test.py
 setup.py
 pynini.egg-info/PKG-INFO
@@ -55,6 +54,7 @@ src/repeatscript.h
 src/rewrite.h
 src/rewritescript.h
 src/sigma_star.h
+src/string-view-fst.h
 src/stringcompile.cc
 src/stringcompile.h
 src/stringcompilescript.cc

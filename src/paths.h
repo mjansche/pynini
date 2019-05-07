@@ -48,6 +48,11 @@ constexpr int32 kNewState = -1;
 //
 // Note that PathIterator is symbol table and string-agnostic; consider using
 // StringPathIterator if you need either.
+//
+// When check_acyclic is set, checks acyclicity of the FST. An acyclic FST may
+// lead to infinite loops and thus check_acyclic should only be false when the
+// caller can ensure finite iteration (e.g., knowing the FST is acyclic;
+// limiting the number of iterated paths).
 template <class Arc>
 class PathIterator {
  public:
@@ -55,19 +60,21 @@ class PathIterator {
   using StateId = typename Arc::StateId;
   using ArcWeight = typename Arc::Weight;
 
-  // When check_acyclic is set, checks acyclicity of the FST. An acyclic FST may
-  // lead to infinite loops and thus check_acyclic should only be false when the
-  // caller can ensure finite iteration (e.g., knowing the FST is acyclic;
-  // limiting the number of iterated paths).
   explicit PathIterator(const Fst<Arc> &fst, bool check_acyclic = true);
 
-  // Whether initialization was successful. Check this before accessing the
+  bool Done() const { return path_states_.empty(); }
+
+  // Checks if initialization was successful. Check this before accessing the
   // iterator if it was constructed with check_acyclic = true.
   bool Error() const { return error_; }
 
   const std::vector<Label> &ILabels() const { return path_ilabels_; }
 
+  void Next();
+
   const std::vector<Label> &OLabels() const { return path_olabels_; }
+
+  void Reset();
 
   ArcWeight Weight() const {
     auto weight = ArcWeight::One();
@@ -77,11 +84,9 @@ class PathIterator {
     return weight;
   }
 
-  void Reset();
-
-  void Next();
-
-  bool Done() const { return path_states_.empty(); }
+ protected:
+  // If initialization failed.
+  bool error_;
 
  private:
   // Inserts labels and weights from an arc.
@@ -89,8 +94,6 @@ class PathIterator {
 
   void MaybePopLabels();
 
-  // If initialization failed.
-  bool error_;
   // Copy of FST being iterated over.
   std::unique_ptr<const Fst<Arc>> fst_;
   // Vector of states visited on this path.
@@ -229,17 +232,25 @@ void PathIterator<Arc>::MaybePopLabels() {
 
 // StringPathIterator is a wrapper for PathIterator that handles symbol tables
 // and the conversion of the label sequences to strings.
+//
+// When check_acyclic is set, checks acyclicity of FST. An acyclic FST may
+// lead to infinite loops and thus check_acyclic should only be false when the
+// caller can ensure finite iteration (e.g., knowing the FST is acyclic or
+// limiting the number of iterated paths).
 template <class Arc>
-class StringPathIterator {
+class StringPathIterator : public PathIterator<Arc> {
  public:
   using Label = typename Arc::Label;
   using StateId = typename Arc::StateId;
   using ArcWeight = typename Arc::Weight;
 
-  // When check_acyclic is set, checks acyclicity of FST. An acyclic FST may
-  // lead to infinite loops and thus check_acyclic should only be false when the
-  // caller can ensure finite iteration (e.g., knowing the FST is acyclic or
-  // limiting the number of iterated paths).
+  using PathIterator<Arc>::Done;
+  using PathIterator<Arc>::Error;
+  using PathIterator<Arc>::ILabels;
+  using PathIterator<Arc>::Next;
+  using PathIterator<Arc>::OLabels;
+  using PathIterator<Arc>::Reset;
+
   explicit StringPathIterator(const Fst<Arc> &fst, StringTokenType itype = BYTE,
                               StringTokenType otype = BYTE,
                               const SymbolTable *isyms = nullptr,
@@ -253,10 +264,6 @@ class StringPathIterator {
                               bool check_acyclic = true)
       : StringPathIterator(fst, ttype, ttype, syms, syms, check_acyclic) {}
 
-  bool Error() const { return error_ || iter_.Error(); }
-
-  ArcWeight Weight() const { return iter_.Weight(); }
-
   void IString(string *str);
 
   string IString();
@@ -265,20 +272,13 @@ class StringPathIterator {
 
   string OString();
 
-  void Reset() { iter_.Reset(); }
-
-  void Next() { iter_.Next(); }
-
-  bool Done() const { return iter_.Done(); }
-
  private:
-  PathIterator<Arc> iter_;
+  using PathIterator<Arc>::error_;
+
   StringTokenType itype_;
   StringTokenType otype_;
   const SymbolTable *isyms_;
   const SymbolTable *osyms_;
-  bool rm_epsilon_;
-  bool error_;
 };
 
 // When check_acyclic is set, checks acyclicity of FST. An acyclic FST may
@@ -289,12 +289,11 @@ template <class Arc>
 StringPathIterator<Arc>::StringPathIterator(
     const Fst<Arc> &fst, StringTokenType itype, StringTokenType otype,
     const SymbolTable *isyms, const SymbolTable *osyms, bool check_acyclic)
-    : iter_(fst, check_acyclic),
+    : PathIterator<Arc>(fst, check_acyclic),
       itype_(itype),
       otype_(otype),
       isyms_(isyms),
-      osyms_(osyms),
-      error_(false) {
+      osyms_(osyms) {
   // If the FST has its own symbol tables and symbol table use is requested,
   // we use those unless isyms or osyms is specified.
   if (itype == StringTokenType::SYMBOL && !isyms_ && fst.InputSymbols()) {
@@ -307,8 +306,7 @@ StringPathIterator<Arc>::StringPathIterator(
 
 template <class Arc>
 void StringPathIterator<Arc>::IString(string *str) {
-  const auto &labels = iter_.ILabels();
-  if (!internal::LabelsToString(labels, str, itype_, isyms_)) error_ = true;
+  if (!internal::LabelsToString(ILabels(), str, itype_, isyms_)) error_ = true;
 }
 
 template <class Arc>
@@ -320,8 +318,7 @@ string StringPathIterator<Arc>::IString() {
 
 template <class Arc>
 void StringPathIterator<Arc>::OString(string *str) {
-  const auto &labels = iter_.OLabels();
-  if (!internal::LabelsToString(labels, str, otype_, osyms_)) error_ = true;
+  if (!internal::LabelsToString(OLabels(), str, otype_, osyms_)) error_ = true;
 }
 
 template <class Arc>

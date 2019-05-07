@@ -6,7 +6,6 @@
 """Tests for the Pynini grammar compilation module."""
 
 import collections
-import collections
 import functools
 import math
 import os
@@ -206,6 +205,10 @@ class PyniniExceptionsTest(unittest.TestCase):
     f.set_final(s)
     f.add_arc(s, Arc(0, 0, 0, -1))
     self.assertFalse(f.verify())
+
+  def testBadIndexFinalRaisesFstIndexError(self):
+    with self.assertRaises(FstIndexError):
+      unused_weight = self.f.final(-1)
 
   def testBadIndexNumArcsRaisesFstIndexError(self):
     with self.assertRaises(FstIndexError):
@@ -793,8 +796,8 @@ class PyniniStringPathIteratorTest(unittest.TestCase):
     cls.f = union(*(transducer(*triple) for triple in cls.triples))
 
   def testStringPathIteratorIStrings(self):
-    self.assertEqual(collections.Counter(self.f.paths().istrings()),
-                     collections.Counter((t[0] for t in self.triples)))
+    self.assertCountEqual(self.f.paths().istrings(),
+                         (t[0] for t in self.triples))
 
   def testStringPathsIStrings(self):
     self.assertCountEqual(self.f.paths().istrings(),
@@ -809,10 +812,11 @@ class PyniniStringPathIteratorTest(unittest.TestCase):
                           (str(t[2]) for t in self.triples))
 
   def testStringPathsAfterFstDeletion(self):
-    f = union("Pipo Crem'", "Fynbo")
+    cheeses = ("Pipo Crem'", "Fynbo")
+    f = union(*cheeses) 
     sp = StringPathIterator(f)
     del f  # Should be garbage-collected immediately.
-    self.assertEqual(len(list(sp)), 2)
+    self.assertCountEqual(sp.ostrings(), cheeses)
 
   def testStringPathLabelsWithEpsilons(self):
     # Note that the Thompson construction for union connects the initial state

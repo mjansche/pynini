@@ -24,11 +24,8 @@ using std::string;
 #include <utility>
 #include <vector>
 
-#include "base/integral_types.h"
+#include <fst/types.h>
 #include <fst/log.h>
-#ifndef NO_GOOGLE
-#include "net/proto2/public/repeated_field.h"
-#endif  // NO_GOOGLE
 #include <fst/extensions/mpdt/compose.h>
 #include <fst/extensions/pdt/compose.h>
 #include <fst/fstlib.h>
@@ -43,10 +40,7 @@ namespace internal {
 // Post-composition check and cleanup.
 template <class Arc>
 inline bool CheckNonEmptyAndCleanup(MutableFst<Arc> *lattice) {
-  if (lattice->Start() == kNoStateId) {
-    LOG(ERROR) << "Composition failed";
-    return false;
-  }
+  if (lattice->Start() == kNoStateId) return false;
   Project(lattice, PROJECT_OUTPUT);
   RmEpsilon(lattice);
   return true;
@@ -62,7 +56,7 @@ template <class Arc>
 bool RewriteLattice(const Fst<Arc> &input, const Fst<Arc> &rule,
                     MutableFst<Arc> *lattice) {
   static const ComposeOptions opts(true, ALT_SEQUENCE_FILTER);
-  Compose(input, rule, lattice);
+  Compose(input, rule, lattice, opts);
   return internal::CheckNonEmptyAndCleanup(lattice);
 }
 
@@ -91,13 +85,14 @@ bool RewriteLattice(
 
 // Given an epsilon-free lattice of output strings (such as produced by
 // RewriteLattice), attempts to determinize it, pruning non-optimal paths if
-// `optimal_only` is true. This is valid only in a path semiring.
+// `optimal_only` is true. This is valid only in a semiring with the path
+// property.
 //
 // To prevent unexpected blowup during determinization, a state threshold is
 // also used and a warning is logged if this exact threshold is reached. The
-// threshold is given by a small constant factor plus a ratio of the number
-// of states in the NFA (by default, 4---this is not an inherently meaningful
-// choice, just a reasonable value from experience).
+// threshold is a multiplier of the size of the input lattice (by default, 4),
+// plus a small constant factor. This is intended to be a sensible default
+// and is not an inherently meaningful value in and of itself.
 template <class Arc>
 void LatticeToDfa(MutableFst<Arc> *lattice, bool optimal_only,
                   typename Arc::StateId state_multiplier = 4) {
@@ -116,9 +111,9 @@ void LatticeToDfa(MutableFst<Arc> *lattice, bool optimal_only,
   }
 }
 
-// Given an epsilon-free lattice of output strings (such as proposed by
+// Given an epsilon-free lattice of output strings (such as produced by
 // RewriteLattice), extracts n-shortest unique strings. This is valid only in
-// a path semiring.
+// a semiring with the path property.
 template <class Arc>
 void LatticeToShortest(MutableFst<Arc> *lattice, int32 nshortest) {
   VectorFst<Arc> shortest;
@@ -127,7 +122,9 @@ void LatticeToShortest(MutableFst<Arc> *lattice, int32 nshortest) {
   *lattice = shortest;
 }
 
-// Prints a single top string. This is only valid in a path semiring.
+// Given an epsilon-free lattice of output strings (such as produced by
+// RewriteLattice), extracts a single top string. This is only valid in a path
+// semiring.
 template <class Arc>
 bool LatticeToTopString(const Fst<Arc> &lattice, string *output,
                         StringTokenType ttype = BYTE,
@@ -138,7 +135,7 @@ bool LatticeToTopString(const Fst<Arc> &lattice, string *output,
 }
 
 // Attempts to extract a single top rewrite from a optimized DFA, logging a
-// warning and returning false if there's a tie.
+// warning and returning false if there's a tie. This is valid only
 template <class Arc>
 bool LatticeToOneTopString(const Fst<Arc> &dfa_lattice, string *output,
                            StringTokenType ttype = BYTE,
@@ -175,27 +172,6 @@ bool LatticeToStrings(const Fst<Arc> &lattice, std::vector<string> *outputs,
   return !paths.Error();
 }
 
-#ifndef NO_GOOGLE
-// Clears repeated string field and writes lattice strings to it.
-template <class Arc>
-bool LatticeToStrings(const Fst<Arc> &lattice,
-                      proto2::RepeatedPtrField<string> *outputs,
-                      StringTokenType ttype = BYTE,
-                      const SymbolTable *syms = nullptr) {
-  outputs->Clear();
-  if (lattice.Properties(kAcyclic, true) != kAcyclic) {
-    LOG(ERROR) << "Lattice is unexpectedly cyclic";
-    return false;
-  }
-  // Input token type and symbol table will be ignored; the lattice is
-  // assumed to be acyclic.
-  StringPathIterator<Arc> paths(lattice, ttype, syms, /*check_acyclic=*/false);
-  DCHECK(!paths.Error());
-  for (; !paths.Done(); paths.Next()) outputs->Add(paths.OString());
-  return !paths.Error();
-}
-#endif  // NO_GOOGLE
-
 // Top rewrite.
 template <class Arc>
 bool TopRewrite(const Fst<Arc> &input, const Fst<Arc> &rule, string *output,
@@ -231,19 +207,6 @@ bool Rewrites(const Fst<Arc> &input, const Fst<Arc> &rule,
 }
 
 // The same, but with repeated string fields.
-#ifndef NO_GOOGLE
-template <class Arc>
-bool Rewrites(const Fst<Arc> &input, const Fst<Arc> &rule,
-              proto2::RepeatedPtrField<string> *outputs,
-              StringTokenType ttype = BYTE, const SymbolTable *syms = nullptr,
-              typename Arc::StateId state_multiplier = 4) {
-  VectorFst<Arc> lattice;
-  if (!RewriteLattice(input, rule, &lattice)) return false;
-  LatticeToDfa(&lattice, /*optimal_only=*/false, state_multiplier);
-  return LatticeToStrings(lattice, outputs, ttype, syms);
-}
-#endif  // NO_GOOGLE
-
 // All optimal rewrites.
 template <class Arc>
 bool TopRewrites(const Fst<Arc> &input, const Fst<Arc> &rule,
@@ -257,20 +220,6 @@ bool TopRewrites(const Fst<Arc> &input, const Fst<Arc> &rule,
 }
 
 // The same, but with repeated string fields.
-#ifndef NO_GOOGLE
-template <class Arc>
-bool TopRewrites(const Fst<Arc> &input, const Fst<Arc> &rule,
-                 proto2::RepeatedPtrField<string> *outputs,
-                 StringTokenType ttype = BYTE,
-                 const SymbolTable *syms = nullptr,
-                 typename Arc::StateId state_multiplier = 4) {
-  VectorFst<Arc> lattice;
-  if (!RewriteLattice(input, rule, &lattice)) return false;
-  LatticeToDfa(&lattice, /*optimal_only=*/true, state_multiplier);
-  return LatticeToStrings(lattice, outputs, ttype, syms);
-}
-#endif  // NO_GOOGLE
-
 // The top n rewrites.
 template <class Arc>
 bool TopRewrites(const Fst<Arc> &input, const Fst<Arc> &rule, int32 nshortest,
@@ -283,18 +232,24 @@ bool TopRewrites(const Fst<Arc> &input, const Fst<Arc> &rule, int32 nshortest,
 }
 
 // The same, but with repeated string fields.
-#ifndef NO_GOOGLE
+// Determines whether a lattice contains an output.
 template <class Arc>
-bool TopRewrites(const Fst<Arc> &input, const Fst<Arc> &rule, int32 nshortest,
-                 proto2::RepeatedPtrField<string> *outputs,
-                 StringTokenType ttype = BYTE,
-                 const SymbolTable *syms = nullptr) {
+bool Matches(const Fst<Arc> &lattice, const Fst<Arc> &output) {
+  VectorFst<Arc> intersection;
+  static const IntersectOptions opts(true, ALT_SEQUENCE_FILTER);
+  Intersect(lattice, output, &intersection, opts);
+  return intersection.Start() != kNoStateId;
+}
+
+// Determines whether a rule allows an input/output pair.
+template <class Arc>
+bool Matches(const Fst<Arc> &input, const Fst<Arc> &output,
+             const Fst<Arc> &rule) {
   VectorFst<Arc> lattice;
   if (!RewriteLattice(input, rule, &lattice)) return false;
-  LatticeToShortest(&lattice, nshortest);
-  return LatticeToStrings(lattice, ttype, syms);
+  ArcSort(&lattice, OLabelCompare<Arc>());
+  return Matches(lattice, output);
 }
-#endif  // NO_GOOGLE
 
 }  // namespace fst
 

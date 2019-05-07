@@ -195,8 +195,8 @@ bool BracketedByteStringToLabels(const string &strp,
       return false;
     } else if (!unbracketed.empty()) {
       RemoveBracketEscapes(&unbracketed);
-      for (const auto label : unbracketed) {
-        labels->push_back(static_cast<Label>(label));
+      for (const char label : unbracketed) {
+        labels->push_back(static_cast<unsigned char>(label));
       }
     } else if (!ProcessBracketedSpan<Label>(&bracketed, labels, syms)) {
       // A non-empty bracketed span.
@@ -271,8 +271,8 @@ bool CompileByteString(const string &strp, MutableFst<Arc> *fst,
   using Label = typename Arc::Label;
   std::vector<Label> labels;
   labels.reserve(strp.size());
-  for (const auto ch : strp) {
-     labels.push_back(static_cast<Label>(ch));
+  for (const char ch : strp) {
+    labels.push_back(static_cast<unsigned char>(ch));
   }
   internal::CompileStringFromLabels<Arc>(labels, fst, weight);
   if (attach_symbols) {

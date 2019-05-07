@@ -18,7 +18,7 @@
 #ifndef PYNINI_REWRITESCRIPT_H_
 #define PYNINI_REWRITESCRIPT_H_
 
-#include "base/integral_types.h"
+#include <fst/types.h>
 #include <fst/script/arg-packs.h>
 #include <fst/script/fst-class.h>
 #include "rewrite.h"

@@ -16,9 +16,8 @@
 # pynini.opengrm.org.
 
 
-from setuptools import Extension
-from setuptools import setup
-
+from setuptools import Extension, setup
+from os import path
 
 COMPILE_ARGS = ["-std=c++11",
                 "-Wno-unused-function",
@@ -61,10 +60,16 @@ pynini = Extension(name="pynini", language="c++",
                             "src/getters.cc",
                             "src/crossproductscript.cc"])
 
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, "README.md"), encoding="utf8") as source:
+    long_description = source.read()
+
 setup(
     name="pynini",
-    version="2.0.0",
+    version="2.0.1",
     description="Finite-state grammar compilation library",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author="Kyle Gorman",
     author_email="kbg@google.com",
     url="http://pynini.opengrm.org",
@@ -74,6 +79,7 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Development Status :: 5 - Production/Stable",
         "Environment :: Other Environment", "Environment :: Console",
         "Intended Audience :: Developers",

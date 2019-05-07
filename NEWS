@@ -1,4 +1,12 @@
-v. 2.0.0 (compatible with OpenFst 1.6.X)
+v. 2.0.1 (compatible with OpenFst 1.6.9)
+========================================
+
+* Restores `ilabels` and `olabels` to `StringPathIterator`, and adds `items`
+  (istring, ostring, weight tuple) generator
+* Fixes and rationalizes behavior of `closure(x, x)`
+* Adds star-args support to `concat` (cf. `union`)
+
+v. 2.0.0 (compatible with OpenFst 1.6.9)
 ========================================
 
 * Python 3 support! Returned strings are all Unicode (except for checksums and
@@ -8,7 +16,8 @@ v. 2.0.0 (compatible with OpenFst 1.6.X)
 v. 1.9.2 (compatible with OpenFst 1.6.8)
 ========================================
 
-* `string_file` and `string_map` now obey `attach_input_symbols`/`attach_output_symbols`
+* `string_file` and `string_map` now obey
+  `attach_input_symbols`/`attach_output_symbols`
 
 v. 1.9.2 (compatible with OpenFst 1.6.8)
 ========================================
@@ -50,7 +59,7 @@ v. 1.7 (compatible with OpenFst 1.6.3)
 v. 1.6 (compatible with OpenFst 1.6.3)
 ======================================
 
-* Fix to `closure`
+* Fixes to `closure`
 * Adds complete documentation
 * Corrects many sundry module-level documentation errors
 * `string_file` now properly reads a final line without a newline terminator
@@ -70,7 +79,7 @@ v. 1.4 (compatible with OpenFst 1.6.1)
 v. 1.3 (compatible with OpenFst 1.6.0)
 ======================================
 
-* Fix to `StringPaths`
+* Fixes to `StringPaths`
 * Compatibility fixes for OpenFst 1.6.0
 
 v. 1.2 (compatible with OpenFst 1.5.4)

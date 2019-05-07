@@ -71,7 +71,7 @@ template <class Label>
 bool PrintSymbol(Label label, const SymbolTable &syms, std::ostream &ostrm) {
   const auto &symbol = syms.Find(label);
   if (symbol.empty()) {
-    LOG(ERROR) << "PrintSymbol: Label " << label << "is not mapped to any "
+    LOG(ERROR) << "PrintSymbol: Label " << label << " is not mapped to any "
                << "textual symbol in symbol table " << syms.Name();
     return false;
   }

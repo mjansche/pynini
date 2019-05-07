@@ -39,15 +39,19 @@ inline StringTokenType GetStringPrinterTokenType(StringTokenType type) {
 // Virtual interface implemented by each concrete StatesImpl<F>.
 class StringPathIteratorImplBase {
  public:
+  virtual bool Done() const = 0;
   virtual bool Error() const = 0;
+  virtual void ILabels(std::vector<int64> *labels) const = 0;
+  virtual std::vector<int64> ILabels() const = 0;
   virtual void IString(string *result) const = 0;
   virtual string IString() const = 0;
+  virtual void Next() = 0;
+  virtual void OLabels(std::vector<int64> *labels) const = 0;
+  virtual std::vector<int64> OLabels() const = 0;
   virtual void OString(string *result) const = 0;
   virtual string OString() const = 0;
-  virtual WeightClass Weight() const = 0;
-  virtual bool Done() const = 0;
   virtual void Reset() = 0;
-  virtual void Next() = 0;
+  virtual WeightClass Weight() const = 0;
   virtual ~StringPathIteratorImplBase() {}
 };
 
@@ -64,23 +68,49 @@ class StringPathIteratorImpl : public StringPathIteratorImplBase {
                                   const SymbolTable *osyms = nullptr)
       : impl_(new StringPathIterator<Arc>(fst, itype, otype, isyms, osyms)) {}
 
+  bool Done() const override { return impl_->Done(); }
+
   bool Error() const override { return impl_->Error(); }
+
+  void ILabels(std::vector<int64> *labels) const override {
+    const auto &typed_labels = impl_->ILabels();
+    labels->clear();
+    labels->resize(typed_labels.size());
+    std::copy(typed_labels.begin(), typed_labels.end(), labels->begin());
+  }
+
+  std::vector<int64> ILabels() const override {
+    std::vector<int64> labels;
+    ILabels(&labels);
+    return labels;
+  }
 
   void IString(string *result) const override { impl_->IString(result); }
 
   string IString() const override { return impl_->IString(); }
+
+  void Next() override { impl_->Next(); }
+
+  void Reset() override { impl_->Reset(); }
+
+  void OLabels(std::vector<int64> *labels) const override {
+    const auto &typed_labels = impl_->OLabels();
+    labels->clear();
+    labels->resize(typed_labels.size());
+    std::copy(typed_labels.begin(), typed_labels.end(), labels->begin());
+  }
+
+  std::vector<int64> OLabels() const override {
+    std::vector<int64> labels;
+    OLabels(&labels);
+    return labels;
+  }
 
   void OString(string *result) const override { impl_->OString(result); }
 
   string OString() const override { return impl_->OString(); }
 
   WeightClass Weight() const override { return WeightClass(impl_->Weight()); }
-
-  void Reset() override { impl_->Reset(); }
-
-  void Next() override { impl_->Next(); }
-
-  bool Done() const override { return impl_->Done(); }
 
  private:
   std::unique_ptr<StringPathIterator<Arc>> impl_;
@@ -108,27 +138,33 @@ class StringPathIteratorClass {
                           const SymbolTable *syms = nullptr)
       : StringPathIteratorClass(fst, type, type, syms, syms) {}
 
+  bool Done() const { return impl_->Done(); }
+
   bool Error() const { return impl_->Error(); }
+
+  void ILabels(std::vector<int64> *labels) const { impl_->ILabels(labels); }
+
+  std::vector<int64> ILabels() const { return impl_->ILabels(); }
+
+  template <class Arc>
+  friend void InitStringPathIteratorClass(
+      InitStringPathIteratorClassArgs *args);
 
   void IString(string *result) const { impl_->IString(result); }
 
   string IString() const { return impl_->IString(); }
 
-  void OString(string *result) const { impl_->OString(result); }
+  void Next() { impl_->Next(); }
+
+  void Reset() { impl_->Reset(); }
+
+  void OLabels(std::vector<int64> *labels) const { impl_->OLabels(labels); }
+
+  std::vector<int64> OLabels() const { return impl_->OLabels(); }
 
   string OString() const { return impl_->OString(); }
 
   WeightClass Weight() const { return WeightClass(impl_->Weight()); }
-
-  void Reset() { impl_->Reset(); }
-
-  void Next() { impl_->Next(); }
-
-  bool Done() const { return impl_->Done(); }
-
-  template <class Arc>
-  friend void InitStringPathIteratorClass(
-      InitStringPathIteratorClassArgs *args);
 
  private:
   std::unique_ptr<StringPathIteratorImplBase> impl_;

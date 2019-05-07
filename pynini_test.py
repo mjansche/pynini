@@ -373,8 +373,7 @@ class PyniniIOTest(unittest.TestCase):
     self.TestFstAndTypeEquality(g)
 
   def testPickleIO(self):
-    sink = pickle.dumps(self.f)
-    g = pickle.loads(sink)
+    g = pickle.loads(pickle.dumps(self.f))
     self.TestFstAndTypeEquality(g)
 
 
@@ -844,6 +843,11 @@ class PyniniSymbolTableTest(unittest.TestCase):
     osyms2 = f.output_symbols()
     del f  # Should be garbage-collected immediately.
     self.assertEqual(osyms2.labeled_checksum(), osyms.labeled_checksum())
+
+  def testPickleIO(self):
+    f = get_byte_symbol_table()
+    g = pickle.loads(pickle.dumps(f))
+    self.assertEqual(f.labeled_checksum(), g.labeled_checksum())
 
 
 class PyniniWeightTest(unittest.TestCase):

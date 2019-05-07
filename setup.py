@@ -66,7 +66,7 @@ with open(path.join(this_directory, "README.md"), encoding="utf8") as source:
 
 setup(
     name="pynini",
-    version="2.0.1",
+    version="2.0.2",
     description="Finite-state grammar compilation library",
     long_description=long_description,
     long_description_content_type="text/markdown",

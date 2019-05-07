@@ -25,14 +25,14 @@ Pynini depends on:
     time of writing, 1.6.9) built with the `far`, `pdt`, `mpdt`, and
     `script` extensions (i.e., built with `./configure --enable-grm`)
     and headers
--   A recent version of [re2](http:://github.com/google/re2) (at the
-    time of writing, tag `2018-09-01`; issue
-    `git checkout 2018-09-01; git pull` from the `re2` directory to sync
-    to this tag) and headers
+-   A recent version of [re2](http://github.com/google/re2) (at the
+    time of writing, tag `2018-10-01`; issue
+    `git checkout 2018-10-01; git pull origin master` from the `re2`
+    directory to sync to this tag) and headers
 -   [Python 2.7 or 3.6+](https://www.python.org) and headers
 
-It is tested with: Debian Linux 4.9.82 on x86\_64, GCC 7.3, Cython
-0.28.5, and Python 2.7.13 and Python 3.7.0.
+It is tested with: Debian Linux 4.17.17 on x86\_64, GCC 7.3.0, Cython
+0.29 and Python 2.7.13 and Python 3.7.0.
 
 Installation instructions
 =========================

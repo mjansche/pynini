@@ -1,3 +1,9 @@
+v. 2.0.2 (compatible with OpenFst 1.6.9)
+========================================
+
+* Improves SVG rendering code for Jupyter
+* SymbolTables gain methods for (un)pickling and (de)serialization
+
 v. 2.0.1 (compatible with OpenFst 1.6.9)
 ========================================
 
@@ -30,7 +36,7 @@ v. 1.9.1 (compatible with OpenFst 1.6.7)
 ========================================
 
 * Simplifies construction used in `closure` operator
-* Removes unused `containment` operator
+* Removes `containment` operator
 
 v. 1.9 (compatible with OpenFst 1.6.6)
 ======================================

@@ -122,6 +122,8 @@ cdef class _SymbolTable(object):
 
   cpdef void write_text(self, filename) except *
 
+  cpdef bytes write_to_string(self)
+
 
 cdef class _EncodeMapperSymbolTable(_SymbolTable):
 
@@ -166,6 +168,8 @@ cdef _MutableFstSymbolTable _init_MutableFstSymbolTable(fst.SymbolTable *table,
 
 cdef SymbolTable _init_SymbolTable(fst.SymbolTable *table)
 
+
+cpdef _SymbolTable _read_SymbolTable_from_string(state)
 
 
 cdef class SymbolTableIterator(object):
@@ -219,6 +223,9 @@ ctypedef fst.VectorFstClass * VectorFstClass_ptr
 cdef class _Fst(object):
 
   cdef shared_ptr[fst.FstClass] _fst
+
+  @staticmethod
+  cdef string _local_render_svg(const string &)
 
   cpdef string arc_type(self)
 
@@ -340,7 +347,7 @@ cdef class _MutableFst(_Fst):
   cdef void _union(self, _Fst ifst) except *
 
 
-# Fst construction helpers.
+# Construction helpers.
 
 
 cdef _Fst _init_Fst(FstClass_ptr tfst)
@@ -353,7 +360,7 @@ cdef _MutableFst _create_Fst(arc_type=?)
 
 cpdef _Fst _read(filename)
 
-cpdef _Fst _read_from_string(state)
+cpdef _Fst _read_Fst_from_string(state)
 
 
 # Iterators.

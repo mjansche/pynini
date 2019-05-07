@@ -1299,7 +1299,7 @@ cpdef Fst string_map(lines,
   return result
 
 
-def get_byte_symbol_table():
+cpdef _SymbolTable get_byte_symbol_table():
   """Returns a symbol table containing all bytes."""
   return _init_SymbolTable(GetByteSymbolTable())
 

@@ -64,7 +64,8 @@ class StringPairIterator {
 template <class Arc, class Data>
 bool CompileStringMap(Data *data, StringTokenType itype, StringTokenType otype,
                       MutableFst<Arc> *fst, const SymbolTable *isyms = nullptr,
-                      const SymbolTable *osyms = nullptr) {
+                      const SymbolTable *osyms = nullptr,
+                      bool attach_symbols = true) {
   using Label = typename Arc::Label;
   using Weight = typename Arc::Weight;
   PrefixTree<Arc> ptree;
@@ -90,9 +91,11 @@ bool CompileStringMap(Data *data, StringTokenType itype, StringTokenType otype,
   // Compiles the prefix tree into an FST.
   ptree.ToFst(fst);
   OptimizeStringCrossProducts(fst);
-  // Sets symbol tables.
-  if (new_isyms) fst->SetInputSymbols(new_isyms.get());
-  if (new_osyms) fst->SetOutputSymbols(new_osyms.get());
+  // Optionally symbol tables.
+  if (attach_symbols) {
+    fst->SetInputSymbols(new_isyms.get());
+    fst->SetOutputSymbols(new_osyms.get());
+  }
   return true;
 }
 
@@ -101,9 +104,11 @@ template <class Arc>
 bool CompileStringMap(const std::vector<std::pair<string, string>> &data,
                       StringTokenType itype, StringTokenType otype,
                       MutableFst<Arc> *fst, const SymbolTable *isyms = nullptr,
-                      const SymbolTable *osyms = nullptr) {
+                      const SymbolTable *osyms = nullptr,
+                      bool attach_symbols = true) {
   internal::StringPairIterator spiter(data);
-  return CompileStringMap(&spiter, itype, otype, fst, isyms, osyms);
+  return CompileStringMap(&spiter, itype, otype, fst, isyms, osyms,
+                          attach_symbols);
 }
 
 // A helper for doing this from a TSV file.
@@ -111,14 +116,16 @@ template <class Arc>
 bool CompileStringFile(const string &fname, StringTokenType itype,
                        StringTokenType otype, MutableFst<Arc> *fst,
                        const SymbolTable *isyms = nullptr,
-                       const SymbolTable *osyms = nullptr) {
+                       const SymbolTable *osyms = nullptr,
+                       bool attach_symbols = true) {
   std::ifstream istrm(fname);
     if (!istrm.good()) {    
     LOG(ERROR) << "Can't open file " << fname;
     return false;
   }
   internal::PairStringFile psf(istrm, fname);
-  return CompileStringMap(&psf, itype, otype, fst, isyms, osyms);
+  return CompileStringMap(&psf, itype, otype, fst, isyms, osyms,
+                          attach_symbols);
 }
 
 }  // namespace fst

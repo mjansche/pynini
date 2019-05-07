@@ -182,12 +182,14 @@ void CompileStringFromLabels(const std::vector<typename Arc::Label> &labels,
   using StateId = typename Arc::StateId;
   using Weight = typename Arc::Weight;
   fst->DeleteStates();
-  auto size = labels.size();
-  while (fst->NumStates() <= size) fst->AddState();
-  for (auto i = 0; i < size; ++i)
+  const StateId size = labels.size();
+  fst->ReserveStates(size);
+  for (StateId i = 0; i < size; ++i) {
+    fst->AddState();
     fst->AddArc(i, Arc(labels[i], labels[i], Weight::One(), i + 1));
+  }
   fst->SetStart(0);
-  fst->SetFinal(static_cast<StateId>(size), weight);
+  fst->SetFinal(fst->AddState(), weight);
   fst->SetProperties(kCompiledStringProps, kCompiledStringProps);
 }
 
@@ -299,7 +301,7 @@ bool SymbolStringToLabels(const string &str, const SymbolTable &syms,
   for (const auto token : tokens) {
     const auto label = static_cast<Label>(syms.Find(token));
     if (label == SymbolTable::kNoSymbol) {
-      LOG(ERROR) << "CompileSymbolString: Symbol \"" << token << "\" "
+      LOG(ERROR) << "SymbolStringToLabels: Symbol \"" << token << "\" "
                  << "is not mapped to any integer label in symbol table "
                  << syms.Name();
       return false;
@@ -322,8 +324,6 @@ inline void FinalizeBracketedString(std::vector<typename Arc::Label> *labels,
                                     const typename Arc::Weight &weight,
                                     const SymbolTable &syms,
                                     MutableFst<Arc> *fst) {
-  CompileStringFromLabels<Arc>(*labels, weight, fst);
-  AssignSymbolsToFst<Arc>(syms, fst);
 }
 
 }  // namespace internal
@@ -332,14 +332,17 @@ inline void FinalizeBracketedString(std::vector<typename Arc::Label> *labels,
 template <class Arc>
 bool CompileByteString(const string &str,
                        const typename Arc::Weight &weight,
-                       MutableFst<Arc> *fst) {
+                       MutableFst<Arc> *fst,
+                       bool attach_symbols = true) {
   using Label = typename Arc::Label;
   std::vector<Label> labels;
   labels.reserve(str.size());
-  for (auto ch : str) labels.push_back(static_cast<Label>(ch));
-  std::unique_ptr<SymbolTable> syms(internal::byte_table_factory.GetTable());
+  for (const auto ch : str) labels.push_back(static_cast<Label>(ch));
   internal::CompileStringFromLabels<Arc>(labels, weight, fst);
-  internal::AssignSymbolsToFst(*syms, fst);
+  if (attach_symbols) {
+    std::unique_ptr<SymbolTable> syms(internal::byte_table_factory.GetTable());
+    internal::AssignSymbolsToFst(*syms, fst);
+  }
   return true;
 }
 
@@ -347,15 +350,19 @@ bool CompileByteString(const string &str,
 template <class Arc>
 bool CompileUTF8String(const string &str,
                        const typename Arc::Weight &weight,
-                       MutableFst<Arc> *fst) {
+                       MutableFst<Arc> *fst,
+                       bool attach_symbols = true) {
   using Label = typename Arc::Label;
   std::vector<Label> labels;
   if (!UTF8StringToLabels(str, &labels)) return false;
-  std::unique_ptr<SymbolTable> syms(internal::utf8_table_factory.GetTable());
   internal::CompileStringFromLabels<Arc>(labels, weight, fst);
-  for (auto label : labels)
-    internal::AddUnicodeCodepointToSymbolTable(label, syms.get());
-  internal::AssignSymbolsToFst(*syms, fst);
+  if (attach_symbols) {
+    std::unique_ptr<SymbolTable> syms(internal::utf8_table_factory.GetTable());
+    for (const auto label : labels) {
+      internal::AddUnicodeCodepointToSymbolTable(label, syms.get());
+    }
+    internal::AssignSymbolsToFst(*syms, fst);
+  }
   return true;
 }
 
@@ -363,12 +370,13 @@ bool CompileUTF8String(const string &str,
 template <class Arc>
 bool CompileSymbolString(const string &str,
                          const typename Arc::Weight &weight,
-                         const SymbolTable &syms, MutableFst<Arc> *fst) {
+                         const SymbolTable &syms, MutableFst<Arc> *fst,
+                         bool attach_symbols = true) {
   using Label = typename Arc::Label;
   std::vector<Label> labels;
   if (!internal::SymbolStringToLabels<Label>(str, syms, &labels)) return false;
   internal::CompileStringFromLabels<Arc>(labels, weight, fst);
-  internal::AssignSymbolsToFst(syms, fst);
+  if (attach_symbols) internal::AssignSymbolsToFst(syms, fst);
   return true;
 }
 
@@ -376,13 +384,17 @@ bool CompileSymbolString(const string &str,
 template <class Arc>
 bool CompileBracketedByteString(const string &str,
                                 const typename Arc::Weight &weight,
-                                MutableFst<Arc> *fst) {
+                                MutableFst<Arc> *fst,
+                                bool attach_symbols = true) {
   using Label = typename Arc::Label;
   std::vector<Label> labels;
   std::unique_ptr<SymbolTable> syms(internal::byte_table_factory.GetTable());
-  if (!internal::BracketedByteStringToLabels<Label>(str, &labels, syms.get()))
+  if (!internal::BracketedByteStringToLabels<Label>(str, &labels,
+                                                    syms.get())) {
     return false;
-  internal::FinalizeBracketedString<Arc>(&labels, weight, *syms, fst);
+  }
+  internal::CompileStringFromLabels<Arc>(labels, weight, fst);
+  if (attach_symbols) internal::AssignSymbolsToFst<Arc>(*syms, fst);
   return true;
 }
 
@@ -390,19 +402,23 @@ bool CompileBracketedByteString(const string &str,
 template <class Arc>
 bool CompileBracketedUTF8String(const string &str,
                                 const typename Arc::Weight &weight,
-                                MutableFst<Arc> *fst) {
+                                MutableFst<Arc> *fst,
+                                bool attach_symbols = true) {
   using Label = typename Arc::Label;
   std::vector<Label> labels;
   std::unique_ptr<SymbolTable> syms(internal::utf8_table_factory.GetTable());
-  if (!internal::BracketedUTF8StringToLabels<Label>(str, &labels, syms.get()))
+  if (!internal::BracketedUTF8StringToLabels<Label>(str, &labels,
+                                                    syms.get())) {
     return false;
-  internal::FinalizeBracketedString<Arc>(&labels, weight, *syms, fst);
+  }
+  internal::CompileStringFromLabels<Arc>(labels, weight, fst);
+  if (attach_symbols) internal::AssignSymbolsToFst<Arc>(*syms, fst);
   return true;
 }
 
 template <class Label>
 bool StringToLabels(const string &str, StringTokenType ttype,
-                    std::vector<Label> *labels, SymbolTable *syms) {
+                    std::vector<Label> *labels, SymbolTable *syms = nullptr) {
   labels->clear();
   switch (ttype) {
     case BYTE:
@@ -411,9 +427,6 @@ bool StringToLabels(const string &str, StringTokenType ttype,
       return internal::BracketedUTF8StringToLabels<Label>(str, labels, syms);
     case SYMBOL:
       return internal::SymbolStringToLabels<Label>(str, *syms, labels);
-    default:
-      LOG(ERROR) << "StringToLabels: Unknown StringTokenType: " << ttype;
-      return false;
   }
   return true;
 }
@@ -421,17 +434,15 @@ bool StringToLabels(const string &str, StringTokenType ttype,
 template <class Arc>
 bool CompileString(const string &str, const typename Arc::Weight &weight,
                    StringTokenType ttype, MutableFst<Arc> *fst,
-                   const SymbolTable *syms = nullptr) {
+                   const SymbolTable *syms = nullptr,
+                   bool attach_symbols = true) {
   switch (ttype) {
     case BYTE:
-      return CompileBracketedByteString(str, weight, fst);
+      return CompileBracketedByteString(str, weight, fst, attach_symbols);
     case UTF8:
-      return CompileBracketedUTF8String(str, weight, fst);
+      return CompileBracketedUTF8String(str, weight, fst, attach_symbols);
     case SYMBOL:
-      return CompileSymbolString(str, weight, *syms, fst);
-    default:
-      LOG(ERROR) << "CompileString: Unknown StringTokenType: " << ttype;
-      return false;
+      return CompileSymbolString(str, weight, *syms, fst, attach_symbols);
   }
   return true;
 }

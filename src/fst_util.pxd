@@ -20,6 +20,8 @@ from libcpp cimport bool
 from libcpp.utility cimport pair
 from libcpp.vector cimport vector
 
+from libcpp.string cimport string
+
 from basictypes cimport int32
 from basictypes cimport int64
 
@@ -28,8 +30,6 @@ from fst cimport FstClass
 from fst cimport MutableFstClass
 from fst cimport SymbolTable
 from fst cimport WeightClass
-
-from libcpp.string cimport string
 
 
 cdef extern from "crossproductscript.h" \
@@ -114,7 +114,7 @@ cdef extern from "stringcompilescript.h" \
 
   bool CompileString(const string &, const WeightClass &,
                      StringTokenType, MutableFstClass *,
-                     const SymbolTable *)
+                     const SymbolTable *, bool)
 
 
 ctypedef pair[string, string] StringPair
@@ -124,10 +124,12 @@ cdef extern from "stringmapscript.h" \
     namespace "fst::script" nogil:
 
   bool StringFile(const string &, StringTokenType, StringTokenType,
-                  MutableFstClass *, const SymbolTable *, const SymbolTable *)
+                  MutableFstClass *, const SymbolTable *, const SymbolTable *,
+                  bool)
 
   bool StringMap(const vector[StringPair] &, StringTokenType, StringTokenType,
-                 MutableFstClass *, const SymbolTable *, const SymbolTable *)
+                 MutableFstClass *, const SymbolTable *, const SymbolTable *,
+                 bool)
 
 
 cdef extern from "stringprintscript.h" \
@@ -143,11 +145,6 @@ cdef extern from "stringtokentype.h" \
   bool GetStringTokenType(const string &, StringTokenType *)
 
 
-cdef extern from "merge.h":
-
-  bool FLAGS_fst_relabel_symbol_conflicts
-
-
 cdef extern from "merge.h" namespace "fst":
 
   enum MergeSymbolsType:
@@ -160,5 +157,5 @@ cdef extern from "merge.h" namespace "fst":
 cdef extern from "mergescript.h" \
     namespace "fst::script" nogil:
 
-  bool MergeSymbols(MutableFstClass *, MutableFstClass *, MergeSymbolsType)
+  void MergeSymbols(MutableFstClass *, MutableFstClass *, MergeSymbolsType)
 

@@ -182,19 +182,19 @@ void PyniniCDRewrite(const Fst<Arc> &tau, const Fst<Arc> &lambda,
 namespace script {
 
 using PyniniCDRewriteArgs =
-    args::Package<const FstClass &, const FstClass &, const FstClass &,
-                  const FstClass &, MutableFstClass *, CDRewriteDirection,
-                  CDRewriteMode>;
+    std::tuple<const FstClass &, const FstClass &, const FstClass &,
+               const FstClass &, MutableFstClass *, CDRewriteDirection,
+               CDRewriteMode>;
 
 template <class Arc>
 void PyniniCDRewrite(PyniniCDRewriteArgs *args) {
-  const Fst<Arc> &tau = *(args->arg1.GetFst<Arc>());
-  const Fst<Arc> &lambda = *(args->arg2.GetFst<Arc>());
-  const Fst<Arc> &rho = *(args->arg3.GetFst<Arc>());
-  const Fst<Arc> &sigma_star_star = *(args->arg4.GetFst<Arc>());
-  MutableFst<Arc> *ofst = args->arg5->GetMutableFst<Arc>();
-  PyniniCDRewrite(tau, lambda, rho, sigma_star_star, ofst, args->arg6,
-                  args->arg7);
+  const Fst<Arc> &tau = *(std::get<0>(*args).GetFst<Arc>());
+  const Fst<Arc> &lambda = *(std::get<1>(*args).GetFst<Arc>());
+  const Fst<Arc> &rho = *(std::get<2>(*args).GetFst<Arc>());
+  const Fst<Arc> &sigma_star_star = *(std::get<3>(*args).GetFst<Arc>());
+  MutableFst<Arc> *ofst = std::get<4>(*args)->GetMutableFst<Arc>();
+  PyniniCDRewrite(tau, lambda, rho, sigma_star_star, ofst, std::get<5>(*args),
+                  std::get<6>(*args));
 }
 
 void PyniniCDRewrite(const FstClass &tau, const FstClass &lambda,

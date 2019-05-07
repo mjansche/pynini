@@ -36,14 +36,7 @@ SymbolTable *PrepareInputSymbols(SymbolTable *syms, MutableFst<Arc> *fst) {
   bool relabel = false;
   SymbolTable *new_syms = MergeSymbols(syms, fst->InputSymbols(), &relabel);
   if (!new_syms) return syms ? syms->Copy() : nullptr;
-  if (relabel) {  // Relabeling necessary.
-    if (!FLAGS_fst_relabel_symbol_conflicts) {
-      LOG(WARNING) << "PrepareInputSymbols: Unable to resolve symbol table "
-                   << "conflict without relabeling";
-    } else {
-      Relabel(fst, new_syms, nullptr);
-    }
-  }
+  if (relabel) Relabel(fst, new_syms, nullptr);
   fst->SetInputSymbols(nullptr);
   return new_syms;
 }
@@ -55,14 +48,7 @@ SymbolTable *PrepareOutputSymbols(SymbolTable *syms, MutableFst<Arc> *fst) {
   bool relabel = false;
   SymbolTable *new_syms = MergeSymbols(syms, fst->OutputSymbols(), &relabel);
   if (!new_syms) return syms ? syms->Copy() : nullptr;
-  if (relabel) {  // Relabeling necessary.
-    if (!FLAGS_fst_relabel_symbol_conflicts) {
-      LOG(WARNING) << "PrepareOutputSymbols: Unable to resolve symbol table "
-                   << "conflict without relabeling";
-    } else {
-      Relabel(fst, nullptr, new_syms);
-    }
-  }
+  if (relabel) Relabel(fst, nullptr, new_syms);
   fst->SetOutputSymbols(nullptr);
   return new_syms;
 }

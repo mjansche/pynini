@@ -31,44 +31,47 @@ using std::string;
 namespace fst {
 namespace script {
 
-using StringFileInnerArgs =
-    args::Package<const string &, StringTokenType, StringTokenType,
-                  MutableFstClass *, const SymbolTable *, const SymbolTable *>;
+using StringFileInnerArgs = std::tuple<const string &, StringTokenType,
+    StringTokenType, MutableFstClass *, const SymbolTable *,
+    const SymbolTable *, bool>;
 
-using StringFileArgs = args::WithReturnValue<bool, StringFileInnerArgs>;
+using StringFileArgs = WithReturnValue<bool, StringFileInnerArgs>;
 
 template <class Arc>
 void StringFile(StringFileArgs *args) {
-  MutableFst<Arc> *fst = args->args.arg4->GetMutableFst<Arc>();
-  args->retval =
-      CompileStringFile(args->args.arg1, args->args.arg2, args->args.arg3, fst,
-                        args->args.arg5, args->args.arg6);
+  MutableFst<Arc> *fst = std::get<3>(args->args)->GetMutableFst<Arc>();
+  args->retval = CompileStringFile(
+      std::get<0>(args->args), std::get<1>(args->args), std::get<2>(args->args),
+      fst, std::get<4>(args->args), std::get<5>(args->args),
+      std::get<6>(args->args));
 }
 
 bool StringFile(const string &fname, StringTokenType itype,
                 StringTokenType otype, MutableFstClass *fst,
                 const SymbolTable *isyms = nullptr,
-                const SymbolTable *osyms = nullptr);
+                const SymbolTable *osyms = nullptr,
+                bool attach_symbols = true);
 
-using StringMapInnerArgs =
-    args::Package<const std::vector<std::pair<string, string>> &,
-                  StringTokenType, StringTokenType, MutableFstClass *,
-                  const SymbolTable *, const SymbolTable *>;
+using StringMapInnerArgs = std::tuple<
+    const std::vector<std::pair<string, string>> &, StringTokenType,
+    StringTokenType, MutableFstClass *, const SymbolTable *,
+    const SymbolTable *, bool>;
 
-using StringMapArgs = args::WithReturnValue<bool, StringMapInnerArgs>;
+using StringMapArgs = WithReturnValue<bool, StringMapInnerArgs>;
 
 template <class Arc>
 void StringMap(StringMapArgs *args) {
-  MutableFst<Arc> *fst = args->args.arg4->GetMutableFst<Arc>();
-  args->retval =
-      CompileStringMap(args->args.arg1, args->args.arg2, args->args.arg3, fst,
-                       args->args.arg5, args->args.arg6);
+  MutableFst<Arc> *fst = std::get<3>(args->args)->GetMutableFst<Arc>();
+  args->retval = CompileStringMap(
+      std::get<0>(args->args), std::get<1>(args->args), std::get<2>(args->args),
+      fst, std::get<4>(args->args), std::get<5>(args->args),
+      std::get<6>(args->args));
 }
 
 bool StringMap(const std::vector<std::pair<string, string>> &pairs,
                StringTokenType itype, StringTokenType otype,
                MutableFstClass *fst, const SymbolTable *isyms = nullptr,
-               const SymbolTable *osyms = nullptr);
+               const SymbolTable *osyms = nullptr, bool attach_symbols = true);
 
 }  // namespace script
 }  // namespace fst

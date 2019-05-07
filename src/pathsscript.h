@@ -82,6 +82,7 @@ class StringPathsImpl : public StringPathsImplBase {
   void ILabels(std::vector<int64> *labels) const override {
     std::vector<Label> typed_labels;
     impl_->ILabels(&typed_labels);
+    labels->clear();
     labels->resize(typed_labels.size());
     std::copy(typed_labels.begin(), typed_labels.end(), labels->begin());
   }
@@ -95,6 +96,7 @@ class StringPathsImpl : public StringPathsImplBase {
   void OLabels(std::vector<int64> *labels) const override {
     std::vector<Label> typed_labels;
     impl_->OLabels(&typed_labels);
+    labels->clear();
     labels->resize(typed_labels.size());
     std::copy(typed_labels.begin(), typed_labels.end(), labels->begin());
   }
@@ -118,9 +120,9 @@ class StringPathsImpl : public StringPathsImplBase {
 class StringPathsClass;
 
 using InitStringPathsClassArgs =
-    args::Package<const FstClass &, StringTokenType, StringTokenType,
-                  const SymbolTable *, const SymbolTable *, bool,
-                  StringPathsClass *>;
+    std::tuple<const FstClass &, StringTokenType, StringTokenType,
+               const SymbolTable *, const SymbolTable *, bool,
+               StringPathsClass *>;
 
 // Untemplated user-facing class holding templated pimpl.
 class StringPathsClass {
@@ -170,9 +172,10 @@ class StringPathsClass {
 
 template <class Arc>
 void InitStringPathsClass(InitStringPathsClassArgs *args) {
-  const Fst<Arc> &fst = *(args->arg1.GetFst<Arc>());
-  args->arg7->impl_.reset(new StringPathsImpl<Arc>(
-      fst, args->arg2, args->arg3, args->arg4, args->arg5, args->arg6));
+  const Fst<Arc> &fst = *(std::get<0>(*args).GetFst<Arc>());
+  std::get<6>(*args)->impl_.reset(new StringPathsImpl<Arc>(
+      fst, std::get<1>(*args), std::get<2>(*args), std::get<3>(*args),
+      std::get<4>(*args), std::get<5>(*args)));
 }
 
 }  // namespace script

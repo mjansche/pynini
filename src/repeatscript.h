@@ -25,12 +25,12 @@
 namespace fst {
 namespace script {
 
-using RepeatArgs = args::Package<MutableFstClass *, int32, int32>;
+using RepeatArgs = std::tuple<MutableFstClass *, int32, int32>;
 
 template <class Arc>
 void Repeat(RepeatArgs *args) {
-  MutableFst<Arc> *fst = args->arg1->GetMutableFst<Arc>();
-  Repeat(fst, args->arg2, args->arg3);
+  MutableFst<Arc> *fst = std::get<0>(*args)->GetMutableFst<Arc>();
+  Repeat(fst, std::get<1>(*args), std::get<2>(*args));
 }
 
 void Repeat(MutableFstClass *fst, int32 lower, int32 upper);

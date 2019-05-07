@@ -76,7 +76,7 @@ void Repeat(MutableFst<Arc> *fst, int32 lower, int32 upper) {
     fst->SetFinal(fst->Start(), Weight::One());
   }
   std::unique_ptr<MutableFst<Arc>> tfst(fst->Copy());
-  for (size_t i = 0; i < lower - 1; ++i) Concat(fst, *tfst);
+  for (int32 i = 0; i < lower - 1; ++i) Concat(fst, *tfst);
   if (upper <= 0) {  // Upper bound is infinite.
     // Concatenates a *-ed copy.
     Closure(tfst.get(), CLOSURE_STAR);
@@ -84,7 +84,7 @@ void Repeat(MutableFst<Arc> *fst, int32 lower, int32 upper) {
   } else {  // Upper bound is finite.
     // Concatenates ?-ed copies.
     tfst->SetFinal(tfst->Start(), Weight::One());
-    for (size_t i = lower; i < upper; ++i) Concat(fst, *tfst);
+    for (int32 i = lower; i < upper; ++i) Concat(fst, *tfst);
   }
 }
 

@@ -16,6 +16,7 @@
 # finite-state transducer library.
 
 
+from libcpp.string cimport string
 from basictypes cimport int8
 from basictypes cimport int16
 from basictypes cimport int32
@@ -24,7 +25,6 @@ from basictypes cimport uint8
 from basictypes cimport uint16
 from basictypes cimport uint32
 from basictypes cimport uint64
-from libcpp.string cimport string
 
 
 cdef extern from "<iostream>" namespace "std" nogil:

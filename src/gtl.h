@@ -18,6 +18,7 @@
 #ifndef PYNINI_GTL_H_
 #define PYNINI_GTL_H_
 
+#include <algorithm>
 #include <fstream>
 #include <memory>
 #include <string>
@@ -34,13 +35,12 @@ void MapUtilAssignNewDefaultInstance(T **location) {
 }
 
 template <class T>
-typename T::value_type::second_type LookupOrInsertNew(
-    T *const collection, const typename T::value_type::first_type &key) {
-  std::pair<typename T::iterator, bool> ret =
-      collection->insert(typename T::value_type(
-          key, static_cast<typename T::value_type::second_type>(nullptr)));
-  if (ret.second) MapUtilAssignNewDefaultInstance(&(ret.first->second));
-  return ret.first->second;
+typename T::value_type::second_type LookupOrInsertNew(T * const collection,
+    const typename T::value_type::first_type &key) {
+  auto result = collection->insert(typename T::value_type(key,
+      static_cast<typename T::value_type::second_type>(nullptr)));
+  if (result.second) MapUtilAssignNewDefaultInstance(&(result.first->second));
+  return result.first->second;
 }
 
 // Strings stuff.

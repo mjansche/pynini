@@ -23,12 +23,12 @@ namespace script {
 
 bool CompileString(const string &str, const WeightClass &wc,
                    StringTokenType ttype, MutableFstClass *fst,
-                   const SymbolTable *syms) {
+                   const SymbolTable *syms, bool attach_symbols) {
   if (!fst->WeightTypesMatch(wc, "CompileSymbolString")) {
     fst->SetProperties(kError, kError);
     return false;
   }
-  CompileStringInnerArgs iargs(str, wc, ttype, fst, syms);
+  CompileStringInnerArgs iargs(str, wc, ttype, fst, syms, attach_symbols);
   CompileStringArgs args(iargs);
   Apply<Operation<CompileStringArgs>>("CompileString", fst->ArcType(), &args);
   return args.retval;

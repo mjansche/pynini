@@ -26,13 +26,13 @@ namespace fst {
 namespace script {
 
 using ContainmentArgs =
-    args::Package<const FstClass &, const FstClass &, MutableFstClass *>;
+    std::tuple<const FstClass &, const FstClass &, MutableFstClass *>;
 
 template <class Arc>
 void Containment(ContainmentArgs *args) {
-  const Fst<Arc> &ifst = *(args->arg1.GetFst<Arc>());
-  const Fst<Arc> &sigma_star = *(args->arg2.GetFst<Arc>());
-  MutableFst<Arc> *ofst = args->arg3->GetMutableFst<Arc>();
+  const Fst<Arc> &ifst = *(std::get<0>(*args).GetFst<Arc>());
+  const Fst<Arc> &sigma_star = *(std::get<1>(*args).GetFst<Arc>());
+  MutableFst<Arc> *ofst = std::get<2>(*args)->GetMutableFst<Arc>();
   Containment(ifst, sigma_star, ofst);
 }
 

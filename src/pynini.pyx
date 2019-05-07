@@ -40,6 +40,8 @@ from libcpp.memory cimport unique_ptr
 from libcpp.utility cimport pair
 from libcpp.vector cimport vector
 
+from libcpp.string cimport string
+
 from basictypes cimport int32
 from basictypes cimport int64
 from basictypes cimport uint64
@@ -71,8 +73,6 @@ from fst cimport kNoStateId
 from fst cimport kString
 from fst cimport kUnweighted
 
-from libcpp.string cimport string
-
 from memory cimport static_pointer_cast
 
 from pywrapfst cimport _Fst
@@ -96,7 +96,6 @@ from pywrapfst cimport tostring
 
 from fst_util cimport CompileString
 from fst_util cimport Containment
-from fst_util cimport FLAGS_fst_relabel_symbol_conflicts
 from fst_util cimport CrossProduct
 from fst_util cimport GetStringTokenType
 from fst_util cimport LenientlyCompose
@@ -183,10 +182,6 @@ class FstStringCompilationError(FstArgError, ValueError):
 
   pass
 
-
-class FstSymbolTableMergeError(FstOpError, ValueError):
-
-  pass
 
 
 # Helper functions.
@@ -321,9 +316,8 @@ cdef void _add_parentheses_symbols(MutableFstClass *fst,
     left: Was the input FST the left side of a MPDT or PDT composition?
 
   Raises:
-    FstSymbolTableMergeError: Unable to resolve parentheses symbol table
-        conflict.
     KeyError.
+    FstOpError: Unable to resolve parentheses symbol table conflict.
 
   This function is not visible to Python users.
   """
@@ -352,14 +346,14 @@ cdef void _add_parentheses_symbols(MutableFstClass *fst,
     if symbol == b"":
       raise KeyError(label)
     if label != sink_syms.AddSymbol(symbol, label):
-      raise FstSymbolTableMergeError(
+      raise FstOpError(
           "Unable to resolve parentheses symbol table conflict")
     label = parens[i].second
     symbol = source_syms.FindSymbol(label)
     if symbol == b"":
       raise KeyError(label)
     if label != sink_syms.AddSymbol(symbol, label):
-      raise FstSymbolTableMergeError(
+      raise FstOpError(
           "Unable to resolve parentheses symbol table conflict")
 
 
@@ -671,17 +665,10 @@ cdef class Fst(_MutableFst):
 
     Raises:
       FstOpError: Operation failed.
-      FstSymbolTableMergeError: Unable to resolve symbol table conflict
-          without relabeling.
     """
     cdef Fst rhs = _compile_or_copy_Fst(ifst, arc_type=self.arc_type())
-    if not MergeSymbols(self._mfst.get(), rhs._mfst.get(),
-                        MERGE_INPUT_AND_OUTPUT_SYMBOLS):
-     if not FLAGS_fst_relabel_symbol_conflicts:
-       raise FstSymbolTableMergeError(
-           "Unable to resolve symbol table conflict without relabeling")
-     else:
-       raise FstOpError("Operation failed")
+    MergeSymbols(self._mfst.get(), rhs._mfst.get(),
+                 MERGE_INPUT_AND_OUTPUT_SYMBOLS)
     self._concat(rhs)
     return self
 
@@ -750,19 +737,12 @@ cdef class Fst(_MutableFst):
 
     Raises:
       FstOpError: Operation failed.
-      FstSymbolTableMergeError: Unable to resolve symbol table conflict
-          without relabeling.
     """
     cdef Fst lhs
     cdef Fst rhs
     (lhs, rhs) = _compile_or_copy_two_Fsts(self, ifst)
-    if not MergeSymbols(self._mfst.get(), rhs._mfst.get(),
-                        MERGE_INPUT_AND_OUTPUT_SYMBOLS):
-     if not FLAGS_fst_relabel_symbol_conflicts:
-       raise FstSymbolTableMergeError(
-           "Unable to resolve symbol table conflict without relabeling")
-     else:
-       raise FstOpError("Operation failed")
+    MergeSymbols(self._mfst.get(), rhs._mfst.get(),
+                 MERGE_INPUT_AND_OUTPUT_SYMBOLS)
     self._union(rhs)
     return self
 
@@ -894,7 +874,7 @@ cpdef Fst acceptor(astring,
   else:
     ttype = _get_token_type(tostring(token_type))
   cdef bool success = CompileString(tostring(astring), wc, ttype,
-                                    result._mfst.get(), syms)
+                                    result._mfst.get(), syms, True)
   # First we check whether there were problems with arc or weight type, then
   # for string compilation issues.
   result._check_mutating_imethod()
@@ -1048,21 +1028,13 @@ cpdef Fst containment(ifst, sigma_star):
 
   Raises:
     FstOpError: Operation failed.
-    FstSymbolTableMergeError: Unable to resolve symbol table conflict without
-        relabeling.
   """
   cdef Fst ifst_compiled
   cdef Fst sigma_star_compiled
   (ifst_compiled, sigma_star_compiled) = _compile_or_copy_two_Fsts(ifst,
       sigma_star)
-  if not MergeSymbols(ifst_compiled._mfst.get(),
-                      sigma_star_compiled._mfst.get(),
-                      MERGE_INPUT_AND_OUTPUT_SYMBOLS):
-    if not FLAGS_fst_relabel_symbol_conflicts:
-      raise FstSymbolTableMergeError(
-          "Unable to resolve symbol table conflict without relabeling")
-    else:
-      raise FstOpError("Operation failed")
+  MergeSymbols(ifst_compiled._mfst.get(), sigma_star_compiled._mfst.get(),
+               MERGE_INPUT_AND_OUTPUT_SYMBOLS)
   cdef Fst result = Fst(ifst_compiled.arc_type())
   Containment(deref(ifst_compiled._fst), deref(sigma_star_compiled._fst),
               result._mfst.get())
@@ -1124,8 +1096,6 @@ cpdef Fst leniently_compose(ifst1, ifst2, sigma_star, compose_filter=b"auto",
 
   Raises:
     FstOpError: Operation failed.
-    FstSymbolTableMergeError: Unable to resolve symbol table conflict without
-        relabeling.
   """
   cdef Fst ifst1_compiled
   cdef Fst ifst2_compiled
@@ -1221,7 +1191,7 @@ cpdef Fst string_file(filename,
     otype = _get_token_type(tostring(output_token_type))
   cdef Fst result = Fst(arc_type)
   if not StringFile(tostring(filename), itype, otype, result._mfst.get(),
-                    isyms, osyms):
+                    isyms, osyms, True):
     raise FstIOError("Read failed")
   return result
 
@@ -1292,7 +1262,7 @@ cpdef Fst string_map(pairs,
       string = tostring(pair)
       strings.push_back(StringPair(string, string))
   cdef bool success = StringMap(strings, itype, otype,
-                                result._mfst.get(), isyms, osyms)
+                                result._mfst.get(), isyms, osyms, True)
   if not success:
     raise FstArgError("String map compilation failed")
   return result
@@ -1317,7 +1287,6 @@ prune = _1arg_patch(pywrapfst.prune)
 push = _1arg_patch(pywrapfst.push)
 randgen = _1arg_patch(pywrapfst.randgen)
 reverse = _1arg_patch(pywrapfst.reverse)
-rmepsilon = _1arg_patch(pywrapfst.rmepsilon)
 shortestpath = _1arg_patch(pywrapfst.shortestpath)
 statemap = _1arg_patch(pywrapfst.statemap)
 synchronize = _1arg_patch(pywrapfst.synchronize)
@@ -1345,13 +1314,8 @@ def _compose_patch(fnc):
     cdef Fst lhs
     cdef Fst rhs
     (lhs, rhs) = _compile_or_copy_two_Fsts(arg1, arg2)
-    if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
-                        MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
-     if not FLAGS_fst_relabel_symbol_conflicts:
-       raise FstSymbolTableMergeError(
-           "Unable to resolve symbol table conflict without relabeling")
-     else:
-       raise FstOpError("Operation failed")
+    MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
+                 MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS)
     _maybe_arcsort(lhs._mfst.get(), rhs._mfst.get())
     lhs = _init_Fst_from_MutableFst(fnc(lhs, rhs, *args, **kwargs))
     return lhs
@@ -1367,19 +1331,12 @@ def _difference_patch(fnc):
     cdef Fst lhs
     cdef Fst rhs
     (lhs, rhs) = _compile_or_copy_two_Fsts(arg1, arg2)
-    if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
-                        MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
-     if not FLAGS_fst_relabel_symbol_conflicts:
-       raise FstSymbolTableMergeError(
-           "Unable to resolve symbol table conflict without relabeling")
-     else:
-       raise FstOpError("Operation failed")
-    if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
-                        MERGE_INPUT_AND_OUTPUT_SYMBOLS):
-      raise FstSymbolTableMergeError(
-          "Unable to resolve symbol table conflict without relabeling")
     if rhs._mfst.get().Properties(kDifferenceRhs, True) != kDifferenceRhs:
       raise FstOpError("2nd argument must be an unweighted acceptor")
+    MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
+                 MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS)
+    MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
+                 MERGE_INPUT_AND_OUTPUT_SYMBOLS)
     # Makes RHS epsilon-free and deterministic.
     OptimizeDifferenceRhs(rhs._mfst.get(), True)
     return _init_Fst_from_MutableFst(fnc(lhs, rhs, *args, **kwargs))
@@ -1395,17 +1352,10 @@ def _intersect_patch(fnc):
     cdef Fst lhs
     cdef Fst rhs
     (lhs, rhs) = _compile_or_copy_two_Fsts(arg1, arg2)
-    if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
-                        MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
-     if not FLAGS_fst_relabel_symbol_conflicts:
-       raise FstSymbolTableMergeError(
-           "Unable to resolve symbol table conflict without relabeling")
-     else:
-       raise FstOpError("Operation failed")
-    if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
-                        MERGE_INPUT_AND_OUTPUT_SYMBOLS):
-      raise FstSymbolTableMergeError(
-          "Unable to resolve symbol table conflict without relabeling")
+    MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
+                 MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS)
+    MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
+                 MERGE_INPUT_AND_OUTPUT_SYMBOLS)
     return _init_Fst_from_MutableFst(fnc(lhs, rhs, *args, **kwargs))
   return patch
 
@@ -1439,13 +1389,8 @@ def _comp_merge_patch(fnc):
     cdef Fst lhs
     cdef Fst rhs
     (lhs, rhs) = _compile_or_copy_two_Fsts(arg1, arg2)
-    if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
-                        MERGE_INPUT_AND_OUTPUT_SYMBOLS):
-     if not FLAGS_fst_relabel_symbol_conflicts:
-       raise FstSymbolTableMergeError(
-           "Unable to resolve symbol table conflict without relabeling")
-     else:
-       raise FstOpError("Operation failed")
+    MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
+                 MERGE_INPUT_AND_OUTPUT_SYMBOLS)
     return fnc(lhs, rhs, *args, **kwargs)
   return patch
 
@@ -1690,20 +1635,13 @@ def pdt_compose(ifst1,
 
   Raises:
     FstOpError: Operation failed.
-    FstSymbolTableMergeError: Unable to resolve symbol table conflict
-        without relabeling.
   """
   cdef Fst lhs
   cdef Fst rhs
   (lhs, rhs) = _compile_or_copy_two_Fsts(ifst1, ifst2)
   _maybe_arcsort(lhs._mfst.get(), rhs._mfst.get())
-  if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
-                      MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
-    if not FLAGS_fst_relabel_symbol_conflicts:
-      raise FstSymbolTableMergeError(
-          "Unable to resolve symbol table conflict without relabeling")
-    else:
-      raise FstOpError("Operation failed")
+  MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
+               MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS)
   cdef Fst result = Fst(lhs.arc_type())
   cdef PdtComposeFilter compose_filter_enum = _get_pdt_compose_filter(
       tostring(compose_filter))
@@ -2026,8 +1964,6 @@ cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens,
 
   Raises:
     FstOpError: Operation failed.
-    FstSymbolTableMergeError: Unable to resolve symbol table conflict
-        without relabeling.
 
   See also: `compose`.
   """
@@ -2035,13 +1971,8 @@ cpdef Fst mpdt_compose(ifst1, ifst2, MPdtParentheses parens,
   cdef Fst rhs
   (lhs, rhs) = _compile_or_copy_two_Fsts(ifst1, ifst2)
   _maybe_arcsort(lhs._mfst.get(), rhs._mfst.get())
-  if not MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
-                      MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS):
-    if not FLAGS_fst_relabel_symbol_conflicts:
-      raise FstSymbolTableMergeError(
-          "Unable to resolve symbol table conflict without relabeling")
-    else:
-      raise FstOpError("Operation failed")
+  MergeSymbols(lhs._mfst.get(), rhs._mfst.get(),
+               MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS)
   cdef Fst result = Fst(lhs.arc_type())
   cdef PdtComposeFilter compose_filter_enum = _get_pdt_compose_filter(
       tostring(compose_filter))
@@ -2776,6 +2707,7 @@ project = _copy_patch(Fst.project)
 relabel_pairs = _copy_patch(Fst.relabel_pairs)
 relabel_tables = _copy_patch(Fst.relabel_tables)
 reweight = _copy_patch(Fst.reweight)
+rmepsilon = _copy_patch(Fst.rmepsilon)
 topsort = _copy_patch(Fst.topsort)
 
 

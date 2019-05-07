@@ -28,14 +28,17 @@ namespace internal {
 
 SymbolTable *GetSymbolTable(StringTokenType ttype, const SymbolTable *syms) {
   switch (ttype) {
-    case SYMBOL:
+    case SYMBOL: {
       return syms->Copy();
-    case BYTE:
+    }
+    case BYTE: {
       return internal::byte_table_factory.GetTable();
-    case UTF8:
+    }
+    case UTF8: {
       return internal::utf8_table_factory.GetTable();
+    }
   }
-  FSTERROR() << "GetSymbolTable: Unknown StringTokenType: " << ttype;
+  // Unreachable.
   return nullptr;
 }
 
@@ -151,8 +154,8 @@ inline bool IsUnicodeSpaceOrControl(int32 label) {
 // that the input cannot be parsed as a Unicode codepoint.
 int32 AddUnicodeCodepointToSymbolTable(int32 label, SymbolTable *syms) {
   string label_string;
-  std::vector<int32> labels = {
-      label};  // Creates a vector with just this label.
+  // Creates a vector with just this label.
+  std::vector<int32> labels = {label};
   if (LabelsToUTF8String(labels, &label_string)) {
     return static_cast<int32>(syms->AddSymbol(label_string, label));
   } else {

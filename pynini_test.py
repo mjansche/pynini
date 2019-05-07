@@ -284,10 +284,6 @@ class PyniniExceptionsTest(unittest.TestCase):
     with self.assertRaises(FstOpError):
       unused_f = difference(self.exchange, self.exchange)
 
-  def testTransducerEquivalentRaisesFstOpError(self):
-    with self.assertRaises(FstOpError):
-      unused_f = equivalent(self.exchange, self.exchange)
-
   def testWrongWeightTypeAddArcRaisesFstOpError(self):
     f = self.f.copy()
     s = f.add_state()

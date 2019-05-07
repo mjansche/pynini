@@ -19,10 +19,6 @@
 
 #include "merge.h"
 
-DEFINE_bool(fst_relabel_symbol_conflicts, true,
-            "Resolve conflicts in FST symbol tables by relabeling; if false, "
-            "operations requiring relabeling will fail");
-
 namespace fst {
 namespace internal {
 

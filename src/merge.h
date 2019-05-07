@@ -27,11 +27,7 @@
 // same symbol). The lowest-level function is MergeSymbols, which creates a
 // merged table and signals when relabeling is necessary due to labeling
 // conflicts. The remaining functions target pairs of FSTs rather than tables,
-// assigning the merged tables back to the argument FSTs when needed. The flag
-// --fst_relabel_symbol_conflicts is used to determine whether merger will
-// happen when it is required, or whether the operation will simply fail.
-
-DECLARE_bool(fst_relabel_symbol_conflicts);
+// assigning the merged tables back to the argument FSTs when needed.
 
 namespace fst {
 namespace internal {
@@ -47,65 +43,37 @@ SymbolTable *MergeSymbols(const SymbolTable *syms1, const SymbolTable *syms2,
 // Specific implementations, not intended for client use.
 
 template <class Arc>
-bool MergeInputSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2) {
+void MergeInputSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2) {
   bool relabel = false;
-  std::unique_ptr<SymbolTable> new_syms(
-      MergeSymbols(fst1->InputSymbols(), fst2->InputSymbols(), &relabel));
-  if (!new_syms) return true;  // No mutation necessary.
-  if (relabel) {
-    if (FLAGS_fst_relabel_symbol_conflicts) {
-      Relabel(fst2, new_syms.get(), nullptr);
-    } else {
-      LOG(WARNING) << "MergeInputSymbols: Unable to resolve "
-                   << "symbol table conflict without relabeling";
-      return false;
-    }
-  }
+  std::unique_ptr<SymbolTable> new_syms(MergeSymbols(
+      fst1->InputSymbols(), fst2->InputSymbols(), &relabel));
+  if (!new_syms) return;  // No mutation necessary.
+  if (relabel) Relabel(fst2, new_syms.get(), nullptr);
   fst1->SetInputSymbols(new_syms.get());
   fst2->SetInputSymbols(new_syms.get());
-  return true;
 }
 
 template <class Arc>
-bool MergeOutputSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2) {
+void MergeOutputSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2) {
   bool relabel = false;
   std::unique_ptr<SymbolTable> new_syms(
       MergeSymbols(fst1->OutputSymbols(), fst2->OutputSymbols(), &relabel));
-  if (!new_syms) return true;  // No mutation necessary.
-  if (relabel) {
-    if (FLAGS_fst_relabel_symbol_conflicts) {
-      Relabel(fst2, nullptr, new_syms.get());
-    } else {
-      LOG(WARNING) << "MergeOutputSymbols: Unable to resolve "
-                   << "symbol table conflict without relabeling";
-      return false;
-    }
-  }
+  if (!new_syms) return;  // No mutation necessary.
+  if (relabel) Relabel(fst2, nullptr, new_syms.get());
   fst1->SetOutputSymbols(new_syms.get());
   fst2->SetOutputSymbols(new_syms.get());
-  return true;
 }
 
 template <class Arc>
-bool MergeLeftOutputAndRightInputSymbols(MutableFst<Arc> *fst1,
+void MergeLeftOutputAndRightInputSymbols(MutableFst<Arc> *fst1,
                                          MutableFst<Arc> *fst2) {
   bool relabel = false;
   std::unique_ptr<SymbolTable> new_syms(
       MergeSymbols(fst1->OutputSymbols(), fst2->InputSymbols(), &relabel));
-  if (!new_syms) return true;  // No mutation necessary.
-  if (relabel) {
-    if (FLAGS_fst_relabel_symbol_conflicts) {
-      Relabel(fst2, new_syms.get(), nullptr);
-    } else {
-      LOG(WARNING) << "MergeLeftOutputAndRightInputSymbols: "
-                   << "Unable to resolve symbol table conflict without "
-                   << "relabeling";
-      return false;
-    }
-  }
+  if (!new_syms) return;  // No mutation necessary.
+  if (relabel) Relabel(fst2, new_syms.get(), nullptr);
   fst1->SetOutputSymbols(new_syms.get());
   fst2->SetInputSymbols(new_syms.get());
-  return true;
 }
 
 }  // namespace internal
@@ -123,25 +91,21 @@ enum MergeSymbolsType {
 };
 
 // This is the most generic merging function, and it is the one most clients
-// should use. If the tables have symbol conflicts, the left FST is relabeled
-// so long as the command-line flag --fst_relabel_symbol_table_conflicts is
-// set to true.
+// should use. If the tables have symbol conflicts, the left FST is relabeled.
 
 template <class Arc>
-bool MergeSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2,
+void MergeSymbols(MutableFst<Arc> *fst1, MutableFst<Arc> *fst2,
                   MergeSymbolsType mst) {
-  bool success = true;
   if ((mst & MERGE_INPUT_SYMBOLS) == MERGE_INPUT_SYMBOLS) {
-    success &= internal::MergeInputSymbols(fst1, fst2);
+    internal::MergeInputSymbols(fst1, fst2);
   }
   if ((mst & MERGE_OUTPUT_SYMBOLS) == MERGE_OUTPUT_SYMBOLS) {
-    success &= internal::MergeOutputSymbols(fst1, fst2);
+    internal::MergeOutputSymbols(fst1, fst2);
   }
   if ((mst & MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS) ==
       MERGE_LEFT_OUTPUT_AND_RIGHT_INPUT_SYMBOLS) {
-    success &= internal::MergeLeftOutputAndRightInputSymbols(fst1, fst2);
+    internal::MergeLeftOutputAndRightInputSymbols(fst1, fst2);
   }
-  return success;
 }
 
 }  // namespace fst

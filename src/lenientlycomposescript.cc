@@ -24,9 +24,9 @@ namespace script {
 void LenientlyCompose(const FstClass &ifst1, const FstClass &ifst2,
                       const FstClass &sigma_star, MutableFstClass *ofst,
                       const ComposeOptions &opts) {
-  if (!ArcTypesMatch(ifst1, ifst2, "LenientlyCompose") ||
-      !ArcTypesMatch(ifst2, sigma_star, "LenientlyCompose") ||
-      !ArcTypesMatch(sigma_star, *ofst, "LenientlyCompose")) {
+  if (!internal::ArcTypesMatch(ifst1, ifst2, "LenientlyCompose") ||
+      !internal::ArcTypesMatch(ifst2, sigma_star, "LenientlyCompose") ||
+      !internal::ArcTypesMatch(sigma_star, *ofst, "LenientlyCompose")) {
     ofst->SetProperties(kError, kError);
     return;
   }

@@ -28,19 +28,17 @@ namespace script {
 // These operations merge FST-attached symbol tables so that they are
 // compatible for other FST operations.
 
-using MergeSymbolsInnerArgs =
-    args::Package<MutableFstClass *, MutableFstClass *, MergeSymbolsType>;
-
-using MergeSymbolsArgs = args::WithReturnValue<bool, MergeSymbolsInnerArgs>;
+using MergeSymbolsArgs = std::tuple<MutableFstClass *,
+    MutableFstClass *, MergeSymbolsType>;
 
 template <class Arc>
 void MergeSymbols(MergeSymbolsArgs *args) {
-  MutableFst<Arc> *fst1 = args->args.arg1->GetMutableFst<Arc>();
-  MutableFst<Arc> *fst2 = args->args.arg2->GetMutableFst<Arc>();
-  args->retval = MergeSymbols(fst1, fst2, args->args.arg3);
+  MutableFst<Arc> *fst1 = std::get<0>(*args)->GetMutableFst<Arc>();
+  MutableFst<Arc> *fst2 = std::get<1>(*args)->GetMutableFst<Arc>();
+  MergeSymbols(fst1, fst2, std::get<2>(*args));
 }
 
-bool MergeSymbols(MutableFstClass *fst1, MutableFstClass *fst2,
+void MergeSymbols(MutableFstClass *fst1, MutableFstClass *fst2,
                   MergeSymbolsType mst);
 
 }  // namespace script

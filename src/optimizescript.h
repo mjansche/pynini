@@ -25,20 +25,20 @@
 namespace fst {
 namespace script {
 
-using OptimizeArgs = args::Package<MutableFstClass *, bool>;
+using OptimizeArgs = std::tuple<MutableFstClass *, bool>;
 
 template <class Arc>
 void Optimize(OptimizeArgs *args) {
-  MutableFst<Arc> *fst = args->arg1->GetMutableFst<Arc>();
-  Optimize(fst, args->arg2);
+  MutableFst<Arc> *fst = std::get<0>(*args)->GetMutableFst<Arc>();
+  Optimize(fst, std::get<1>(*args));
 }
 
 void Optimize(MutableFstClass *fst, bool compute_props = false);
 
 template <class Arc>
 void OptimizeStringCrossProducts(OptimizeArgs *args) {
-  MutableFst<Arc> *fst = args->arg1->GetMutableFst<Arc>();
-  OptimizeStringCrossProducts(fst, args->arg2);
+  MutableFst<Arc> *fst = std::get<0>(*args)->GetMutableFst<Arc>();
+  OptimizeStringCrossProducts(fst, std::get<1>(*args));
 }
 
 void OptimizeStringCrossProducts(MutableFstClass *fst,
@@ -46,8 +46,8 @@ void OptimizeStringCrossProducts(MutableFstClass *fst,
 
 template <class Arc>
 void OptimizeDifferenceRhs(OptimizeArgs *args) {
-  MutableFst<Arc> *fst = args->arg1->GetMutableFst<Arc>();
-  OptimizeDifferenceRhs(fst, args->arg2);
+  MutableFst<Arc> *fst = std::get<0>(*args)->GetMutableFst<Arc>();
+  OptimizeDifferenceRhs(fst, std::get<1>(*args));
 }
 
 void OptimizeDifferenceRhs(MutableFstClass *fst, bool compute_props = false);

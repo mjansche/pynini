@@ -22,13 +22,11 @@
 namespace fst {
 namespace script {
 
-bool MergeSymbols(MutableFstClass *fst1, MutableFstClass *fst2,
+void MergeSymbols(MutableFstClass *fst1, MutableFstClass *fst2,
                   MergeSymbolsType mst) {
-  if (!ArcTypesMatch(*fst1, *fst2, "MergeSymbols")) return false;
-  MergeSymbolsInnerArgs iargs(fst1, fst2, mst);
-  MergeSymbolsArgs args(iargs);
+  if (!internal::ArcTypesMatch(*fst1, *fst2, "MergeSymbols")) return;
+  MergeSymbolsArgs args(fst1, fst2, mst);
   Apply<Operation<MergeSymbolsArgs>>("MergeSymbols", fst1->ArcType(), &args);
-  return args.retval;
 }
 
 REGISTER_FST_OPERATION(MergeSymbols, StdArc, MergeSymbolsArgs);

@@ -1,7 +1,13 @@
-v. 1.7 (compatible with OpenFst ?.?.?)
+v. 1.8 (compatible with OpenFst 1.6.5)
 ======================================
 
+* Fixes C++ headers that may have caused compilation problems for some users
 * Adds string_file support '#' comments; use "\#" for a '#' literal
+* Removes `FstSymbolTableMergeError`; merging is now automatic
+
+v. 1.7 (compatible with OpenFst 1.6.3)
+======================================
+
 * Exposes `NO_STATE_ID`, `NO_LABEL`, etc., constants
 * Modifies `SymbolTable.find` to mimic C++ behavior
 * Modifies `replace` to mimic C++ behavior

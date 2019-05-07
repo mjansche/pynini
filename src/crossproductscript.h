@@ -25,16 +25,16 @@
 namespace fst {
 namespace script {
 
-using CrossProductArgs = args::Package<const FstClass &, const FstClass &,
-                                       MutableFstClass *, const WeightClass &>;
+using CrossProductArgs = std::tuple<const FstClass &, const FstClass &,
+                                    MutableFstClass *, const WeightClass &>;
 
 template <class Arc>
 void CrossProduct(CrossProductArgs *args) {
-  const Fst<Arc> &ifst1 = *(args->arg1.GetFst<Arc>());
-  const Fst<Arc> &ifst2 = *(args->arg2.GetFst<Arc>());
-  MutableFst<Arc> *ofst = args->arg3->GetMutableFst<Arc>();
+  const Fst<Arc> &ifst1 = *(std::get<0>(*args).GetFst<Arc>());
+  const Fst<Arc> &ifst2 = *(std::get<1>(*args).GetFst<Arc>());
+  MutableFst<Arc> *ofst = std::get<2>(*args)->GetMutableFst<Arc>();
   const typename Arc::Weight &final_weight =
-      *(args->arg4.GetWeight<typename Arc::Weight>());
+      *(std::get<3>(*args).GetWeight<typename Arc::Weight>());
   CrossProduct(ifst1, ifst2, ofst, final_weight);
 }
 

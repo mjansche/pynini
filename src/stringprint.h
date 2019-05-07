@@ -87,30 +87,32 @@ template <class Label>
 bool LabelsToString(const std::vector<Label> &labels, StringTokenType ttype,
                     string *result, const SymbolTable *syms = nullptr) {
   result->clear();
-  if (ttype == BYTE) {
-    result->reserve(labels.size());
-    for (const auto &label : labels) result->push_back(label);
-    return true;
-  } else if (ttype == UTF8) {
-    return LabelsToUTF8String(labels, result);
-  } else if (ttype == SYMBOL) {
-    std::stringstream sstrm;
-    if (!syms) {
-      LOG(ERROR) << "LabelsToString: Symbol table requested but none provided";
-      return false;
+  switch (ttype) {
+    case BYTE: {
+      result->reserve(labels.size());
+      for (const auto &label : labels) result->push_back(label);
+      return true;
     }
-    auto it = labels.begin();
-    if (it == labels.end()) return true;
-    if (!PrintSymbol(*it, *syms, sstrm)) return false;
-    for (++it; it != labels.end(); ++it) {
-      sstrm << kSymbolSeparator;
+    case UTF8: {
+      return LabelsToUTF8String(labels, result);
+    }
+    case SYMBOL: {
+      std::stringstream sstrm;
+      if (!syms) {
+        LOG(ERROR) << "LabelsToString: Symbol table requested but not provided";
+        return false;
+      }
+      auto it = labels.begin();
+      if (it == labels.end()) return true;
       if (!PrintSymbol(*it, *syms, sstrm)) return false;
+      for (++it; it != labels.end(); ++it) {
+        sstrm << kSymbolSeparator;
+        if (!PrintSymbol(*it, *syms, sstrm)) return false;
+      }
+      *result = sstrm.str();
+      return true;
     }
-    *result = sstrm.str();
-    return true;
   }
-  // Else...
-  LOG(ERROR) << "LabelsToString: Unknown StringTokenType: " << ttype;
   return false;
 }
 

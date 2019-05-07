@@ -15,15 +15,15 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#include <algorithm>
+#include <numeric>
 
 #include "gtl.h"
 
 namespace strings {
 namespace internal {
 
+// Computes size of joined string.
 size_t GetResultSize(const std::vector<string> &elements, size_t s_size) {
-  // Sums length of strings.
   const auto lambda = [](size_t partial, const string &right) {
       return partial + right.size();
   };

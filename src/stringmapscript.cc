@@ -23,8 +23,10 @@ namespace script {
 
 bool StringFile(const string &fname, StringTokenType itype,
                 StringTokenType otype, MutableFstClass *fst,
-                const SymbolTable *isyms, const SymbolTable *osyms) {
-  StringFileInnerArgs iargs(fname, itype, otype, fst, isyms, osyms);
+                const SymbolTable *isyms, const SymbolTable *osyms,
+                bool attach_symbols) {
+  StringFileInnerArgs iargs(fname, itype, otype, fst, isyms, osyms,
+                            attach_symbols);
   StringFileArgs args(iargs);
   Apply<Operation<StringFileArgs>>("StringFile", fst->ArcType(), &args);
   return args.retval;
@@ -37,8 +39,9 @@ REGISTER_FST_OPERATION(StringFile, Log64Arc, StringFileArgs);
 bool StringMap(const std::vector<std::pair<string, string>> &pairs,
                StringTokenType itype, StringTokenType otype,
                MutableFstClass *fst, const SymbolTable *isyms,
-               const SymbolTable *osyms) {
-  StringMapInnerArgs iargs(pairs, itype, otype, fst, isyms, osyms);
+               const SymbolTable *osyms, bool attach_symbols) {
+  StringMapInnerArgs iargs(pairs, itype, otype, fst, isyms, osyms,
+                           attach_symbols);
   StringMapArgs args(iargs);
   Apply<Operation<StringMapArgs>>("StringMap", fst->ArcType(), &args);
   return args.retval;

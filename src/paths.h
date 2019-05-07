@@ -130,8 +130,8 @@ void PathIterator<Arc>::Reset() {
   // to do, so we indicate that with kInitialStateIsFinal. Otherwise we set it
   // to kNewState, which means "I haven't started the arc iterator at this state
   // yet".
-  arc_iterator_offsets_.push_back(
-      weight == ArcWeight::Zero() ? kNewState : kInitialStateIsFinal);
+  arc_iterator_offsets_.push_back(weight == ArcWeight::Zero() ?
+                                  kNewState : kInitialStateIsFinal);
   Next();
 }
 
@@ -308,10 +308,14 @@ StringPaths<Arc>::StringPaths(const Fst<Arc> &fst, StringTokenType itype,
   // If the FST has its own symbol tables and symbol table use is requested,
   // we use those unless isyms or osyms is specified.
   if (itype == StringTokenType::SYMBOL) {
-    if (!isyms_ && fst.InputSymbols()) isyms_ = fst.InputSymbols();
+    if (!isyms_ && fst.InputSymbols()) {
+      isyms_ = fst.InputSymbols();
+    }
   }
   if (otype == StringTokenType::SYMBOL) {
-    if (!osyms_ && fst.OutputSymbols()) osyms_ = fst.OutputSymbols();
+    if (!osyms_ && fst.OutputSymbols()) {
+      osyms_ = fst.OutputSymbols();
+    }
   }
   error_ = iter_.Error();
 }

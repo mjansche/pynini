@@ -23,8 +23,8 @@ namespace script {
 
 void Containment(const FstClass &ifst, const FstClass &sigma_star,
                  MutableFstClass *ofst) {
-  if (!ArcTypesMatch(ifst, sigma_star, "Containment") ||
-      !ArcTypesMatch(sigma_star, *ofst, "Containment")) {
+  if (!internal::ArcTypesMatch(ifst, sigma_star, "Containment") ||
+      !internal::ArcTypesMatch(sigma_star, *ofst, "Containment")) {
     ofst->SetProperties(kError, kError);
     return;
   }

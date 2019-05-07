@@ -25,24 +25,26 @@
 namespace fst {
 namespace script {
 
-using CompileStringInnerArgs =
-    args::Package<const string &, const WeightClass &, StringTokenType,
-                  MutableFstClass *, const SymbolTable *>;
+using CompileStringInnerArgs = std::tuple<const string &,
+    const WeightClass &, StringTokenType, MutableFstClass *,
+    const SymbolTable *, bool>;
 
-using CompileStringArgs = args::WithReturnValue<bool, CompileStringInnerArgs>;
+using CompileStringArgs = WithReturnValue<bool, CompileStringInnerArgs>;
 
 template <class Arc>
 void CompileString(CompileStringArgs *args) {
   typename Arc::Weight weight =
-      *(args->args.arg2.GetWeight<typename Arc::Weight>());
-  MutableFst<Arc> *fst = args->args.arg4->GetMutableFst<Arc>();
-  args->retval = CompileString(args->args.arg1, weight, args->args.arg3, fst,
-                               args->args.arg5);
+      *(std::get<1>(args->args).GetWeight<typename Arc::Weight>());
+  MutableFst<Arc> *fst = std::get<3>(args->args)->GetMutableFst<Arc>();
+  args->retval = CompileString(std::get<0>(args->args), weight,
+      std::get<2>(args->args), fst, std::get<4>(args->args),
+      std::get<5>(args->args));
 }
 
 bool CompileString(const string &str, const WeightClass &wc,
                    StringTokenType ttype, MutableFstClass *fst,
-                   const SymbolTable *syms = nullptr);
+                   const SymbolTable *syms = nullptr,
+                   bool attach_symbols = true);
 
 }  // namespace script
 }  // namespace fst

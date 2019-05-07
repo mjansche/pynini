@@ -23,12 +23,12 @@ namespace script {
 void PyniniReplace(const FstClass &root,
                    const std::vector<StringFstClassPair> &pairs,
                    MutableFstClass *ofst, const ReplaceOptions &opts) {
-  if (!ArcTypesMatch(root, *ofst, "PyniniReplace")) {
+  if (!internal::ArcTypesMatch(root, *ofst, "PyniniReplace")) {
     ofst->SetProperties(kError, kError);
     return;
   }
   for (auto it = pairs.cbegin(); it != pairs.cend(); ++it) {
-    if (!ArcTypesMatch(*it->second, *ofst, "PyniniReplace")) {
+    if (!internal::ArcTypesMatch(*it->second, *ofst, "PyniniReplace")) {
       ofst->SetProperties(kError, kError);
       return;
     }
@@ -45,12 +45,12 @@ void PyniniPdtReplace(const FstClass &root,
                       const std::vector<StringFstClassPair> &pairs,
                       MutableFstClass *ofst, std::vector<LabelPair> *parens,
                       PdtParserType type) {
-  if (!ArcTypesMatch(root, *ofst, "PyniniReplace")) {
+  if (!internal::ArcTypesMatch(root, *ofst, "PyniniReplace")) {
     ofst->SetProperties(kError, kError);
     return;
   }
   for (auto it = pairs.cbegin(); it != pairs.cend(); ++it) {
-    if (!ArcTypesMatch(*it->second, *ofst, "PyniniPdtReplace")) {
+    if (!internal::ArcTypesMatch(*it->second, *ofst, "PyniniPdtReplace")) {
       ofst->SetProperties(kError, kError);
       return;
     }

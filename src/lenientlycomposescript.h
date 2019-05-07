@@ -26,16 +26,16 @@ namespace fst {
 namespace script {
 
 using LenientlyComposeArgs =
-    args::Package<const FstClass &, const FstClass &, const FstClass &,
-                  MutableFstClass *, const ComposeOptions &>;
+    std::tuple<const FstClass &, const FstClass &, const FstClass &,
+               MutableFstClass *, const ComposeOptions &>;
 
 template <class Arc>
 void LenientlyCompose(LenientlyComposeArgs *args) {
-  const Fst<Arc> &ifst1 = *(args->arg1.GetFst<Arc>());
-  const Fst<Arc> &ifst2 = *(args->arg2.GetFst<Arc>());
-  const Fst<Arc> &sigma_star = *(args->arg3.GetFst<Arc>());
-  MutableFst<Arc> *ofst = args->arg4->GetMutableFst<Arc>();
-  LenientlyCompose(ifst1, ifst2, sigma_star, ofst, args->arg5);
+  const Fst<Arc> &ifst1 = *(std::get<0>(*args).GetFst<Arc>());
+  const Fst<Arc> &ifst2 = *(std::get<1>(*args).GetFst<Arc>());
+  const Fst<Arc> &sigma_star = *(std::get<2>(*args).GetFst<Arc>());
+  MutableFst<Arc> *ofst = std::get<3>(*args)->GetMutableFst<Arc>();
+  LenientlyCompose(ifst1, ifst2, sigma_star, ofst, std::get<4>(*args));
 }
 
 void LenientlyCompose(const FstClass &ifst1, const FstClass &ifst2,

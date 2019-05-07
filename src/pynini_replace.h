@@ -176,13 +176,13 @@ namespace script {
 using StringFstClassPair = std::pair<string, const FstClass *>;
 
 using PyniniReplaceArgs =
-    args::Package<const FstClass &, const std::vector<StringFstClassPair> &,
-                  MutableFstClass *, const ReplaceOptions &>;
+    std::tuple<const FstClass &, const std::vector<StringFstClassPair> &,
+               MutableFstClass *, const ReplaceOptions &>;
 
 template <class Arc>
 void PyniniReplace(PyniniReplaceArgs *args) {
-  const Fst<Arc> &root = *(args->arg1.GetFst<Arc>());
-  const auto &untyped_pairs = args->arg2;
+  const Fst<Arc> &root = *(std::get<0>(*args).GetFst<Arc>());
+  const auto &untyped_pairs = std::get<1>(*args);
   const size_t size = untyped_pairs.size();
   std::vector<std::pair<string, const Fst<Arc> *>> typed_pairs;
   typed_pairs.reserve(size);
@@ -190,8 +190,8 @@ void PyniniReplace(PyniniReplaceArgs *args) {
     typed_pairs.emplace_back(untyped_pair.first,
                              untyped_pair.second->GetFst<Arc>());
   }
-  MutableFst<Arc> *ofst = args->arg3->GetMutableFst<Arc>();
-  const ReplaceOptions &untyped_opts = args->arg4;
+  MutableFst<Arc> *ofst = std::get<2>(*args)->GetMutableFst<Arc>();
+  const ReplaceOptions &untyped_opts = std::get<3>(*args);
   ReplaceFstOptions<Arc> typed_opts(kNoLabel, untyped_opts.call_label_type,
                                     untyped_opts.return_label_type,
                                     untyped_opts.return_label);
@@ -205,13 +205,13 @@ void PyniniReplace(const FstClass &root,
 // PDT replacement.
 
 using PyniniPdtReplaceArgs =
-    args::Package<const FstClass &, const std::vector<StringFstClassPair> &,
-                  MutableFstClass *, std::vector<LabelPair> *, PdtParserType>;
+    std::tuple<const FstClass &, const std::vector<StringFstClassPair> &,
+               MutableFstClass *, std::vector<LabelPair> *, PdtParserType>;
 
 template <class Arc>
 void PyniniPdtReplace(PyniniPdtReplaceArgs *args) {
-  const Fst<Arc> &root = *(args->arg1.GetFst<Arc>());
-  const auto &untyped_pairs = args->arg2;
+  const Fst<Arc> &root = *(std::get<0>(*args).GetFst<Arc>());
+  const auto &untyped_pairs = std::get<1>(*args);
   const size_t size = untyped_pairs.size();
   std::vector<std::pair<string, const Fst<Arc> *>> typed_pairs;
   typed_pairs.reserve(size);
@@ -219,12 +219,13 @@ void PyniniPdtReplace(PyniniPdtReplaceArgs *args) {
     typed_pairs.emplace_back(untyped_pair.first,
                              untyped_pair.second->GetFst<Arc>());
   }
-  MutableFst<Arc> *ofst = args->arg3->GetMutableFst<Arc>();
+  MutableFst<Arc> *ofst = std::get<2>(*args)->GetMutableFst<Arc>();
   std::vector<std::pair<typename Arc::Label, typename Arc::Label>> typed_parens;
   PyniniReplace(root, typed_pairs, ofst, &typed_parens);
   // Copies parens back.
-  args->arg4->resize(typed_parens.size());
-  std::copy(typed_parens.begin(), typed_parens.end(), args->arg4->begin());
+  std::get<3>(*args)->resize(typed_parens.size());
+  std::copy(typed_parens.begin(), typed_parens.end(),
+            std::get<3>(*args)->begin());
 }
 
 void PyniniPdtReplace(const FstClass &root,
